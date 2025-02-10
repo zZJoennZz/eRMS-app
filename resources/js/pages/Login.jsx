@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { toast } from "react-toastify";
 
-import logo from "../img/LBSi Logo.png";
+import logo from "../img/erms-logo.png";
 
 import axios from "axios";
 import { API_URL } from "../configs/config";
@@ -16,7 +16,7 @@ export default function Login() {
         password: "",
     });
 
-    const { isAuth, changeAuth } = useContext(AuthContext);
+    const { isAuth, changeAuth, userType } = useContext(AuthContext);
 
     function onChangeHandler(e) {
         setLoginCredentials((prev) => {
@@ -32,7 +32,9 @@ export default function Login() {
         axios
             .post(`${API_URL}login`, loginCredentials)
             .then((res) => {
+                console.log(res);
                 localStorage.setItem("token", "Bearer " + res.data.data.token);
+
                 changeAuth(true, res.data.data.id);
                 toast.success("Login success!");
             })
@@ -46,7 +48,7 @@ export default function Login() {
 
     return (
         <>
-            <div className="bg-gradient-to-tr from-lime-700 to-orange-400 h-screen flex flex-col">
+            <div className="bg-gradient-to-tr from-lime-700 to-green-400 h-screen flex flex-col">
                 <div className="m-auto bg-white p-5 rounded-lg shadow-lg bg-opacity-70 w-11/12 md:w-auto">
                     <div>
                         <img
