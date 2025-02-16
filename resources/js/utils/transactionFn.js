@@ -29,3 +29,23 @@ export async function recordsForTransfer() {
 
     return res.data.data;
 }
+
+export async function approveTransaction(data) {
+    let res = await axios.post(`${API_URL}approve-transaction`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
+export async function processTransaction(data) {
+    let res = await axios.post(`${API_URL}process-transaction`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

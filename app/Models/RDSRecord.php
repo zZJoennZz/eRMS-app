@@ -14,6 +14,11 @@ class RDSRecord extends Model
         'branches_id',
     ];
 
+    public function documents()
+    {
+        return $this->hasMany(RDSRecordDocument::class, 'r_d_s_records_id', 'id');
+    }
+
     public function branch()
     {
         return $this->hasOne(Branch::class, 'id', 'branches_id');

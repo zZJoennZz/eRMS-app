@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('receiver');
             $table->unsignedBigInteger('issuer');
             $table->unsignedBigInteger('submitted_by');
-            $table->longText('remarks');
+            $table->longText('remarks')->nullable();
             $table->timestamps();
 
             $table->foreign('receiver')->references('id')->on('users');

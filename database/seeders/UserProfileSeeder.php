@@ -76,5 +76,14 @@ class UserProfileSeeder extends Seeder
             'others' => '',
             'positions_id' => 2,
         ]);
+
+        UserProfile::create([
+            'users_id' => 8,
+            'first_name' => 'WARHOUSE',
+            'middle_name' => '',
+            'last_name' => 'CUSTODIAN',
+            'others' => '',
+            'positions_id' => 4,
+        ]);
     }
 }

@@ -29,6 +29,8 @@ Route::prefix('v1')->group(function () {
         Route::get('rds-records/approved-rds-records', [RDSRecordController::class, 'approved_rds_records']);
         Route::post('approve-rds', [RDSRecordController::class, 'approve_rds_record']);
         Route::resource('rds-records', RDSRecordController::class);
+        Route::post('approve-transaction', [TransactionController::class, 'approve_transaction']);
+        Route::post('process-transaction', [TransactionController::class, 'process_transaction']);
         Route::resource('transactions', TransactionController::class);
 
         //misc

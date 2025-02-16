@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\RDSRecord;
+use App\Models\RDSRecordDocument;
 use App\Models\RDSRecordHistory;
 use App\Models\RecordsDispositionSchedule;
 use Illuminate\Http\Request;
@@ -24,21 +25,28 @@ class RDSRecordController extends Controller
 
         $rds_record = "";
         if (Auth::user()->type === "EMPLOYEE") {
-            $rds_record = RDSRecord::with(['rds', 'history' => function ($query) {
-                return $query->orderBy('created_at', 'desc');
-            }])->where('source_of_documents', '=', Auth::user()->profile->position->name)
-                ->where('status', '=', 'APPROVED')
-                ->where('branches_id', '=', Auth::user()->branches_id)
-                ->get();
-        } elseif (Auth::user()->type === "BRANCH_HEAD" || Auth::user()->type === "RECORDS_CUST") {
-            $rds_record = RDSRecord::with(['rds', 'history' => function ($query) {
-                return $query->orderBy('created_at', 'desc');
-            }])->where('branches_id', '=', Auth::user()->branches_id)
-                ->get();
-        } else {
-            $rds_record = RDSRecord::with(['rds', 'history' => function ($query) {
+            $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
             }])
+                ->whereHas('documents', function ($query) {
+                    $query->where('source_of_documents', '=', Auth::user()->profile->position->name);
+                })
+                ->where('status', '=', 'APPROVED')
+                ->where('branches_id', '=', Auth::user()->branches_id)
+                ->orderBy('box_number', 'asc')
+                ->get();
+        } elseif (Auth::user()->type === "BRANCH_HEAD" || Auth::user()->type === "RECORDS_CUST") {
+            $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->where('branches_id', '=', Auth::user()->branches_id)
+                ->orderBy('box_number', 'asc')
+                ->get();
+        } else {
+            $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->orderBy('box_number', 'asc')
                 ->get();
         }
         return send200Response($rds_record);
@@ -59,46 +67,65 @@ class RDSRecordController extends Controller
     {
         //
         try {
-            $request->validate([
-                'records_disposition_schedules_id' => 'required',
-                'period_covered_from' => 'required|date',
-                'period_covered_to' => 'required|date',
-                'description_of_document' => 'required',
-            ]);
+            // $request->validate([
+            //     'rdsRecords.records_disposition_schedules_id' => 'required',
+            //     'rdsRecords.period_covered_from' => 'required|date',
+            //     'rdsRecords.period_covered_to' => 'required|date',
+            // ]);
             DB::beginTransaction();
 
-            // Fetch the last entry for this branch
-            $lastRecord = RDSRecord::where('branches_id', Auth::user()->branch->id)
-                ->whereNotNull('box_number')
-                ->orderByDesc('id')
-                ->first();
+            $totalRetention = "NONE";
+            foreach ($request->rdsRecords as $rds) {
+                $currentRds = RecordsDispositionSchedule::find($rds["records_disposition_schedules_id"]);
+                if ($totalRetention === "NONE") {
+                    $totalRetention = $currentRds->active + $currentRds->storage;
+                }
+                if ($currentRds) {
+                    $total = $currentRds->active + $currentRds->storage;
 
-            // Extract the counter from the last box_number
-            if ($lastRecord && preg_match('/-(\d+)$/', $lastRecord->box_number, $matches)) {
-                $counter = (int) $matches[1] + 1; // Increment
-            } else {
-                $counter = 1; // Start at 1 if no records exist
+                    if ($total !== $totalRetention) { // Assuming there's an expected total to compare
+                        return send400Response("The retention period for the RDS' are not the same.");
+                    }
+                }
             }
 
-            // Ensure counter is at least 3 digits
-            $formattedCounter = str_pad($counter, 3, '0', STR_PAD_LEFT);
+            // // Fetch the last entry for this branch
+            // $lastRecord = RDSRecord::where('branches_id', Auth::user()->branch->id)
+            //     ->whereNotNull('box_number')
+            //     ->orderByDesc('id')
+            //     ->first();
 
-            $rds = RecordsDispositionSchedule::find($request->records_disposition_schedules_id);
+            // // Extract the counter from the last box_number
+            // if ($lastRecord && preg_match('/-(\d+)$/', $lastRecord->box_number, $matches)) {
+            //     $counter = (int) $matches[1] + 1; // Increment
+            // } else {
+            //     $counter = 1; // Start at 1 if no records exist
+            // }
 
+            // // Ensure counter is at least 3 digits
+            // $formattedCounter = str_pad($counter, 3, '0', STR_PAD_LEFT);
 
             $new_rds_record = new RDSRecord();
             $new_rds_record->status = "PENDING";
-            $new_rds_record->records_disposition_schedules_id = $request->records_disposition_schedules_id;
-            $new_rds_record->box_number = Auth::user()->branch->code . "-" . $formattedCounter;
-            $new_rds_record->source_of_documents = Auth::user()->profile->position->name;
-            $new_rds_record->records_disposition_schedules_id = $request->records_disposition_schedules_id;
-            $new_rds_record->period_covered_from = $request->period_covered_from;
-            $new_rds_record->period_covered_to = $request->period_covered_to;
-            $new_rds_record->projected_date_of_disposal = date('Y-m-d', strtotime($request->period_covered_to . ' +' . $rds->active + $rds->storage . 'years'));
-            $new_rds_record->description_of_document = $request->description_of_document;
-            $new_rds_record->remarks = $request->remarks;
+            $new_rds_record->box_number = "";
             $new_rds_record->branches_id = Auth::user()->branches_id;
             $new_rds_record->save();
+
+            foreach ($request->rdsRecords as $rds) {
+                $sel_rds = RecordsDispositionSchedule::find($rds["records_disposition_schedules_id"]);
+                $new_rds_document = new RDSRecordDocument();
+                $new_rds_document->r_d_s_records_id = $new_rds_record->id;
+                $new_rds_document->records_disposition_schedules_id = $rds["records_disposition_schedules_id"];
+                $new_rds_document->source_of_documents = Auth::user()->profile->position->name;
+                $new_rds_document->period_covered_from = $rds["period_covered_from"];
+                $new_rds_document->period_covered_to = $request->rdsRecords[0]["period_covered_to"];
+                $new_rds_document->projected_date_of_disposal = date('Y-m-d', strtotime($request->rdsRecords[0]["period_covered_to"] . ' +' . $sel_rds->active + $sel_rds->storage . 'years'));
+                $new_rds_document->description_of_document = $sel_rds->record_series_title_and_description;
+                $new_rds_document->remarks = $rds["remarks"];
+                // DB::rollBack();
+                // return send400Response(date('Y-m-d', strtotime($request->rdsRecords[0]["period_covered_to"] . ' +' . $sel_rds->active + $sel_rds->storage . 'years')));
+                $new_rds_document->save();
+            }
 
             $new_rds_record_history = new RDSRecordHistory();
             $new_rds_record_history->r_d_s_records_id = $new_rds_record->id;
@@ -162,6 +189,27 @@ class RDSRecordController extends Controller
         try {
             DB::beginTransaction();
             $rds_record = RDSRecord::find($request->id);
+            if ($rds_record->status === "APPROVED") {
+                return send400Response("The record is already approved!");
+            }
+            // Fetch the last entry for this branch
+            $lastRecord = RDSRecord::where('branches_id', Auth::user()->branch->id)
+                ->whereNotNull('box_number')
+                ->where('box_number', '<>', '')
+                ->orderByDesc('box_number')
+                ->first();
+
+            // Extract the counter from the last box_number
+            if ($lastRecord && preg_match('/-(\d+)$/', $lastRecord->box_number, $matches)) {
+                $counter = (int) $matches[1] + 1; // Increment
+            } else {
+                $counter = 1; // Start at 1 if no records exist
+            }
+
+            // Ensure counter is at least 3 digits
+            $formattedCounter = str_pad($counter, 3, '0', STR_PAD_LEFT);
+
+            $rds_record->box_number = Auth::user()->branch->code . "-" . $formattedCounter;
             $rds_record->status = "APPROVED";
             $rds_record->save();
 
@@ -176,7 +224,6 @@ class RDSRecordController extends Controller
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
-            return $e;
             return send400Response();
         }
     }

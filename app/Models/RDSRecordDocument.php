@@ -21,6 +21,11 @@ class RDSRecordDocument extends Model
 
     public function record()
     {
-        $this->belongsTo(RDSRecord::class, 'r_d_s_records_id', 'id');
+        return $this->belongsTo(RDSRecord::class, 'r_d_s_records_id', 'id');
+    }
+
+    public function rds()
+    {
+        return $this->hasOne(RecordsDispositionSchedule::class, 'id', 'records_disposition_schedules_id');
     }
 }

@@ -47,7 +47,7 @@ export default function RDSRecord() {
         mutationFn: () => approveRdsRecord({ id: selectedRdsRecord }),
         onSuccess: () => {
             setSelectedRdsRecord(0);
-            queryClient.invalidateQueries({ queryKey: ["allRdsRecord"] });
+            queryClient.invalidateQueries({ queryKey: ["allRdsRecords"] });
             toast.success("RDS Record successfully approved!");
         },
         onError: (err) => {
@@ -98,7 +98,7 @@ export default function RDSRecord() {
                 closeHandler={sideDrawerClose}
                 title={drawerTitle}
                 content={selectedForm}
-                twcssWidthClass="w-96"
+                twcssWidthClass="w-full"
             />
             <h1 className="text-xl font-semibold mb-2">RDS Record</h1>
             <div className="mb-3">
@@ -112,14 +112,18 @@ export default function RDSRecord() {
                     placeholder="Search RDS Record here"
                 />
             </div>
-            <div className="mb-3">
-                <button
-                    className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 flex items-center"
-                    onClick={() => openDrawer("new")}
-                >
-                    <PlusIcon className="w-4 h-4 inline mr-2" /> Add RDS Record
-                </button>
-            </div>
+            {userType !== "RECORDS_CUST" && (
+                <div className="mb-3">
+                    <button
+                        className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 flex items-center"
+                        onClick={() => openDrawer("new")}
+                    >
+                        <PlusIcon className="w-4 h-4 inline mr-2" /> Add RDS
+                        Record
+                    </button>
+                </div>
+            )}
+
             <div className="overflow-x-auto">
                 <table className="mb-3 w-full">
                     <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
@@ -163,7 +167,7 @@ export default function RDSRecord() {
                     <tbody>
                         {getAllRdsRecords.isLoading ? (
                             <tr>
-                                <td colSpan={6}>
+                                <td colSpan={12}>
                                     <ComponentLoader />
                                 </td>
                             </tr>
@@ -171,19 +175,26 @@ export default function RDSRecord() {
                             getAllRdsRecords.data &&
                             getAllRdsRecords.data
                                 .filter((i) =>
-                                    i.box_number
-                                        .toLowerCase()
-                                        .includes(searchTxt.toLowerCase())
+                                    Object.values(i).some((value) =>
+                                        value
+                                            ?.toString()
+                                            .toLowerCase()
+                                            .includes(searchTxt.toLowerCase())
+                                    )
                                 )
                                 .map((data) => (
-                                    <tr
-                                        key={data.id}
-                                        id={data.id}
-                                        className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
-                                    >
-                                        <td className="py-2 text-left border-b border-slate-300">
-                                            {data.box_number}
-                                            {/* <button
+                                    <>
+                                        <tr
+                                            key={data.id}
+                                            id={data.id}
+                                            className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
+                                        >
+                                            <td
+                                                colSpan={12}
+                                                className="py-2 text-left border-b border-slate-300"
+                                            >
+                                                {data.box_number}
+                                                {/* <button
                                                 type="button"
                                                 className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-gray-400 border border-gray-400 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
                                                 onClick={() =>
@@ -192,71 +203,83 @@ export default function RDSRecord() {
                                             >
                                                 Edit
                                             </button> */}
-                                            {data.status === "PENDING" && (
-                                                <div className="bg-gray-500 text-xs inline text-white p-0.5 rounded-full ml-1">
-                                                    Pending
-                                                </div>
-                                            )}
-                                            {data.status === "PENDING" &&
-                                                userType === "RECORDS_CUST" && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            approveSelectedRecord(
-                                                                data.id
-                                                            )
-                                                        }
-                                                        className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
-                                                    >
-                                                        Approve
-                                                    </button>
+                                                {data.status === "PENDING" && (
+                                                    <div className="bg-gray-500 text-xs inline text-white p-0.5 rounded-full ml-1">
+                                                        Pending
+                                                    </div>
                                                 )}
+                                                {data.status === "PENDING" &&
+                                                    userType ===
+                                                        "RECORDS_CUST" && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                approveSelectedRecord(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                    )}
 
-                                            {data.status === "APPROVED" && (
-                                                <a
-                                                    href={`/print/${data.id}`}
-                                                    target="_blank"
-                                                    className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-blue-700 border border-blue-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
-                                                >
-                                                    Print
-                                                </a>
-                                            )}
-                                        </td>
-                                        <td className="py-2 border-b border-slate-300">
-                                            {data.rds.item_number}
-                                        </td>
-                                        <td className="py-2 border-b border-slate-300">
-                                            {data.source_of_documents}
-                                        </td>
-                                        <td className="py-2 border-b border-slate-300">
-                                            {data.description_of_document}
-                                        </td>
-                                        <td className="py-2 text-left border-b border-slate-300">
-                                            {data.period_covered_from} -{" "}
-                                            {data.period_covered_to}
-                                        </td>
-                                        <td className="py-2 text-center border-b border-slate-300">
-                                            {data.rds.active}
-                                        </td>
-                                        <td className="py-2 text-center border-b border-slate-300">
-                                            {data.rds.storage}
-                                        </td>
-                                        <td className="py-2 text-center border-b border-slate-300">
-                                            {data.rds.active + data.rds.storage}
-                                        </td>
-                                        <td className="py-2 text-center border-b border-slate-300">
-                                            {data.rds.remarks}
-                                        </td>
-                                        <td className="py-2 text-center border-b border-slate-300">
-                                            {data.projected_date_of_disposal}
-                                        </td>
-                                        <td className="py-2 text-center border-b border-slate-300">
-                                            {data.history[0].location}
-                                        </td>
-                                        <td className="py-2 text-center border-b border-slate-300">
-                                            {data.remarks}
-                                        </td>
-                                    </tr>
+                                                {data.status === "APPROVED" && (
+                                                    <a
+                                                        href={`/print/${data.id}`}
+                                                        target="_blank"
+                                                        className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-blue-700 border border-blue-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                    >
+                                                        Print
+                                                    </a>
+                                                )}
+                                            </td>
+                                        </tr>
+                                        {data.documents.map((doc) => (
+                                            <tr key={doc.id} id={doc.id}>
+                                                <td className="py-2 border-b border-slate-300"></td>
+                                                <td className="py-2 border-b border-slate-300">
+                                                    {doc.rds.item_number}
+                                                </td>
+                                                <td className="py-2 border-b border-slate-300">
+                                                    {doc.source_of_documents}
+                                                </td>
+                                                <td className="py-2 border-b border-slate-300">
+                                                    {
+                                                        doc.description_of_document
+                                                    }
+                                                </td>
+                                                <td className="py-2 text-left border-b border-slate-300">
+                                                    {doc.period_covered_from} -{" "}
+                                                    {doc.period_covered_to}
+                                                </td>
+                                                <td className="py-2 text-center border-b border-slate-300">
+                                                    {doc.rds.active}
+                                                </td>
+                                                <td className="py-2 text-center border-b border-slate-300">
+                                                    {doc.rds.storage}
+                                                </td>
+                                                <td className="py-2 text-center border-b border-slate-300">
+                                                    {doc.rds.active +
+                                                        doc.rds.storage}
+                                                </td>
+                                                <td className="py-2 text-center border-b border-slate-300">
+                                                    {doc.rds.remarks}
+                                                </td>
+                                                <td className="py-2 text-center border-b border-slate-300">
+                                                    {
+                                                        doc.projected_date_of_disposal
+                                                    }
+                                                </td>
+                                                <td className="py-2 text-center border-b border-slate-300">
+                                                    {data.history[0].location}
+                                                </td>
+                                                <td className="py-2 text-center border-b border-slate-300">
+                                                    {doc.remarks}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </>
                                 ))
                         )}
                     </tbody>

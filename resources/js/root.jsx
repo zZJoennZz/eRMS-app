@@ -106,19 +106,14 @@ export default function Root() {
         <AuthContext.Provider value={contextValue}>
             <Suspense fallback={<PreLoader />}>
                 <Routes>
+                    <Route exact path="/" element={<PublicRoute />}>
+                        <Route path="/" element={<Login />} />
+                    </Route>
                     <Route
                         exact
                         path="/unauthorized"
                         element={<Unauthorized />}
                     />
-                    <Route exact path="/" element={<PublicRoute />}>
-                        <Route path="/" element={<Login />} />
-                        {/* <Route
-                            path="/request-release"
-                            element={<RequestRelease />}
-                        /> */}
-                    </Route>
-                    PRIVATE ROUTES
                     <Route
                         element={
                             <PrivateRoute

@@ -22,4 +22,9 @@ class UserProfile extends Model
     {
         return $this->hasOne(Position::class, 'id', 'positions_id');
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id', 'users_id');
+    }
 }

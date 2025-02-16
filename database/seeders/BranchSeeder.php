@@ -16,23 +16,28 @@ class BranchSeeder extends Seeder
         //
         Branch::create([
             'code' => '',
-            'name' => 'Warehouse'
+            'name' => 'Warehouse',
+            'clusters_id' => 1,
         ]);
         Branch::create([
             'code' => '010',
-            'name' => 'Baliuag Branch'
+            'name' => 'Baliuag Branch',
+            'clusters_id' => 1,
         ]);
         Branch::create([
             'code' => '011',
-            'name' => 'Test 1 Branch'
+            'name' => 'Test 1 Branch',
+            'clusters_id' => 1,
         ]);
         Branch::create([
             'code' => '012',
-            'name' => 'Test 12 Branch'
+            'name' => 'Test 12 Branch',
+            'clusters_id' => 1,
         ]);
         Branch::create([
             'code' => '013',
-            'name' => 'Test 13 Branch'
+            'name' => 'Test 13 Branch',
+            'clusters_id' => 1,
         ]);
     }
 }

@@ -12,5 +12,11 @@ class Branch extends Model
         'code',
         'name',
         'others',
+        'clusters_id',
     ];
+
+    public function cluster()
+    {
+        return $this->belongsTo(Cluster::class, 'clusters_id', 'id');
+    }
 }

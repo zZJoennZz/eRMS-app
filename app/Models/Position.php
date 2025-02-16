@@ -12,4 +12,9 @@ class Position extends Model
         'name',
         'type',
     ];
+
+    public function profiles()
+    {
+        return $this->hasMany(UserProfile::class, 'positions_id', 'id');
+    }
 }
