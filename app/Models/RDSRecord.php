@@ -12,6 +12,7 @@ class RDSRecord extends Model
         'status',
         'box_number',
         'branches_id',
+        'submitted_by',
     ];
 
     public function documents()
@@ -37,5 +38,10 @@ class RDSRecord extends Model
     public function latest_history()
     {
         return $this->hasOne(RDSRecordHistory::class, 'r_d_s_records_id', 'id')->latest();
+    }
+
+    public function submitted_by_user()
+    {
+        return $this->hasOne(User::class, 'id', 'submitted_by');
     }
 }

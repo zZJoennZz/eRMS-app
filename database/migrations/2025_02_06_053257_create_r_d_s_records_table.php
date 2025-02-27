@@ -16,9 +16,11 @@ return new class extends Migration
             $table->text("status");
             $table->longText('box_number')->nullable()->default('');
             $table->unsignedBigInteger('branches_id');
+            $table->unsignedBigInteger('submitted_by');
             $table->timestamps();
 
             $table->foreign('branches_id')->references('id')->on('branches');
+            $table->foreign('submitted_by')->references('id')->on('users');
         });
     }
 

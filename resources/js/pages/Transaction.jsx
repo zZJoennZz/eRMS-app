@@ -43,6 +43,7 @@ export default function Transaction() {
     const [selectedForm, setSelectedForm] = useState(<></>);
     const [changeTransactionStatusId, setChangeTransactionStatusId] =
         useState(0);
+    const [justification, setJustification] = useState("");
     const [rerender, setRerender] = useState(0);
 
     const sideDrawerClose = useCallback(() => {
@@ -50,11 +51,16 @@ export default function Transaction() {
     });
 
     const approveTrans = useMutation({
-        mutationFn: () => approveTransaction({ id: changeTransactionStatusId }),
+        mutationFn: () =>
+            approveTransaction({
+                id: changeTransactionStatusId,
+                justification,
+            }),
         onSuccess: () => {
             setChangeTransactionStatusId(0);
+            setJustification("");
             queryClient.invalidateQueries({ queryKey: ["allTransactions"] });
-            toast.success("Transfer successfully approved!");
+            toast.success("Transaction successfully approved!");
         },
         onError: (err) => {
             toast.error(err.response.data.message);
@@ -63,9 +69,14 @@ export default function Transaction() {
     });
 
     const processTrans = useMutation({
-        mutationFn: () => processTransaction({ id: changeTransactionStatusId }),
+        mutationFn: () =>
+            processTransaction({
+                id: changeTransactionStatusId,
+                remarks: justification,
+            }),
         onSuccess: () => {
             setChangeTransactionStatusId(0);
+            setJustification("");
             queryClient.invalidateQueries({ queryKey: ["allTransactions"] });
             toast.success("Success! Transaction proceeds to next step!");
         },
@@ -103,19 +114,37 @@ export default function Transaction() {
     }
 
     function confirmTransaction(id) {
-        if (confirm("Are you sure to approve this transfer?")) {
+        if (confirm("Are you sure to approve this transaction?")) {
             setChangeTransactionStatusId(id);
             approveTrans.mutate();
             return 1;
         }
     }
 
-    function startProcessTransaction(id) {
+    function startProcessTransaction(id, type = "", dateDifference = 0) {
         if (confirm("Are you sure to start processing this transaction?")) {
             setChangeTransactionStatusId(id);
+            if (type === "RETURN" && dateDifference < 14) {
+                let remarks = prompt(
+                    "Oh no! Your borrowed document/s exceeded 2 weeks or 14 days! Enter your justification below."
+                );
+                setJustification(remarks);
+            }
             processTrans.mutate();
             return 1;
         }
+    }
+
+    function getDateDifference(startDate) {
+        let date1 = new Date(startDate);
+
+        let Difference_In_Time = Date.now() - date1.getTime();
+
+        let Difference_In_Days = Math.round(
+            Difference_In_Time / (1000 * 3600 * 24)
+        );
+
+        return Difference_In_Days;
     }
 
     return (
@@ -139,14 +168,17 @@ export default function Transaction() {
                     placeholder="Search Transaction here"
                 />
             </div>
-            <div className="mb-3">
-                <button
-                    className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 flex items-center"
-                    onClick={() => openDrawer("new")}
-                >
-                    <PlusIcon className="w-4 h-4 inline mr-2" /> Add Transaction
-                </button>
-            </div>
+            {userType === "RECORDS_CUST" && (
+                <div className="mb-3">
+                    <button
+                        className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 flex items-center"
+                        onClick={() => openDrawer("new")}
+                    >
+                        <PlusIcon className="w-4 h-4 inline mr-2" /> Add
+                        Transaction
+                    </button>
+                </div>
+            )}
             <div className="overflow-x-auto">
                 <table className="mb-3 w-full">
                     <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
@@ -230,7 +262,7 @@ export default function Transaction() {
                                                                 )
                                                             }
                                                         >
-                                                            Process
+                                                            Approve
                                                         </button>
                                                     )}
                                                 {(userType ===
@@ -330,6 +362,47 @@ export default function Transaction() {
                                                             }
                                                         >
                                                             Receive
+                                                        </button>
+                                                    )}
+
+                                                {userType === "EMPLOYEE" &&
+                                                    data.type === "BORROW" &&
+                                                    data.history[
+                                                        data.history.length - 1
+                                                    ].action !== "RETURNED" &&
+                                                    data.status ===
+                                                        "APPROVED" && (
+                                                        <button
+                                                            type="button"
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                            onClick={() =>
+                                                                startProcessTransaction(
+                                                                    data.id,
+                                                                    "RETURN",
+                                                                    getDateDifference(
+                                                                        data.transaction_date
+                                                                    )
+                                                                )
+                                                            }
+                                                        >
+                                                            Return
+                                                        </button>
+                                                    )}
+
+                                                {userType === "RECORDS_CUST" &&
+                                                    data.type === "RETURN" &&
+                                                    data.status ===
+                                                        "PENDING" && (
+                                                        <button
+                                                            type="button"
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                            onClick={() =>
+                                                                confirmTransaction(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Approve
                                                         </button>
                                                     )}
                                             </td>

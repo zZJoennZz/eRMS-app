@@ -21,7 +21,8 @@ ReactDOM.createRoot(document.getElementById("app")).render(
             closeOnClick
             pauseOnHover
             theme="colored"
+            position="bottom-right"
         />
-        <ReactQueryDevtools initialIsOpen={false} />
+        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
 );

@@ -223,21 +223,19 @@ export default function AddRDSRecord({ closeHandler }) {
                                     required
                                 />
                             </div>
-                            {index === 0 && (
-                                <div className="mb-4">
-                                    <label>Period Covered To</label>
-                                    <input
-                                        type="date"
-                                        name="period_covered_to"
-                                        value={record.period_covered_to}
-                                        onChange={(e) =>
-                                            handleInputChange(index, e)
-                                        }
-                                        className="w-full"
-                                        required
-                                    />
-                                </div>
-                            )}
+                            <div className="mb-4">
+                                <label>Period Covered To</label>
+                                <input
+                                    type="date"
+                                    name="period_covered_to"
+                                    value={record.period_covered_to}
+                                    onChange={(e) =>
+                                        handleInputChange(index, e)
+                                    }
+                                    className="w-full"
+                                    required
+                                />
+                            </div>
                             <div className="mb-4">
                                 <label>Remarks</label>
                                 <textarea

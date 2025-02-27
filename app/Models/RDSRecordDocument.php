@@ -16,6 +16,7 @@ class RDSRecordDocument extends Model
         'period_covered_from',
         'period_covered_to',
         'projected_date_of_disposal',
+        'current_status',
         'remarks',
     ];
 
@@ -27,5 +28,15 @@ class RDSRecordDocument extends Model
     public function rds()
     {
         return $this->hasOne(RecordsDispositionSchedule::class, 'id', 'records_disposition_schedules_id');
+    }
+
+    public function history()
+    {
+        return $this->hasMany(RDSRecordDocumentHistory::class, 'record_documents_id', 'id');
+    }
+
+    public function latest_history()
+    {
+        return $this->hasOne(RDSRecordDocumentHistory::class, 'record_documents_id', 'id')->latest();
     }
 }

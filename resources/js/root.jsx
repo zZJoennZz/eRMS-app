@@ -13,6 +13,16 @@ const RDS = lazy(() => import("./pages/RDS"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const RDSRecord = lazy(() => import("./pages/RDSRecord"));
 const Transaction = lazy(() => import("./pages/Transaction"));
+const Setting = lazy(() => import("./pages/Setting"));
+const User = lazy(() => import("./pages/User"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Cluster = lazy(() => import("./pages/Cluster"));
+const Branch = lazy(() => import("./pages/Branch"));
+const Borrow = lazy(() => import("./pages/Borrow"));
+const Disposal = lazy(() => import("./pages/Disposal"));
+const DisposedRecordsForm = lazy(() =>
+    import("./pages/Report/DisposedRecordsForm")
+);
 
 //everyone
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
@@ -24,17 +34,22 @@ import { API_URL } from "./configs/config";
 
 export default function Root() {
     const [isAuth, setIsAuth] = useState(false);
+    const [currProfile, setCurrProfile] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [userType, setUserType] = useState("");
     const [currId, setCurrId] = useState(0);
 
-    function changeAuth(value, id) {
+    function changeAuth(value, id, userType, profile) {
         if (value === false) {
             localStorage.removeItem("token");
             setCurrId(0);
+            setUserType("");
+            setCurrProfile({});
         }
+        setUserType(userType);
         setIsAuth(value);
         setCurrId(id);
+        setCurrProfile(profile);
     }
 
     useEffect(() => {
@@ -56,36 +71,16 @@ export default function Root() {
                     }
                 )
                 .then((res) => {
-                    setIsAuth(true);
-                    setCurrId(res.data.data.id);
                     setUserType(res.data.data.type);
-                    localStorage.setItem("branch", res.data.data.branch);
-                    localStorage.setItem(
-                        "br_account_number",
-                        res.data.data.br_account_number
-                    );
-                    localStorage.setItem("dept_code", res.data.data.dept_code);
-                    localStorage.setItem("address", res.data.data.address);
-                    localStorage.setItem(
-                        "branch_head",
-                        res.data.data.branch_head
-                    );
-                    localStorage.setItem(
-                        "supply_officer",
-                        res.data.data.supply_officer
-                    );
-                    localStorage.setItem(
-                        "contact_number",
-                        res.data.data.contact_number
-                    );
-                    localStorage.setItem(
-                        "email_address",
-                        res.data.data.email_address
-                    );
+                    setCurrId(res.data.data.id);
+                    setIsAuth(true);
+                    setCurrProfile(res.data.data.profile);
                 })
                 .catch(() => {
+                    setUserType("");
                     setIsAuth(false);
                     setCurrId(0);
+                    setCurrProfile({});
                     localStorage.removeItem("token");
                 });
 
@@ -98,8 +93,15 @@ export default function Root() {
     }, []);
 
     const contextValue = useMemo(
-        () => ({ isAuth, isLoading, changeAuth, currId, userType }),
-        [isAuth, currId, isLoading, userType]
+        () => ({
+            isAuth,
+            isLoading,
+            changeAuth,
+            currId,
+            userType,
+            currProfile,
+        }),
+        [isAuth, currId, isLoading, userType, currProfile]
     );
 
     return (
@@ -108,6 +110,12 @@ export default function Root() {
                 <Routes>
                     <Route exact path="/" element={<PublicRoute />}>
                         <Route path="/" element={<Login />} />
+                    </Route>
+                    <Route element={<PublicRoute />}>
+                        <Route
+                            path="/forgot-password"
+                            element={<ForgotPassword />}
+                        />
                     </Route>
                     <Route
                         exact
@@ -164,6 +172,96 @@ export default function Root() {
                     </Route>
                     <Route element={<PrivateRoute allowedRoles={["DEV"]} />}>
                         <Route path="/rds" element={<RDS />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "EMPLOYEE",
+                                    "WAREHOUSE_CUST",
+                                    "RECORDS_CUST",
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route path="/settings" element={<Setting />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "RECORDS_CUST",
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route path="/users" element={<User />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute allowedRoles={["DEV", "ADMIN"]} />
+                        }
+                    >
+                        <Route path="/clusters" element={<Cluster />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute allowedRoles={["DEV", "ADMIN"]} />
+                        }
+                    >
+                        <Route path="/branches" element={<Branch />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "RECORDS_CUST",
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                    "EMPLOYEE",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route path="/borrows" element={<Borrow />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "RECORDS_CUST",
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route path="/disposals" element={<Disposal />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "RECORDS_CUST",
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route
+                            path="/report/disposed-records-form/:id"
+                            element={<DisposedRecordsForm />}
+                        />
                     </Route>
                 </Routes>
             </Suspense>

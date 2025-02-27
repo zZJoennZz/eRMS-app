@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('period_covered_to');
             $table->longText('remarks')->nullable();
             $table->date('projected_date_of_disposal');
+            $table->text('current_status')->default('AVAILABLE');
             $table->timestamps();
 
             $table->foreign('r_d_s_records_id')->references('id')->on('r_d_s_records');

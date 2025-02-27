@@ -16,7 +16,7 @@ class ClusterSeeder extends Seeder
         //
         Cluster::create(
             [
-                "name" => "Bulacan",
+                "name" => "Bulacan Cluster",
             ]
         );
     }

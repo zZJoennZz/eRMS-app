@@ -10,6 +10,7 @@ import DashboardLayout from "../components/DashboardLayout";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { all, approveRdsRecord } from "../utils/rdsRecordFn";
+import { borrow } from "../utils/borrowFn";
 
 import { toast } from "react-toastify";
 
@@ -19,12 +20,15 @@ import ComponentLoader from "../components/ComponentLoader";
 const AddRDSRecord = lazy(() => import("./RDSRecord/AddRDSRecord"));
 // const EditRDS = lazy(() => import("./RDS/EditRDS"));
 
-import { PlusIcon } from "@heroicons/react/24/solid";
+import {
+    PlusIcon,
+    ArrowPathRoundedSquareIcon,
+} from "@heroicons/react/24/solid";
 
 import { AuthContext } from "../contexts/AuthContext";
 
 export default function RDSRecord() {
-    const { userType } = useContext(AuthContext);
+    const { userType, currId } = useContext(AuthContext);
     const queryClient = useQueryClient();
     const getAllRdsRecords = useQuery({
         queryKey: ["allRdsRecords"],
@@ -37,7 +41,7 @@ export default function RDSRecord() {
     const [drawerTitle, setDrawerTitle] = useState("");
     const [selectedForm, setSelectedForm] = useState(<></>);
     const [selectedRdsRecord, setSelectedRdsRecord] = useState(0);
-    const [rerender, setRerender] = useState(0);
+    const [cart, setCart] = useState([]);
 
     const sideDrawerClose = useCallback(() => {
         setShowDrawer(false);
@@ -56,6 +60,19 @@ export default function RDSRecord() {
         networkMode: "always",
     });
 
+    const borrowDocs = useMutation({
+        mutationFn: () => borrow(cart),
+        onSuccess: () => {
+            setCart([]);
+            queryClient.invalidateQueries({ queryKey: ["allRdsRecords"] });
+            toast.success("Document borrow request successfully submitted.");
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
+
     function approveSelectedRecord(id) {
         if (confirm("Are you sure to approve this record?")) {
             setSelectedRdsRecord(id);
@@ -64,27 +81,28 @@ export default function RDSRecord() {
         }
     }
 
-    function openDrawer(type, selRdsRecord = 0) {
+    const toggleCart = (product) => {
+        if (cart.some((item) => item.id === product.id)) {
+            setCart(cart.filter((item) => item.id !== product.id));
+        } else {
+            setCart([...cart, product]);
+        }
+    };
+
+    function submitBorrow() {
+        if (confirm("Are you sure to borrow these item/s?")) {
+            borrowDocs.mutate();
+        }
+    }
+
+    function openDrawer(type) {
         if (type === "new") {
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
                     <AddRDSRecord closeHandler={sideDrawerClose} />
                 </Suspense>
             );
-            setDrawerTitle("Add RDS Record");
-            setShowDrawer(true);
-        } else if (type === "edit") {
-            // setRerender((prev) => prev + 1);
-            // setSelectedForm(
-            //     <Suspense fallback={<ComponentLoader />}>
-            //         <EditRDS
-            //             selRdsId={selRds}
-            //             closeHandler={sideDrawerClose}
-            //             rerender={rerender + 1}
-            //         />
-            //     </Suspense>
-            // );
-            setDrawerTitle("Edit RDS Records");
+            setDrawerTitle("Add Record");
             setShowDrawer(true);
         } else {
             toast.error("Please refresh the page.");
@@ -100,7 +118,15 @@ export default function RDSRecord() {
                 content={selectedForm}
                 twcssWidthClass="w-full"
             />
-            <h1 className="text-xl font-semibold mb-2">RDS Record</h1>
+            <button
+                className={`bottom-6 right-6 bg-gradient-to-r from-pink-500 to-red-500 text-white text-lg font-bold py-3 px-6 rounded-full ${
+                    cart.length > 0 ? "fixed" : "hidden"
+                } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
+                onClick={submitBorrow}
+            >
+                Borrow Item/s
+            </button>
+            <h1 className="text-xl font-semibold mb-2">Record</h1>
             <div className="mb-3">
                 <input
                     type="text"
@@ -112,15 +138,28 @@ export default function RDSRecord() {
                     placeholder="Search RDS Record here"
                 />
             </div>
-            {userType !== "RECORDS_CUST" && (
+            {userType !== "RECORDS_CUST" && userType !== "BRANCH_HEAD" && (
                 <div className="mb-3">
                     <button
                         className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 flex items-center"
                         onClick={() => openDrawer("new")}
                     >
-                        <PlusIcon className="w-4 h-4 inline mr-2" /> Add RDS
-                        Record
+                        <PlusIcon className="w-4 h-4 inline mr-2" /> Add Record
                     </button>
+                </div>
+            )}
+
+            {(userType === "RECORDS_CUST" ||
+                userType === "BRANCH_HEAD" ||
+                userType === "EMPLOYEE") && (
+                <div className="mb-3">
+                    <a
+                        href="/borrows"
+                        className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 inline items-center"
+                    >
+                        <ArrowPathRoundedSquareIcon className="w-4 h-4 inline mr-2" />{" "}
+                        Borrow & Return
+                    </a>
                 </div>
             )}
 
@@ -174,14 +213,43 @@ export default function RDSRecord() {
                         ) : (
                             getAllRdsRecords.data &&
                             getAllRdsRecords.data
-                                .filter((i) =>
-                                    Object.values(i).some((value) =>
+                                .filter((i) => {
+                                    const searchableValues = [
+                                        i.id,
+                                        i.status,
+                                        i.box_number,
+                                        i.branches_id,
+                                        i.created_at,
+                                        i.updated_at,
+                                        ...(i.documents
+                                            ? i.documents.flatMap((doc) => [
+                                                  doc.source_of_documents,
+                                                  doc.description_of_document,
+                                                  doc.period_covered_from,
+                                                  doc.period_covered_to,
+                                                  doc.remarks,
+                                                  doc.projected_date_of_disposal,
+                                                  doc.created_at,
+                                                  doc.updated_at,
+                                                  ...(doc.rds
+                                                      ? [
+                                                            doc.rds.item_number,
+                                                            doc.rds
+                                                                .record_series_title_and_description,
+                                                            doc.rds.remarks,
+                                                        ]
+                                                      : []),
+                                              ])
+                                            : []),
+                                    ];
+
+                                    return searchableValues.some((value) =>
                                         value
                                             ?.toString()
                                             .toLowerCase()
                                             .includes(searchTxt.toLowerCase())
-                                    )
-                                )
+                                    );
+                                })
                                 .map((data) => (
                                     <>
                                         <tr
@@ -194,17 +262,8 @@ export default function RDSRecord() {
                                                 className="py-2 text-left border-b border-slate-300"
                                             >
                                                 {data.box_number}
-                                                {/* <button
-                                                type="button"
-                                                className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-gray-400 border border-gray-400 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
-                                                onClick={() =>
-                                                    openDrawer("edit", data.id)
-                                                }
-                                            >
-                                                Edit
-                                            </button> */}
                                                 {data.status === "PENDING" && (
-                                                    <div className="bg-gray-500 text-xs inline text-white p-0.5 rounded-full ml-1">
+                                                    <div className="bg-gray-500 text-xs inline text-white py-0.5 px-2 rounded-full ml-1">
                                                         Pending
                                                     </div>
                                                 )}
@@ -233,52 +292,138 @@ export default function RDSRecord() {
                                                         Print
                                                     </a>
                                                 )}
+
+                                                {data.status ===
+                                                    "PENDING_DISPOSAL" && (
+                                                    <div className="inline ml-2 rounded-full bg-orange-600 text-white px-1.5 py-0.5 text-xs">
+                                                        Submitted for Disposal
+                                                    </div>
+                                                )}
+
+                                                {data.status === "DISPOSED" && (
+                                                    <div className="inline ml-2 rounded-full bg-red-600 text-white px-1.5 py-0.5 text-xs">
+                                                        Disposed
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
-                                        {data.documents.map((doc) => (
-                                            <tr key={doc.id} id={doc.id}>
-                                                <td className="py-2 border-b border-slate-300"></td>
-                                                <td className="py-2 border-b border-slate-300">
-                                                    {doc.rds.item_number}
-                                                </td>
-                                                <td className="py-2 border-b border-slate-300">
-                                                    {doc.source_of_documents}
-                                                </td>
-                                                <td className="py-2 border-b border-slate-300">
-                                                    {
-                                                        doc.description_of_document
-                                                    }
-                                                </td>
-                                                <td className="py-2 text-left border-b border-slate-300">
-                                                    {doc.period_covered_from} -{" "}
-                                                    {doc.period_covered_to}
-                                                </td>
-                                                <td className="py-2 text-center border-b border-slate-300">
-                                                    {doc.rds.active}
-                                                </td>
-                                                <td className="py-2 text-center border-b border-slate-300">
-                                                    {doc.rds.storage}
-                                                </td>
-                                                <td className="py-2 text-center border-b border-slate-300">
-                                                    {doc.rds.active +
-                                                        doc.rds.storage}
-                                                </td>
-                                                <td className="py-2 text-center border-b border-slate-300">
-                                                    {doc.rds.remarks}
-                                                </td>
-                                                <td className="py-2 text-center border-b border-slate-300">
-                                                    {
-                                                        doc.projected_date_of_disposal
-                                                    }
-                                                </td>
-                                                <td className="py-2 text-center border-b border-slate-300">
-                                                    {data.history[0].location}
-                                                </td>
-                                                <td className="py-2 text-center border-b border-slate-300">
-                                                    {doc.remarks}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {data.documents.map((doc) => {
+                                            const lastHistory =
+                                                doc.history?.[
+                                                    doc.history.length - 1
+                                                ];
+                                            const isPending =
+                                                lastHistory?.action ===
+                                                    "INIT_BORROW" &&
+                                                lastHistory?.users_id ===
+                                                    currId;
+                                            return (
+                                                <tr
+                                                    key={doc.id}
+                                                    id={doc.id}
+                                                    className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
+                                                >
+                                                    <td className="py-2 text-left border-b border-slate-300">
+                                                        {userType ===
+                                                            "EMPLOYEE" &&
+                                                        doc.current_status ===
+                                                            "AVAILABLE" &&
+                                                        !isPending &&
+                                                        data.status ===
+                                                            "APPROVED" ? (
+                                                            <>
+                                                                <div className="text-xs text-slate-500 mb-1 px-1 italic">
+                                                                    Borrow?
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
+                                                                        cart.some(
+                                                                            (
+                                                                                item
+                                                                            ) =>
+                                                                                item.id ===
+                                                                                doc.id
+                                                                        )
+                                                                            ? "bg-green-500 text-white border border-green-500"
+                                                                            : "bg-green-700 text-white border border-green-700"
+                                                                    }`}
+                                                                    onClick={() =>
+                                                                        toggleCart(
+                                                                            doc
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {cart.some(
+                                                                        (
+                                                                            item
+                                                                        ) =>
+                                                                            item.id ===
+                                                                            doc.id
+                                                                    )
+                                                                        ? "Remove"
+                                                                        : "Add"}
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <div className="text-xs text-slate-500 mb-1 px-1 italic">
+                                                                {userType ===
+                                                                "EMPLOYEE"
+                                                                    ? "Unavailable"
+                                                                    : ""}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="py-2 border-b border-slate-300">
+                                                        {doc.rds.item_number}
+                                                    </td>
+                                                    <td className="py-2 border-b border-slate-300">
+                                                        {
+                                                            doc.source_of_documents
+                                                        }
+                                                    </td>
+                                                    <td className="py-2 border-b border-slate-300">
+                                                        {
+                                                            doc.description_of_document
+                                                        }
+                                                    </td>
+                                                    <td className="py-2 text-left border-b border-slate-300">
+                                                        {
+                                                            doc.period_covered_from
+                                                        }{" "}
+                                                        -{" "}
+                                                        {doc.period_covered_to}
+                                                    </td>
+                                                    <td className="py-2 text-center border-b border-slate-300">
+                                                        {doc.rds.active}
+                                                    </td>
+                                                    <td className="py-2 text-center border-b border-slate-300">
+                                                        {doc.rds.storage}
+                                                    </td>
+                                                    <td className="py-2 text-center border-b border-slate-300">
+                                                        {doc.rds.active +
+                                                            doc.rds.storage}
+                                                    </td>
+                                                    <td className="py-2 text-center border-b border-slate-300">
+                                                        {doc.rds.remarks}
+                                                    </td>
+                                                    <td className="py-2 text-center border-b border-slate-300">
+                                                        {
+                                                            doc.projected_date_of_disposal
+                                                        }
+                                                    </td>
+                                                    <td className="py-2 text-center border-b border-slate-300">
+                                                        {
+                                                            data.history[0]
+                                                                .location
+                                                        }
+                                                    </td>
+                                                    <td className="py-2 text-center border-b border-slate-300">
+                                                        {doc.remarks}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </>
                                 ))
                         )}

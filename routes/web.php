@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\MiscController;
 use App\Http\Controllers\api\PassportAuthController;
+use App\Http\Controllers\api\RDSController;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,13 @@ Route::get('print/{id?}', [MiscController::class, 'get_document_record']);
 //         'positions_id' => 2,
 //     ]);
 // });
+Route::get('print-rds-list', [RDSController::class, 'print_list']);
+Route::get('print-rds-disposed', function () {
+    return view('print/rds-disposed');
+});
+Route::get('print-whse-summary', function () {
+    return view('print/whse-summary');
+});
 
 Route::get('{path}', function () {
     return view('app');

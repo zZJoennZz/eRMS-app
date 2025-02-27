@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Password;
 use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class PassportAuthController extends Controller
 {
@@ -89,7 +90,7 @@ class PassportAuthController extends Controller
                 $user = Auth::user();
                 $token = $user->createToken(env('AUTH_SECRET') ?? 'AWEDASDS@232')->accessToken;
 
-                return send200Response(['token' => $token, 'id' => $user->id]);
+                return send200Response(['token' => $token, 'id' => $user->id, 'type' => $user->type, 'profile' => $user->profile]);
             } else {
                 return send401Response();
             }
@@ -124,14 +125,7 @@ class PassportAuthController extends Controller
                 return send200Response([
                     "id" => Auth::user()->id,
                     "type" => Auth::user()->type,
-                    "branch" => "test",
-                    "br_account_number" => "test",
-                    "dept_code" => "test",
-                    "address" => "test",
-                    "contact_number" => "test",
-                    "email_address" => "test",
-                    "branch_head" => "test",
-                    "supply_officer" => "test",
+                    "profile" => Auth::user()->profile,
                 ], 'Token is valid.');
             } else {
                 return send401Response();
@@ -149,5 +143,38 @@ class PassportAuthController extends Controller
                 return send401Response();
             }
         }
+    }
+
+    public function forgot_password(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT ? send200Response() : send400Response();
+    }
+
+    public function reset_password(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'token' => 'required',
+            'password' => 'required|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return send400Response();
+        }
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => bcrypt($password)
+                ])->save();
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET ? send200Response() : send400Response('Invalid token or email address!');
     }
 }

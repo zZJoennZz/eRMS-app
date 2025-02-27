@@ -25,16 +25,35 @@ class RDSRecordController extends Controller
 
         $rds_record = "";
         if (Auth::user()->type === "EMPLOYEE") {
-            $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+            $main_records = RDSRecord::with(['documents.history', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
             }])
-                ->whereHas('documents', function ($query) {
-                    $query->where('source_of_documents', '=', Auth::user()->profile->position->name);
+                ->whereHas('submitted_by_user.profile', function ($query) {
+                    $query->where('positions_id', '=', Auth::user()->profile->positions_id);
                 })
                 ->where('status', '=', 'APPROVED')
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->orderBy('box_number', 'asc')
                 ->get();
+            $pending_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->whereHas('documents', function ($query) {
+                    $query
+                        ->where('source_of_documents', '=', Auth::user()->profile->position->name);
+                })
+                ->whereHas('latest_history', function ($query) {
+                    $query
+                        ->where('users_id', Auth::user()->id);
+                })
+                ->where('status', '=', 'PENDING')
+                ->where('branches_id', '=', Auth::user()->branches_id)
+                ->orderBy('box_number', 'asc')
+                ->get();
+
+            $rds_record = new \Illuminate\Database\Eloquent\Collection();
+            $rds_record = $rds_record->merge($main_records);
+            $rds_record = $rds_record->merge($pending_records);
         } elseif (Auth::user()->type === "BRANCH_HEAD" || Auth::user()->type === "RECORDS_CUST") {
             $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
@@ -109,7 +128,16 @@ class RDSRecordController extends Controller
             $new_rds_record->status = "PENDING";
             $new_rds_record->box_number = "";
             $new_rds_record->branches_id = Auth::user()->branches_id;
+            $new_rds_record->submitted_by = Auth::user()->id;
             $new_rds_record->save();
+
+            $rds_data = $request->rdsRecords;
+
+            $most_recent_record = collect($rds_data)
+                ->sortByDesc(function ($item) {
+                    return \Carbon\Carbon::parse($item['period_covered_to']);
+                })
+                ->first();
 
             foreach ($request->rdsRecords as $rds) {
                 $sel_rds = RecordsDispositionSchedule::find($rds["records_disposition_schedules_id"]);
@@ -118,8 +146,8 @@ class RDSRecordController extends Controller
                 $new_rds_document->records_disposition_schedules_id = $rds["records_disposition_schedules_id"];
                 $new_rds_document->source_of_documents = Auth::user()->profile->position->name;
                 $new_rds_document->period_covered_from = $rds["period_covered_from"];
-                $new_rds_document->period_covered_to = $request->rdsRecords[0]["period_covered_to"];
-                $new_rds_document->projected_date_of_disposal = date('Y-m-d', strtotime($request->rdsRecords[0]["period_covered_to"] . ' +' . $sel_rds->active + $sel_rds->storage . 'years'));
+                $new_rds_document->period_covered_to = $rds["period_covered_to"];
+                $new_rds_document->projected_date_of_disposal = date('Y-m-d', strtotime($most_recent_record['period_covered_to'] . ' +' . $sel_rds->active + $sel_rds->storage . 'years'));
                 $new_rds_document->description_of_document = $sel_rds->record_series_title_and_description;
                 $new_rds_document->remarks = $rds["remarks"];
                 // DB::rollBack();
@@ -138,7 +166,7 @@ class RDSRecordController extends Controller
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
-            return $e;
+            // return $e;
             return send400Response();
         }
     }

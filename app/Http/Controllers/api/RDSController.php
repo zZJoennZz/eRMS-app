@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\RDSRecord;
 use App\Models\RecordsDispositionSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -148,5 +149,11 @@ class RDSController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function print_list()
+    {
+        $rds = RDSRecord::where('status', 'APPROVED')->with(['documents.rds'])->get();
+        return view('print/rds-list')->with('rds', $rds);
     }
 }

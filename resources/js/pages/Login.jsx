@@ -16,7 +16,7 @@ export default function Login() {
         password: "",
     });
 
-    const { isAuth, changeAuth, userType } = useContext(AuthContext);
+    const { changeAuth } = useContext(AuthContext);
 
     function onChangeHandler(e) {
         setLoginCredentials((prev) => {
@@ -35,8 +35,14 @@ export default function Login() {
                 console.log(res);
                 localStorage.setItem("token", "Bearer " + res.data.data.token);
 
-                changeAuth(true, res.data.data.id);
+                changeAuth(
+                    true,
+                    res.data.data.id,
+                    res.data.data.type,
+                    res.data.data.profile
+                );
                 toast.success("Login success!");
+                // window.location.reload();
             })
             .catch((err) => {
                 if (err.name && err.name === "AxiosError") {

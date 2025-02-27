@@ -2,7 +2,7 @@ import axios from "axios";
 import { API_URL } from "../configs/config";
 
 export async function all() {
-    let res = await axios.get(`${API_URL}branch`, {
+    let res = await axios.get(`${API_URL}branches`, {
         headers: {
             Authorization: localStorage.getItem("token"),
         },
@@ -11,7 +11,7 @@ export async function all() {
 }
 
 export async function post(data) {
-    let res = await axios.post(`${API_URL}branch`, data, {
+    let res = await axios.post(`${API_URL}branches`, data, {
         headers: {
             Authorization: localStorage.getItem("token"),
         },
@@ -20,7 +20,7 @@ export async function post(data) {
 }
 
 export async function put(data, id) {
-    let res = await axios.put(`${API_URL}branch/${id}`, data, {
+    let res = await axios.put(`${API_URL}branches/${id}`, data, {
         headers: {
             Authorization: localStorage.getItem("token"),
         },
@@ -29,7 +29,7 @@ export async function put(data, id) {
 }
 
 export async function delete_branch(id) {
-    let res = await axios.delete(`${API_URL}branch/${id}`, {
+    let res = await axios.delete(`${API_URL}branches/${id}`, {
         headers: {
             Authorization: localStorage.getItem("token"),
         },

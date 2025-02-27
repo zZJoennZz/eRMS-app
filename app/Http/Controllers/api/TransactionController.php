@@ -32,17 +32,26 @@ class TransactionController extends Controller
                         $query->where('branches_id', $user->branches_id);
                     })
                     ->orderBy('created_at', 'DESC')
-                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user'])
+                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
                     ->get();
             } elseif ($user->type === "BRANCH_HEAD" || $user->type === "RECORDS_CUST") {
                 $transaction = RDSTransaction::whereHas('rds_records.record', function ($query) use ($user) {
                     $query->where('branches_id', $user->branches_id);
                 })
-                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user'])
+                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
+                    ->orderBy('created_at', 'DESC')
+                    ->get();
+            } elseif ($user->type === "WAREHOUSE_CUST") {
+                $transaction = RDSTransaction::whereHas('rds_records.record.branch', function ($query) use ($user) {
+                    $query->where('clusters_id', $user->branch->clusters_id);
+                })
+                    ->where('type', '<>', 'RETURN')
+                    ->where('type', '<>', 'BORROW')
+                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
                     ->orderBy('created_at', 'DESC')
                     ->get();
             } else {
-                $transaction = RDSTransaction::with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user'])
+                $transaction = RDSTransaction::with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
                     ->where('status', '<>', 'PENDING')
                     ->orderBy('created_at', 'DESC')
                     ->get();
@@ -288,15 +297,97 @@ class TransactionController extends Controller
         try {
             DB::beginTransaction();
             $transaction = RDSTransaction::find($request->id);
+            if ($user->type === "EMPLOYEE" && $transaction->type === "BORROW") {
+                if ($transaction->submitted_by === $user->id) {
+                    $new_transaction = new RDSTransaction();
+                    $new_transaction->status = "PENDING";
+                    $new_transaction->type = "RETURN";
+                    $new_transaction->transaction_date = \Carbon\Carbon::now();
+                    $new_transaction->receiver = Auth::user()->id;
+                    $new_transaction->submitted_by = Auth::user()->id;
+                    $new_transaction->remarks = "Justification: " . $request->remarks;
+                    $new_transaction->issuer = User::where('branches_id', Auth::user()->branches_id)
+                        ->where('type', 'RECORDS_CUST')
+                        ->first()->id;
+                    $new_transaction->save();
+
+                    if ($transaction->submitted_by !== $user->id) {
+                        return send401Response();
+                    }
+
+                    //validate the cart
+                    foreach ($transaction->rds_records as $c) {
+                        $get_rds_record = RDSRecord::find($c->r_d_s_records_id);
+                        if ($get_rds_record->status !== 'APPROVED') {
+                            DB::rollBack();
+                            return send400Response('Invalid submission! Try again.');
+                        }
+
+                        $get_transactions_by_rds_record = RDSTransaction::whereIn('status', ['FOR RECEIVING', 'PROCESSING', 'PENDING'])
+                            ->whereHas('rds_records', function ($query) use ($get_rds_record) {
+                                $query->where('r_d_s_records_id', '=', $get_rds_record->id);
+                            })
+                            ->count();
+
+                        if ($get_transactions_by_rds_record > 0) {
+                            DB::rollBack();
+                            return send400Response('Box number: ' . $get_rds_record->box_number . ' currently has a pending transaction!');
+                        }
+
+                        $invalid_actions = ['TRANSFER'];
+                        if (in_array($get_rds_record->history[$get_rds_record->history->count() - 1]->action, $invalid_actions)) {
+                            DB::rollBack();
+                            return send400Response('Item is not available.');
+                        }
+
+                        $new_transaction_item = new RDSTransactionItem();
+                        $new_transaction_item->r_d_s_transactions_id = $new_transaction->id;
+                        $new_transaction_item->r_d_s_records_id = $c->r_d_s_records_id;
+                        $new_transaction_item->save();
+                    }
+
+                    $new_transaction_history = new RDSTransactionHistory();
+                    $new_transaction_history->r_d_s_transactions_id = $new_transaction->id;
+                    $new_transaction_history->action = "SUBMIT";
+                    $new_transaction_history->action_date = \Carbon\Carbon::now();
+                    $new_transaction_history->save();
+                } else {
+                    return send401Response();
+                }
+
+                DB::commit();
+                return send200Response();
+            }
+
+            if ($user->type === "BRANCH_HEAD" && $transaction->type === "BORROW" && $transaction->status === "PROCESSING") {
+                $transaction->status = "FOR RECEIVING";
+                $new_transaction_history = new RDSTransactionHistory();
+                $new_transaction_history->r_d_s_transactions_id = $transaction->id;
+                $new_transaction_history->action = "APPROVE";
+                $new_transaction_history->action_date = \Carbon\Carbon::now();
+                $new_transaction_history->save();
+                $transaction->save();
+
+                DB::commit();
+                return send200Response();
+            }
+
+            if ($user->type === "WAREHOUSE_CUST" && $transaction->type === "WITHDRAW" && $transaction->status === "PROCESSING") {
+                $transaction->status = "FOR RECEIVING";
+                $new_transaction_history = new RDSTransactionHistory();
+                $new_transaction_history->r_d_s_transactions_id = $transaction->id;
+                $new_transaction_history->action = "APPROVE";
+                $new_transaction_history->action_date = \Carbon\Carbon::now();
+                $new_transaction_history->save();
+                $transaction->save();
+
+                DB::commit();
+                return send200Response();
+            }
             $new_transaction_history = new RDSTransactionHistory();
             $new_transaction_history->r_d_s_transactions_id = $transaction->id;
-            if ($user->type === "WAREHOUSE_CUST" || ($user->type === "BRANCH_HEAD" && $transaction->type === "BORROW")) {
-                $transaction->status = "FOR RECEIVING";
-                $new_transaction_history->action = "FOR RECEIVING";
-            } else {
-                $transaction->status = "PROCESSING";
-                $new_transaction_history->action = "PROCESSING";
-            }
+            $transaction->status = "PROCESSING";
+            $new_transaction_history->action = "SUBMIT";
             $new_transaction_history->action_date = \Carbon\Carbon::Now();
             $transaction->save();
             $new_transaction_history->save();
@@ -320,7 +411,11 @@ class TransactionController extends Controller
 
             $new_transaction_history = new RDSTransactionHistory();
             $new_transaction_history->r_d_s_transactions_id = $transaction->id;
-            $new_transaction_history->action = "APPROVE";
+            if ($transaction->type === "RETURN" && $user->type === "RECORDS_CUST") {
+                $new_transaction_history->action = "RETURN";
+            } else {
+                $new_transaction_history->action = "APPROVE";
+            }
             $new_transaction_history->action_date = \Carbon\Carbon::Now();
             $new_transaction_history->save();
 
@@ -328,13 +423,21 @@ class TransactionController extends Controller
                 $new_rds_record_history = new RDSRecordHistory();
                 $new_rds_record_history->r_d_s_records_id = $rds->record->id;
                 $new_rds_record_history->users_id = $user->id;
-                $new_rds_record_history->location = $user->branch->name;
+                if ($user->type === 'WAREHOUSE_CUST') {
+                    $new_rds_record_history->location = "Warehouse";
+                } else {
+                    $new_rds_record_history->location = $user->branch->name;
+                }
                 if ($user->type === 'WAREHOUSE_CUST') {
                     $new_rds_record_history->action = "TRANSFER";
+                } elseif ($user->type === "RECORDS_CUST" && $transaction->type === "RETURN") {
+                    $new_rds_record_history->action = "RETURN";
                 } elseif ($user->type === "RECORDS_CUST") {
                     $new_rds_record_history->action = "WITHDRAW";
                 } elseif ($user->type === "EMPLOYEE" && $transaction->type === "BORROW") {
                     $new_rds_record_history->action = "BORROW";
+                } elseif ($user->type === "EMPLOYEE" && $transaction->type === "RETURN") {
+                    $new_rds_record_history->action = "RETURNED";
                 } else {
                     DB::rollBack();
                     return send401Response();
