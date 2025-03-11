@@ -203,9 +203,54 @@ class RDSRecordController extends Controller
         //
     }
 
-    public function approved_rds_records()
+    public function warehouse_supply()
     {
-        return "ASDASD";
+        try {
+            $user = Auth::user();
+            $wh_sup = [];
+            if ($user->type === "WAREHOUSE_CUST") {
+                $wh_sup = DB::table('r_d_s_records')
+                    ->join('branches', 'r_d_s_records.branches_id', '=', 'branches.id') // Join to get clusters_id
+                    ->join('r_d_s_record_histories as latest_h', function ($join) {
+                        $join->on('r_d_s_records.id', '=', 'latest_h.r_d_s_records_id')
+                            ->whereRaw('latest_h.id = (
+                            SELECT h2.id
+                            FROM r_d_s_record_histories AS h2
+                            WHERE h2.r_d_s_records_id = latest_h.r_d_s_records_id
+                            ORDER BY h2.updated_at DESC
+                            LIMIT 1
+                        )');
+                    })
+                    ->where('latest_h.location', 'Warehouse')
+                    ->where('branches.clusters_id', $user->branch->clusters_id) // Filter by clusters_id
+                    ->where('r_d_s_records.status', 'APPROVED')
+                    ->select('r_d_s_records.*', 'latest_h.created_at as history_created_at', 'branches.name', 'r_d_s_records.status') // Select created_at from latest history
+                    ->get();
+            } else {
+                $wh_sup = DB::table('r_d_s_records')
+                    ->join('branches', 'r_d_s_records.branches_id', '=', 'branches.id') // Join to get clusters_id
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('r_d_s_record_histories as h')
+                            ->whereRaw('r_d_s_records.id = h.r_d_s_records_id')
+                            ->where('location', 'Warehouse')
+                            ->whereRaw('h.id = (
+                        SELECT h2.id
+                        FROM r_d_s_record_histories AS h2
+                        WHERE h2.r_d_s_records_id = h.r_d_s_records_id
+                        ORDER BY h2.updated_at DESC
+                        LIMIT 1
+                    )');
+                    })
+                    ->where('branches.clusters_id', $user->branch->clusters_id) // Replace 5 with your desired cluster ID
+                    ->where('r_d_s_records.status', 'APPROVED')
+                    ->get();
+            }
+
+            return send200Response($wh_sup);
+        } catch (\Exception $e) {
+            return send400Response();
+        }
     }
 
     public function approve_rds_record(Request $request)
@@ -245,6 +290,40 @@ class RDSRecordController extends Controller
             $new_rds_record_history->r_d_s_records_id = $rds_record->id;
             $new_rds_record_history->users_id = Auth::user()->id;
             $new_rds_record_history->action = "APPROVE";
+            $new_rds_record_history->location = Auth::user()->branch->name;
+            $new_rds_record_history->save();
+
+            DB::commit();
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response();
+        }
+    }
+
+    public function decline_record(Request $request)
+    {
+        if (Auth::user()->type !== "RECORDS_CUST") {
+            return send401Response();
+        }
+
+        try {
+            DB::beginTransaction();
+            $rds_record = RDSRecord::find($request->id);
+            if ($rds_record->status === "APPROVED") {
+                return send400Response("The record is already approved!");
+            }
+            if ($rds_record->status === "DECLINED") {
+                return send400Response("The record is already declined!");
+            }
+
+            $rds_record->status = "DECLINED";
+            $rds_record->save();
+
+            $new_rds_record_history = new RDSRecordHistory();
+            $new_rds_record_history->r_d_s_records_id = $rds_record->id;
+            $new_rds_record_history->users_id = Auth::user()->id;
+            $new_rds_record_history->action = "DECLINE";
             $new_rds_record_history->location = Auth::user()->branch->name;
             $new_rds_record_history->save();
 

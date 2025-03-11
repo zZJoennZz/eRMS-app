@@ -328,32 +328,37 @@ export default function AddUser({ closeHandler }) {
                             </select>
                         </div>
                     </div>
-                    <div className="mb-4">
-                        <div className="mb-1">
-                            <label htmlFor="branches_id">
-                                Branch <span className="text-red-700">*</span>
-                            </label>
+                    {(userType === "BRANCH_HEAD" ||
+                        userType === "DEV" ||
+                        userType === "ADMIN") && (
+                        <div className="mb-4">
+                            <div className="mb-1">
+                                <label htmlFor="branches_id">
+                                    Branch{" "}
+                                    <span className="text-red-700">*</span>
+                                </label>
+                            </div>
+                            <div>
+                                <select
+                                    type="text"
+                                    name="branches_id"
+                                    id="branches_id"
+                                    value={userDetail.branches_id}
+                                    onChange={frmFieldHandler}
+                                    className="w-full"
+                                    required
+                                >
+                                    <option>Select branch</option>
+                                    {branches &&
+                                        branches.map((p) => (
+                                            <option key={p.id} value={p.id}>
+                                                {p.name}
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <select
-                                type="text"
-                                name="branches_id"
-                                id="branches_id"
-                                value={userDetail.branches_id}
-                                onChange={frmFieldHandler}
-                                className="w-full"
-                                required
-                            >
-                                <option>Select branch</option>
-                                {branches &&
-                                    branches.map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.name}
-                                        </option>
-                                    ))}
-                            </select>
-                        </div>
-                    </div>
+                    )}
                 </div>
                 <div className="absolute bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
                     <button

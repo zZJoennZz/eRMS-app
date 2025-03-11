@@ -8,6 +8,7 @@ export default function BorrowPill({ status }) {
         RECEIVING: "bg-orange-600",
         RETURNING: "bg-blue-600",
         RETURNED: "bg-lime-600",
+        DECLINED: "bg-red-600",
     };
     return (
         <div

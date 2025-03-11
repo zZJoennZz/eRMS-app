@@ -36,3 +36,12 @@ export async function confirmDispose(id) {
     });
     return res.data.data;
 }
+
+export async function declineDispose(id) {
+    let res = await axios.put(`${API_URL}disposals/decline/${id}`, null, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}

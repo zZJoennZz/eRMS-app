@@ -13,6 +13,7 @@ import {
     all,
     approveTransaction,
     processTransaction,
+    declineTransaction,
 } from "../utils/transactionFn";
 
 import { toast } from "react-toastify";
@@ -86,6 +87,23 @@ export default function Transaction() {
         networkMode: "always",
     });
 
+    const declineTrans = useMutation({
+        mutationFn: () =>
+            declineTransaction({
+                id: changeTransactionStatusId,
+            }),
+        onSuccess: () => {
+            setChangeTransactionStatusId(0);
+            setJustification("");
+            queryClient.invalidateQueries({ queryKey: ["allTransactions"] });
+            toast.success("Transaction successfully declined!");
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
+
     function openDrawer(type, selRds = 0) {
         if (type === "new") {
             setSelectedForm(
@@ -131,6 +149,14 @@ export default function Transaction() {
                 setJustification(remarks);
             }
             processTrans.mutate();
+            return 1;
+        }
+    }
+
+    function confirmDeclineTransaction(id) {
+        if (confirm("Are you sure to decline this transaction?")) {
+            setChangeTransactionStatusId(id);
+            declineTrans.mutate();
             return 1;
         }
     }
@@ -265,6 +291,7 @@ export default function Transaction() {
                                                             Approve
                                                         </button>
                                                     )}
+
                                                 {(userType ===
                                                     "WAREHOUSE_CUST" ||
                                                     userType === "DEV") &&
@@ -403,6 +430,43 @@ export default function Transaction() {
                                                             }
                                                         >
                                                             Approve
+                                                        </button>
+                                                    )}
+
+                                                {userType === "BRANCH_HEAD" &&
+                                                    data.status === "PENDING" &&
+                                                    (data.type === "WITHDRAW" ||
+                                                        data.type ===
+                                                            "TRANSFER") && (
+                                                        <button
+                                                            type="button"
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-red-700 border border-red-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                            onClick={() =>
+                                                                confirmDeclineTransaction(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Decline
+                                                        </button>
+                                                    )}
+                                                {userType ===
+                                                    "WAREHOUSE_CUST" &&
+                                                    data.status ===
+                                                        "PROCESSING" &&
+                                                    (data.type === "TRANSFER" ||
+                                                        data.type ===
+                                                            "WITHDRAW") && (
+                                                        <button
+                                                            type="button"
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-red-700 border border-red-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                            onClick={() =>
+                                                                confirmDeclineTransaction(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Decline
                                                         </button>
                                                     )}
                                             </td>

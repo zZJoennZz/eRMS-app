@@ -16,6 +16,7 @@ import {
     process_borrow,
     receiveRc,
     returnDoc,
+    declineBorrow,
 } from "../utils/borrowFn";
 
 import { toast } from "react-toastify";
@@ -92,6 +93,19 @@ export default function Borrow() {
         networkMode: "always",
     });
 
+    const processDeclineBorrow = useMutation({
+        mutationFn: () => declineBorrow(cart),
+        onSuccess: () => {
+            setCart([]);
+            queryClient.invalidateQueries({ queryKey: ["allPendingBorrows"] });
+            toast.success("Borrow request has been declined.");
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
+
     function openDrawer(type, selRds = 0) {
         if (type === "new") {
             setSelectedForm(
@@ -159,6 +173,12 @@ export default function Borrow() {
         }
     }
 
+    function confirmDeclineBorrow() {
+        if (confirm("Are you sure to decline this borrow?")) {
+            processDeclineBorrow.mutate();
+        }
+    }
+
     const isOlderThanTwoWeeks = (dateString) => {
         const givenDate = new Date(dateString);
         const twoWeeksAgo = new Date();
@@ -200,24 +220,44 @@ export default function Borrow() {
                 twcssWidthClass="w-96"
             />
             {userType === "RECORDS_CUST" && (
-                <button
-                    className={`bottom-6 right-6 bg-gradient-to-r from-pink-500 to-red-500 text-white text-lg font-bold py-3 px-6 rounded-full ${
-                        cart.length > 0 ? "fixed" : "hidden"
-                    } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
-                    onClick={beginProcessBorrow}
-                >
-                    Process Borrow/s
-                </button>
+                <>
+                    <button
+                        className={`bottom-6 left-6 bg-gradient-to-r from-gray-500 to-gray-500 text-white text-lg font-bold py-3 px-6 rounded-full ${
+                            cart.length > 0 ? "fixed" : "hidden"
+                        } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
+                        onClick={confirmDeclineBorrow}
+                    >
+                        Decline Borrow/s
+                    </button>
+                    <button
+                        className={`bottom-6 right-6 bg-gradient-to-r from-pink-500 to-red-500 text-white text-lg font-bold py-3 px-6 rounded-full ${
+                            cart.length > 0 ? "fixed" : "hidden"
+                        } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
+                        onClick={beginProcessBorrow}
+                    >
+                        Process Borrow/s
+                    </button>
+                </>
             )}
             {userType === "BRANCH_HEAD" && (
-                <button
-                    className={`bottom-6 right-6 bg-gradient-to-r from-pink-500 to-red-500 text-white text-lg font-bold py-3 px-6 rounded-full ${
-                        cart.length > 0 ? "fixed" : "hidden"
-                    } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
-                    onClick={beginApproveBorrow}
-                >
-                    Approve Borrow/s
-                </button>
+                <>
+                    <button
+                        className={`bottom-6 left-6 bg-gradient-to-r from-gray-500 to-gray-500 text-white text-lg font-bold py-3 px-6 rounded-full ${
+                            cart.length > 0 ? "fixed" : "hidden"
+                        } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
+                        onClick={confirmDeclineBorrow}
+                    >
+                        Decline Borrow/s
+                    </button>
+                    <button
+                        className={`bottom-6 right-6 bg-gradient-to-r from-pink-500 to-red-500 text-white text-lg font-bold py-3 px-6 rounded-full ${
+                            cart.length > 0 ? "fixed" : "hidden"
+                        } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
+                        onClick={beginApproveBorrow}
+                    >
+                        Approve Borrow/s
+                    </button>
+                </>
             )}
             {userType === "EMPLOYEE" && (
                 <button

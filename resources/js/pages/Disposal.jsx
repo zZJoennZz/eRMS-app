@@ -11,7 +11,13 @@ import axios from "axios";
 import DashboardLayout from "../components/DashboardLayout";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { all, post, approve, confirmDispose } from "../utils/disposalFn";
+import {
+    all,
+    post,
+    approve,
+    confirmDispose,
+    declineDispose,
+} from "../utils/disposalFn";
 
 import { toast } from "react-toastify";
 
@@ -24,6 +30,7 @@ import { CheckCircleIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 import { formatDate } from "../utils/utilities";
 import { API_URL } from "../configs/config";
+import { XCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Disposal() {
     const { userType } = useContext(AuthContext);
@@ -81,9 +88,27 @@ export default function Disposal() {
                 queryKey: ["recordsForDisposals"],
             });
             toast.success("Disposal has been confirmed.");
+            setCart([]);
         },
         onError: (err) => {
             toast.error(err.response.data.message);
+            setCart([]);
+        },
+        networkMode: "always",
+    });
+
+    const declineDisposal = useMutation({
+        mutationFn: (id) => declineDispose(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["recordsForDisposals"],
+            });
+            toast.success("Disposal has been declined.");
+            setCart([]);
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+            setCart([]);
         },
         networkMode: "always",
     });
@@ -126,6 +151,12 @@ export default function Disposal() {
             )
         ) {
             confirmDisposal.mutate(id);
+        }
+    }
+
+    function confirmDeclineDispose(id) {
+        if (confirm("Are you sure to decline the disposal request?")) {
+            declineDisposal.mutate(id);
         }
     }
 
@@ -181,29 +212,32 @@ export default function Disposal() {
                                                 className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
                                             >
                                                 <td className="py-2 text-left border-b border-slate-300">
-                                                    <button
-                                                        type="button"
-                                                        className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
-                                                            cart.some(
+                                                    {userType ===
+                                                        "RECORDS_CUST" && (
+                                                        <button
+                                                            type="button"
+                                                            className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
+                                                                cart.some(
+                                                                    (item) =>
+                                                                        item.id ===
+                                                                        data.id
+                                                                )
+                                                                    ? "bg-green-500 text-white border border-green-500"
+                                                                    : "bg-green-700 text-white border border-green-700"
+                                                            }`}
+                                                            onClick={() =>
+                                                                toggleCart(data)
+                                                            }
+                                                        >
+                                                            {cart.some(
                                                                 (item) =>
                                                                     item.id ===
                                                                     data.id
                                                             )
-                                                                ? "bg-green-500 text-white border border-green-500"
-                                                                : "bg-green-700 text-white border border-green-700"
-                                                        }`}
-                                                        onClick={() =>
-                                                            toggleCart(data)
-                                                        }
-                                                    >
-                                                        {cart.some(
-                                                            (item) =>
-                                                                item.id ===
-                                                                data.id
-                                                        )
-                                                            ? "-"
-                                                            : "+"}
-                                                    </button>
+                                                                ? "-"
+                                                                : "+"}
+                                                        </button>
+                                                    )}
                                                 </td>
                                                 <td className="py-2 text-left border-b border-slate-300">
                                                     {data.box_number}
@@ -253,25 +287,30 @@ export default function Disposal() {
                                         className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
                                     >
                                         <td className="py-2 text-left border-b border-slate-300">
-                                            <button
-                                                type="button"
-                                                className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
-                                                    cart.some(
+                                            {userType === "RECORDS_CUST" && (
+                                                <button
+                                                    type="button"
+                                                    className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
+                                                        cart.some(
+                                                            (item) =>
+                                                                item.id ===
+                                                                data.id
+                                                        )
+                                                            ? "bg-green-500 text-white border border-green-500"
+                                                            : "bg-green-700 text-white border border-green-700"
+                                                    }`}
+                                                    onClick={() =>
+                                                        toggleCart(data)
+                                                    }
+                                                >
+                                                    {cart.some(
                                                         (item) =>
                                                             item.id === data.id
                                                     )
-                                                        ? "bg-green-500 text-white border border-green-500"
-                                                        : "bg-green-700 text-white border border-green-700"
-                                                }`}
-                                                onClick={() => toggleCart(data)}
-                                            >
-                                                {cart.some(
-                                                    (item) =>
-                                                        item.id === data.id
-                                                )
-                                                    ? "-"
-                                                    : "+"}
-                                            </button>
+                                                        ? "-"
+                                                        : "+"}
+                                                </button>
+                                            )}
                                         </td>
                                         <td className="py-2 text-left border-b border-slate-300">
                                             {data.box_number}
@@ -366,6 +405,21 @@ export default function Disposal() {
                                                     >
                                                         Approve{" "}
                                                         <CheckCircleIcon className="w-5 h-5 inline" />
+                                                    </button>
+                                                )}
+                                            {userType === "BRANCH_HEAD" &&
+                                                data.status === "PENDING" && (
+                                                    <button
+                                                        type="button"
+                                                        className={`mx-1 float-right px-2 py-1 text-xs duration-300 rounded bg-green-700 text-white`}
+                                                        onClick={() =>
+                                                            confirmDeclineDispose(
+                                                                data.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Decline{" "}
+                                                        <XCircleIcon className="w-5 h-5 inline" />
                                                     </button>
                                                 )}
                                             {userType === "BRANCH_HEAD" &&

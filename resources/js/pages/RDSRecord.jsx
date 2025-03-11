@@ -9,7 +9,7 @@ import React, {
 import DashboardLayout from "../components/DashboardLayout";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { all, approveRdsRecord } from "../utils/rdsRecordFn";
+import { all, approveRdsRecord, declineRdsRecord } from "../utils/rdsRecordFn";
 import { borrow } from "../utils/borrowFn";
 
 import { toast } from "react-toastify";
@@ -73,10 +73,31 @@ export default function RDSRecord() {
         networkMode: "always",
     });
 
+    const declineRecord = useMutation({
+        mutationFn: () => declineRdsRecord({ id: selectedRdsRecord }),
+        onSuccess: () => {
+            setSelectedRdsRecord(0);
+            queryClient.invalidateQueries({ queryKey: ["allRdsRecords"] });
+            toast.success("RDS Record successfully declined!");
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
+
     function approveSelectedRecord(id) {
         if (confirm("Are you sure to approve this record?")) {
             setSelectedRdsRecord(id);
             approveRecord.mutate();
+            return 1;
+        }
+    }
+
+    function confirmDeclineRecord(id) {
+        if (confirm("Are you sure to decline this record?")) {
+            setSelectedRdsRecord(id);
+            declineRecord.mutate();
             return 1;
         }
     }
@@ -261,7 +282,13 @@ export default function RDSRecord() {
                                                 colSpan={12}
                                                 className="py-2 text-left border-b border-slate-300"
                                             >
-                                                {data.box_number}
+                                                {data.status === "APPROVED" &&
+                                                    data.box_number}
+                                                {data.status === "DECLINED" && (
+                                                    <div className="inline text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">
+                                                        Declined
+                                                    </div>
+                                                )}
                                                 {data.status === "PENDING" && (
                                                     <div className="bg-gray-500 text-xs inline text-white py-0.5 px-2 rounded-full ml-1">
                                                         Pending
@@ -280,6 +307,21 @@ export default function RDSRecord() {
                                                             className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
                                                         >
                                                             Approve
+                                                        </button>
+                                                    )}
+                                                {data.status === "PENDING" &&
+                                                    userType ===
+                                                        "RECORDS_CUST" && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                confirmDeclineRecord(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-red-700 border border-red-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                        >
+                                                            Decline
                                                         </button>
                                                     )}
 

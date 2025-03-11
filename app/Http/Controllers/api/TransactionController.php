@@ -452,4 +452,26 @@ class TransactionController extends Controller
             return send400Response();
         }
     }
+
+    public function decline_transaction(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $transaction = RDSTransaction::find($request->id);
+            $transaction->status = "DECLINED";
+            $transaction->save();
+
+            $new_transaction_history = new RDSTransactionHistory();
+            $new_transaction_history->r_d_s_transactions_id = $transaction->id;
+            $new_transaction_history->action = "DECLINE";
+            $new_transaction_history->action_date = \Carbon\Carbon::Now();
+            $new_transaction_history->save();
+
+            DB::commit();
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response();
+        }
+    }
 }

@@ -19,7 +19,7 @@ class PositionController extends Controller
         $positions = [];
         if ($user->type === "RECORDS_CUST") {
             $positions = Position::where('type', 'EMPLOYEE')->get();
-        } elseif ($user->type === "BRANCH_HEAD") {
+        } elseif ($user->type === "BRANCH_HEAD" || $user->type === "DEV" || $user->type === "ADMIN") {
             $positions = Position::where('type', '<>', 'DEV')->where('type', '<>', 'WAREHOUSE_CUST')->get();
         } else {
             return send401Response();

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\RDSRecord;
 use App\Models\RDSRecordDocument;
+use App\Models\RDSRecordHistory;
 use App\Models\RecordDisposal;
 use App\Models\RecordDisposalHistory;
 use App\Models\RecordDisposalItem;
@@ -186,13 +187,45 @@ class DisposalController extends Controller
                 $record->status = "DISPOSED";
                 RDSRecordDocument::where('r_d_s_records_id', $rec->r_d_s_records_id)->update(["current_status" => "DISPOSED"]);
                 $record->save();
+                $new_record_history = new RDSRecordHistory();
+                $new_record_history->r_d_s_records_id = $record->id;
+                $new_record_history->action = "DISPOSE";
+                $new_record_history->location = $record->latest_history->location;
+                $new_record_history->users_id = $user->id;
+                $new_record_history->save();
             }
 
             DB::commit();
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
-            return $e;
+            return send400Response();
+        }
+    }
+
+    public function decline_disposal($id)
+    {
+        $user = Auth::user();
+        try {
+            if ($user->type !== "BRANCH_HEAD") {
+                return send401Response();
+            }
+            DB::beginTransaction();
+            $record_disposal = RecordDisposal::find($id);
+            $record_disposal->status = "DECLINED";
+            $record_disposal->save();
+
+            $new_record_disposal_history = new RecordDisposalHistory();
+            $new_record_disposal_history->record_disposals_id  = $record_disposal->id;
+            $new_record_disposal_history->action  = "DECLINE";
+            $new_record_disposal_history->remarks  = "Disposal request declined.";
+            $new_record_disposal_history->users_id  = $user->id;
+            $new_record_disposal_history->save();
+
+            DB::commit();
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
             return send400Response();
         }
     }

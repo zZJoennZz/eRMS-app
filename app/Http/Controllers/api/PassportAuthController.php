@@ -90,7 +90,7 @@ class PassportAuthController extends Controller
                 $user = Auth::user();
                 $token = $user->createToken(env('AUTH_SECRET') ?? 'AWEDASDS@232')->accessToken;
 
-                return send200Response(['token' => $token, 'id' => $user->id, 'type' => $user->type, 'profile' => $user->profile]);
+                return send200Response(['token' => $token, 'id' => $user->id, 'type' => $user->type, 'profile' => $user->profile, 'branch' => $user->branch]);
             } else {
                 return send401Response();
             }
@@ -126,6 +126,7 @@ class PassportAuthController extends Controller
                     "id" => Auth::user()->id,
                     "type" => Auth::user()->type,
                     "profile" => Auth::user()->profile,
+                    'branch' => Auth::user()->branch
                 ], 'Token is valid.');
             } else {
                 return send401Response();

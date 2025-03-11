@@ -35,14 +35,14 @@ export default function SettingSidebar({ isSidebarOpen, toggleSideBar }) {
                 <a href="#" className="block p-2 rounded hover:bg-green-700">
                     Account
                 </a>
-                {["DEV", "ADMIN"].includes(userType) && (
+                {/* {["DEV", "ADMIN"].includes(userType) && (
                     <a
                         href="/clusters"
                         className="block p-2 rounded hover:bg-green-700"
                     >
                         Clusters
                     </a>
-                )}
+                )} */}
                 {["DEV", "ADMIN"].includes(userType) && (
                     <a
                         href="/branches"

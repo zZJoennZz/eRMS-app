@@ -37,7 +37,7 @@ class RDSRecord extends Model
 
     public function latest_history()
     {
-        return $this->hasOne(RDSRecordHistory::class, 'r_d_s_records_id', 'id')->latest();
+        return $this->hasOne(RDSRecordHistory::class, 'r_d_s_records_id', 'id')->latestOfMany();
     }
 
     public function submitted_by_user()

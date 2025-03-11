@@ -20,6 +20,9 @@ const Cluster = lazy(() => import("./pages/Cluster"));
 const Branch = lazy(() => import("./pages/Branch"));
 const Borrow = lazy(() => import("./pages/Borrow"));
 const Disposal = lazy(() => import("./pages/Disposal"));
+const WarehouseMonitoring = lazy(() => import("./pages/WarehouseMonitoring"));
+const Report = lazy(() => import("./pages/Report"));
+const ReportDocuments = lazy(() => import("./pages/Report/ReportDocuments"));
 const DisposedRecordsForm = lazy(() =>
     import("./pages/Report/DisposedRecordsForm")
 );
@@ -38,8 +41,9 @@ export default function Root() {
     const [isLoading, setIsLoading] = useState(true);
     const [userType, setUserType] = useState("");
     const [currId, setCurrId] = useState(0);
+    const [branchDetails, setBranchDetails] = useState({});
 
-    function changeAuth(value, id, userType, profile) {
+    function changeAuth(value, id, userType, profile, branchDets) {
         if (value === false) {
             localStorage.removeItem("token");
             setCurrId(0);
@@ -50,6 +54,7 @@ export default function Root() {
         setIsAuth(value);
         setCurrId(id);
         setCurrProfile(profile);
+        setBranchDetails(branchDets);
     }
 
     useEffect(() => {
@@ -75,6 +80,7 @@ export default function Root() {
                     setCurrId(res.data.data.id);
                     setIsAuth(true);
                     setCurrProfile(res.data.data.profile);
+                    setBranchDetails(res.data.data.branch);
                 })
                 .catch(() => {
                     setUserType("");
@@ -100,8 +106,9 @@ export default function Root() {
             currId,
             userType,
             currProfile,
+            branchDetails,
         }),
-        [isAuth, currId, isLoading, userType, currProfile]
+        [isAuth, currId, isLoading, userType, currProfile, branchDetails]
     );
 
     return (
@@ -262,6 +269,72 @@ export default function Root() {
                             path="/report/disposed-records-form/:id"
                             element={<DisposedRecordsForm />}
                         />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "WAREHOUSE_CUST",
+                                    "DEV",
+                                    "ADMIN",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route
+                            path="/warehouse-monitoring"
+                            element={<WarehouseMonitoring />}
+                        />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "WAREHOUSE_CUST",
+                                    "DEV",
+                                    "ADMIN",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route
+                            path="/print-warehouse-documents/:filters"
+                            element={<ReportDocuments />}
+                        />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                    "RECORDS_CUST",
+                                    "EMPLOYEE",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route
+                            path="/print-branch-summary/:filters"
+                            element={<ReportDocuments />}
+                        />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "RECORDS_CUST",
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                    "EMPLOYEE",
+                                    "WAREHOUSE_CUST",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route path="/reports" element={<Report />} />
                     </Route>
                 </Routes>
             </Suspense>

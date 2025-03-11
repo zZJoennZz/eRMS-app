@@ -19,7 +19,7 @@ class UserController extends Controller
         //
         $user = Auth::user();
         $users = [];
-        if ($user->type === "DEV") {
+        if ($user->type === "DEV" || $user->type === "ADMIN") {
             $users = User::with(['profile', 'branch', 'profile.position'])->get();
         } elseif ($user->type === "BRANCH_HEAD") {
             $users = User::with(['profile', 'branch', 'profile.position'])
@@ -54,7 +54,30 @@ class UserController extends Controller
         $user = Auth::user();
         try {
             DB::beginTransaction();
-            if ($user->type === "DEV" || $user->type === "BRANCH_HEAD" || $user->type === "RECORDS_CUST") {
+            if ($user->type === "ADMIN" || $user->type === "DEV") {
+
+                $request->validate([
+                    'username' => 'required|unique:users',
+                    'email_address' => 'required|email|unique:users,email',
+                    'password' => 'required:min:6',
+                ]);
+
+                $new_user = new User();
+                $new_user->username = $request->username;
+                $new_user->email = $request->email_address;
+                $new_user->password = bcrypt($request->password);
+                $new_user->type = $request->type;
+                $new_user->branches_id = $request->branches_id;
+                $new_user->save();
+
+                $new_user_profile = new UserProfile();
+                $new_user_profile->users_id = $new_user->id;
+                $new_user_profile->first_name = $request->first_name;
+                $new_user_profile->middle_name = $request->middle_name ?? "";
+                $new_user_profile->last_name = $request->last_name;
+                $new_user_profile->positions_id = $request->positions_id;
+                $new_user_profile->save();
+            } elseif ($user->type === "BRANCH_HEAD" || $user->type === "RECORDS_CUST") {
                 if ($user->type === "RECORDS_CUST" && $request->type !== "BRANCH_HEAD" && $request->type !== "RECORDS_CUST" && $request->type !== "DEV" && $request->type !== "WAREHOUSE") {
 
                     $request->validate([
@@ -72,10 +95,12 @@ class UserController extends Controller
                     $new_user->save();
 
                     $new_user_profile = new UserProfile();
+                    $new_user_profile->users_id = $new_user->id;
                     $new_user_profile->first_name = $request->first_name;
                     $new_user_profile->middle_name = $request->middle_name ?? "";
                     $new_user_profile->last_name = $request->last_name;
                     $new_user_profile->positions_id = $request->positions_id;
+                    $new_user_profile->save();
                 } elseif ($user->type === "BRANCH_HEAD" && $request->type !== "DEV" && $request->type !== "WAREHOUSE") {
                     $request->validate([
                         'username' => 'required|unique:users',
@@ -99,6 +124,7 @@ class UserController extends Controller
                     $new_user_profile->positions_id = $request->positions_id;
                     $new_user_profile->save();
                 } else {
+                    DB::rollBack();
                     return send401Response();
                 }
             } else {

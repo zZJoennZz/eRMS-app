@@ -48,3 +48,23 @@ export async function approveRdsRecord(data) {
 
     return res.data.data;
 }
+
+export async function declineRdsRecord(data) {
+    let res = await axios.post(`${API_URL}decline-rds`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
+export async function warehouseSupply() {
+    let res = await axios.get(`${API_URL}warehouse-supply`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

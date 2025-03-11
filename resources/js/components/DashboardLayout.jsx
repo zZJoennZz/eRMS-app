@@ -3,7 +3,7 @@ import { AuthContext } from "../contexts/AuthContext";
 import Topbar from "./Topbar";
 
 export default function DashboardLayout({ children }) {
-    const { currProfile } = useContext(AuthContext);
+    const { currProfile, userType } = useContext(AuthContext);
     return (
         <div>
             <Topbar />
@@ -11,7 +11,9 @@ export default function DashboardLayout({ children }) {
                 {children}
                 <div className="text-xs text-slate-600 my-2">
                     <em>Current User:</em>{" "}
-                    <strong>{currProfile.first_name}</strong>
+                    <strong>
+                        {currProfile.first_name} - {userType}{" "}
+                    </strong>
                 </div>
                 <div className="text-right pt-2">
                     <div className="text-gray-500 text-xs italic">

@@ -10,13 +10,16 @@ import WarehouseDashboard from "./Dashboard/WarehouseDashboard";
 import { AuthContext } from "../contexts/AuthContext";
 
 export default function Dashboard() {
-    const { userType, currProfile } = useContext(AuthContext);
+    const { userType, currProfile, branchDetails } = useContext(AuthContext);
 
     return (
         <DashboardLayout>
             <h1 className="text-3xl font-semibold mb-1 mt-2 text-slate-600 border-b border-slate-300 pb-2">
-                Good day, {currProfile.first_name}! 🎊🎉
+                Good day, {currProfile.first_name}! 😊
             </h1>
+            <div className="text-md mb-4 text-slate-600">
+                (🏦 {branchDetails.name})
+            </div>
             <div className="mb-5 text-slate-500 text-xs">
                 Stay on top of your work with a quick overview of your progress.
                 Here, you'll find a summary of key insights and any pending

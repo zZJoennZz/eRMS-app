@@ -65,3 +65,13 @@ export async function receiveRc(id, data) {
     });
     return res.data.data;
 }
+
+export async function declineBorrow(data) {
+    let res = await axios.post(`${API_URL}decline-borrows`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

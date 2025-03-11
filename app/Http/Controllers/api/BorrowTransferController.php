@@ -165,7 +165,7 @@ class BorrowTransferController extends Controller
         $rds_record_document = RDSRecordDocument::whereIn('id', $document_ids)
             ->where('current_status', 'PROCESSING')
             ->count();
-        if ($rds_record_document > 0) {
+        if ($rds_record_document > 0 && $user->type === "RECORDS_CUST") {
             return send422Response("Your selected documents is currently processing and cannot be processed.");
         }
         try {
@@ -328,6 +328,61 @@ class BorrowTransferController extends Controller
             $rds_record_document_history = RDSRecordDocumentHistory::where('related_history_id', 0)->with('children')->get();
             return $rds_record_document_history;
         } catch (\Exception $e) {
+            return send400Response();
+        }
+    }
+
+    public function decline_borrow(Request $request)
+    {
+        $user = Auth::user();
+        if (!in_array($user->type, ["RECORDS_CUST", "BRANCH_HEAD"])) {
+            return send401Response();
+        }
+
+        $all_data = $request->all();
+        $document_ids = collect($all_data)->pluck('document.id');
+        $has_duplicates = $document_ids->duplicates()->isNotEmpty();
+        if ($has_duplicates) {
+            return send422Response("Please select only one of the borrow requests with the same document/s.");
+        }
+
+        $rds_record_document = RDSRecordDocument::whereIn('id', $document_ids)
+            ->where('current_status', 'PROCESSING')
+            ->count();
+        if ($rds_record_document > 0 && $user->type === "RECORDS_CUST") {
+            return send422Response("Your selected documents is currently processing and cannot be processed.");
+        }
+        try {
+            DB::beginTransaction();
+
+            foreach ($request->all() as $rds) {
+                $rds_history = RDSRecordDocumentHistory::find($rds['id']);
+                $rds_record_document = RDSRecordDocument::find($rds_history->record_documents_id);
+                if ($rds_record_document->record->branches_id !== $user->branches_id) {
+                    return send422Response('This document is not in your branch.');
+                }
+
+                $rds_record_document->current_status = "AVAILABLE";
+                $rds_record_document->save();
+                $rds_record_document_history = RDSRecordDocumentHistory::find($rds['id']);
+
+                $new_rds_record_document_history = new RDSRecordDocumentHistory();
+                $new_rds_record_document_history->record_documents_id = $rds_history->record_documents_id;
+
+                $new_rds_record_document_history->action = "DECLINE";
+                $new_rds_record_document_history->remarks = "Document borrow request has been declined.";
+                $rds_record_document_history->status = "DECLINED";
+
+                $new_rds_record_document_history->related_history_id = $rds['id'];
+                $new_rds_record_document_history->users_id = $user->id;
+                $new_rds_record_document_history->save();
+                $rds_record_document_history->save();
+            }
+
+            DB::commit();
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
             return send400Response();
         }
     }

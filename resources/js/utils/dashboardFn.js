@@ -36,3 +36,33 @@ export async function rcDashboard() {
 
     return res.data.data;
 }
+
+export async function bhDashboard() {
+    let res = await axios.get(`${API_URL}bh-dashboard`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
+export async function empDashboard() {
+    let res = await axios.get(`${API_URL}emp-dashboard`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
+export async function whDashboard() {
+    let res = await axios.get(`${API_URL}wh-dashboard`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

@@ -40,6 +40,16 @@ export async function approveTransaction(data) {
     return res.data.data;
 }
 
+export async function declineTransaction(data) {
+    let res = await axios.post(`${API_URL}decline-transaction`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
 export async function processTransaction(data) {
     let res = await axios.post(`${API_URL}process-transaction`, data, {
         headers: {

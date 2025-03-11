@@ -42,7 +42,7 @@ const DisposedRecordsForm = () => {
             source.cancel();
         };
     }, []);
-
+    let rowCtr = 0;
     return (
         <div className="p-4 w-full max-w-4xl mx-auto text-sm font-sans print:m-0 print:p-1">
             {!isLoading && recordDisposal.status === "PENDING" && (
@@ -153,12 +153,13 @@ const DisposedRecordsForm = () => {
                     {!isLoading &&
                         recordDisposal.items.map((item) =>
                             item.record.documents.map((doc) => {
+                                rowCtr += 1;
                                 return (
                                     <tr key={doc.id}>
-                                        <td className="border-r border-black p-2 text-xs">
+                                        <td className="border-black p-2 text-xs">
                                             {doc.rds.item_number}
                                         </td>
-                                        <td className="border-r border-black p-2">
+                                        <td className="border-black p-2">
                                             {doc.description_of_document}
                                             <pre>
                                                 {
@@ -167,17 +168,32 @@ const DisposedRecordsForm = () => {
                                                 }
                                             </pre>
                                         </td>
-                                        <td className="border-r border-black p-2 text-xs">
+                                        <td className="border-black p-2 text-xs">
                                             {doc.period_covered_from} to{" "}
                                             {doc.period_covered_to}
                                         </td>
                                         <td className="border-r border-black p-2">
-                                            {doc.rds.remarks}
+                                            <div className="text-center">
+                                                {doc.rds.active +
+                                                    doc.rds.storage}{" "}
+                                                Years
+                                                <div>{doc.rds.remarks}</div>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
                             })
                         )}
+                    {[...Array(20 - rowCtr)].map((x, i) => (
+                        <tr>
+                            <td className="border-black text-white p-2 text-xs">
+                                -
+                            </td>
+                            <td className="border-black p-2"></td>
+                            <td className="border-black p-2 text-xs"></td>
+                            <td className="border-r border-black p-2"></td>
+                        </tr>
+                    ))}
                 </tbody>
                 <tfoot>
                     <tr>

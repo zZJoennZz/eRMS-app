@@ -85,6 +85,16 @@ export default function Topbar() {
                                 </a>
                             </li>
                         )}
+                        {["WAREHOUSE_CUST"].includes(userType) && (
+                            <li>
+                                <a
+                                    href="/warehouse-monitoring"
+                                    className="block md:inline"
+                                >
+                                    Records
+                                </a>
+                            </li>
+                        )}
                         {["RECORDS_CUST", "BRANCH_HEAD"].includes(userType) && (
                             <li>
                                 <a
@@ -106,6 +116,18 @@ export default function Topbar() {
                                     className="block md:inline"
                                 >
                                     Transactions
+                                </a>
+                            </li>
+                        )}
+                        {[
+                            "EMPLOYEE",
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "WAREHOUSE_CUST",
+                        ].includes(userType) && (
+                            <li>
+                                <a href="/reports" className="block md:inline">
+                                    Reports
                                 </a>
                             </li>
                         )}
