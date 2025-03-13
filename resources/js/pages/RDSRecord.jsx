@@ -372,7 +372,10 @@ export default function RDSRecord() {
                                                             "AVAILABLE" &&
                                                         !isPending &&
                                                         data.status ===
-                                                            "APPROVED" ? (
+                                                            "APPROVED" &&
+                                                        data.history[0]
+                                                            .location !==
+                                                            "Warehouse" ? (
                                                             <>
                                                                 <div className="text-xs text-slate-500 mb-1 px-1 italic">
                                                                     Borrow?

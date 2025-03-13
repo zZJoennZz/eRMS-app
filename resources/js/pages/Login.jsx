@@ -43,7 +43,6 @@ export default function Login() {
                     res.data.data.branch
                 );
                 toast.success("Login success!");
-                // window.location.reload();
             })
             .catch((err) => {
                 if (err.name && err.name === "AxiosError") {
@@ -87,15 +86,15 @@ export default function Login() {
                             placeholder="Enter your password"
                             required
                         />
-                        <div className="mb-3 flex">
-                            <div className="text-sm flex-grow">
+                        <div className="mb-3 flex justify-end">
+                            {/* <div className="text-sm flex-grow">
                                 <a
                                     href="/"
                                     className="text-orange-800 hover:text-orange-400"
                                 >
                                     Forgot password?
                                 </a>
-                            </div>
+                            </div> */}
                             <button className="text-white bg-lime-700 hover:bg-lime-600 hover:rounded transition-all ease-in-out duration-300 px-3 py-2 flex items-center rounded-lg">
                                 Login{" "}
                                 <ChevronDoubleRightIcon className="inline ml-2 w-4 h-4" />

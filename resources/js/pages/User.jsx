@@ -18,7 +18,7 @@ import SideDrawer from "../components/SideDrawer";
 import ComponentLoader from "../components/ComponentLoader";
 
 const AddUser = lazy(() => import("./User/AddUser"));
-const EditRDS = lazy(() => import("./RDS/EditRDS"));
+const EditUser = lazy(() => import("./User/EditUser"));
 
 import { PlusIcon } from "@heroicons/react/24/solid";
 
@@ -44,7 +44,7 @@ export default function RDS() {
         setShowDrawer(false);
     });
 
-    function openDrawer(type, selRds = 0) {
+    function openDrawer(type, selUserId = 0) {
         if (type === "new") {
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
@@ -57,14 +57,14 @@ export default function RDS() {
             setRerender((prev) => prev + 1);
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
-                    <EditRDS
-                        selRdsId={selRds}
+                    <EditUser
+                        selUserId={selUserId}
                         closeHandler={sideDrawerClose}
                         rerender={rerender + 1}
                     />
                 </Suspense>
             );
-            setDrawerTitle("Edit RDS");
+            setDrawerTitle("Edit User");
             setShowDrawer(true);
         } else {
             toast.error("Please refresh the page.");

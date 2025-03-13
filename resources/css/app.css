@@ -4,6 +4,13 @@
 
 body {
     font-family: "Prompt", sans-serif;
+    height: 100%;
+    overflow: auto;
+}
+
+html {
+    overflow: hidden;
+    height: 100%;
 }
 
 input[type="text"],

@@ -15,9 +15,13 @@ export default function RecordsByUser({ reportData }) {
                     SUMMARY OF RECORDS
                 </div>
                 <div className="mt-1 mb-4 text-center font-bold">
-                    {reportData[0].submitted_by_user.profile.first_name}{" "}
-                    {reportData[0].submitted_by_user.profile.middle_name}{" "}
-                    {reportData[0].submitted_by_user.profile.last_name}
+                    {reportData.length > 0 &&
+                        reportData[0].submitted_by_user.profile.first_name +
+                            " " +
+                            reportData[0].submitted_by_user.profile
+                                .middle_name +
+                            " " +
+                            reportData[0].submitted_by_user.profile.last_name}
                 </div>
                 <div className="text-lg font-bold text-center mt-1 mb-5">
                     {branchDetails.name}

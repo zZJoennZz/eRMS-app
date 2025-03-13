@@ -36,3 +36,21 @@ export async function post(data) {
     });
     return res.data.data;
 }
+
+export async function resetPassword(id) {
+    let res = await axios.post(`${API_URL}reset-user-pw/${id}`, null, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}
+
+export async function changeOwnPassword(data) {
+    let res = await axios.post(`${API_URL}change-my-password`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}

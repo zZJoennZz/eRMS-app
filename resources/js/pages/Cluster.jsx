@@ -17,8 +17,8 @@ import { toast } from "react-toastify";
 import SideDrawer from "../components/SideDrawer";
 import ComponentLoader from "../components/ComponentLoader";
 
-const AddUser = lazy(() => import("./User/AddUser"));
-const EditRDS = lazy(() => import("./RDS/EditRDS"));
+const AddCluster = lazy(() => import("./Cluster/AddCluster"));
+const EditCluster = lazy(() => import("./Cluster/EditCluster"));
 
 import { PlusIcon } from "@heroicons/react/24/solid";
 
@@ -44,27 +44,27 @@ export default function Cluster() {
         setShowDrawer(false);
     });
 
-    function openDrawer(type, selRds = 0) {
+    function openDrawer(type, selClusterId = 0) {
         if (type === "new") {
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
-                    <AddUser closeHandler={sideDrawerClose} />
+                    <AddCluster closeHandler={sideDrawerClose} />
                 </Suspense>
             );
-            setDrawerTitle("Add User");
+            setDrawerTitle("Add Group");
             setShowDrawer(true);
         } else if (type === "edit") {
             setRerender((prev) => prev + 1);
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
-                    <EditRDS
-                        selRdsId={selRds}
+                    <EditCluster
+                        selClusterId={selClusterId}
                         closeHandler={sideDrawerClose}
                         rerender={rerender + 1}
                     />
                 </Suspense>
             );
-            setDrawerTitle("Edit RDS");
+            setDrawerTitle("Edit Group");
             setShowDrawer(true);
         } else {
             toast.error("Please refresh the page.");
@@ -127,12 +127,11 @@ export default function Cluster() {
                         </div>
                         <div className="mb-3">
                             <button
-                                disabled
                                 className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 flex items-center"
                                 onClick={() => openDrawer("new")}
                             >
                                 <PlusIcon className="w-4 h-4 inline mr-2" /> Add
-                                Group
+                                Branch
                             </button>
                         </div>
                         <div className="overflow-x-auto">

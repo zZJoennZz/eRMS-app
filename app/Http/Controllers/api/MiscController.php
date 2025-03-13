@@ -446,13 +446,21 @@ class MiscController extends Controller
                 if ($request->reportType === "branchSummary" || $request->reportType === "branchBoxes") {
                     $resData = RDSRecord::where('branches_id', $user->branches_id)
                         ->with(['documents.rds', 'latest_history', 'submitted_by_user.profile'])
-                        ->whereHas('latest_history', function ($query) {
+                        ->where('status', 'APPROVED')
+                        ->whereBetween('created_at', [$startDate, $endDate]);
+
+                    if ($request->scope === "branch_only") {
+                        $resData = $resData->whereHas('latest_history', function ($query) {
                             $query->where('action', '!=', 'TRANSFER')
                                 ->where('location', '!=', 'Warehouse');
-                        })
-                        ->where('status', 'APPROVED')
-                        ->whereBetween('created_at', [$startDate, $endDate])
-                        ->get();
+                        });
+                    } elseif ($request->scope === "warehouse_only") {
+                        $resData = $resData->whereHas('latest_history', function ($query) {
+                            $query->where('action', 'TRANSFER')
+                                ->where('location', 'Warehouse');
+                        });
+                    }
+                    $resData = $resData->get();
                 } elseif ($request->reportType === "disposedBoxSum" || $request->reportType === "disposedRecordsSum") {
                     // $resData = RDSRecord::where('branches_id', $user->branches_id)
                     //     ->with(['documents.rds', 'latest_history', 'submitted_by_user.profile'])
@@ -514,6 +522,7 @@ class MiscController extends Controller
                         //     $query->where('action', '!=', 'TRANSFER')
                         //         ->where('location', '!=', 'Warehouse');
                         // })
+                        ->where('status', 'APPROVED')
                         ->whereBetween('created_at', [$startDate, $endDate])
                         ->get();
                 }

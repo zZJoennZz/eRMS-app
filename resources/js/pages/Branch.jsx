@@ -18,6 +18,7 @@ import SideDrawer from "../components/SideDrawer";
 import ComponentLoader from "../components/ComponentLoader";
 
 const AddBranch = lazy(() => import("./Branch/AddBranch"));
+const EditBranch = lazy(() => import("./Branch/EditBranch"));
 
 import { PlusIcon } from "@heroicons/react/24/solid";
 
@@ -43,7 +44,7 @@ export default function Branch() {
         setShowDrawer(false);
     });
 
-    function openDrawer(type, selRds = 0) {
+    function openDrawer(type, selBranch = 0) {
         if (type === "new") {
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
@@ -56,14 +57,14 @@ export default function Branch() {
             setRerender((prev) => prev + 1);
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
-                    <EditRDS
-                        selRdsId={selRds}
+                    <EditBranch
+                        selBranchId={selBranch}
                         closeHandler={sideDrawerClose}
                         rerender={rerender + 1}
                     />
                 </Suspense>
             );
-            setDrawerTitle("Edit RDS");
+            setDrawerTitle("Edit Branch");
             setShowDrawer(true);
         } else {
             toast.error("Please refresh the page.");
@@ -169,8 +170,26 @@ export default function Branch() {
                                                     className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
                                                 >
                                                     <td className="py-2 text-left border-b border-slate-300">
+                                                        {data.name ===
+                                                            "Warehouse" &&
+                                                            data.cluster.name +
+                                                                " "}
                                                         {data.name}
-
+                                                        {data.name ===
+                                                            "Warehouse" && (
+                                                            <button
+                                                                type="button"
+                                                                className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-gray-400 border border-gray-400 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                                onClick={() =>
+                                                                    openDrawer(
+                                                                        "edit",
+                                                                        data.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        )}
                                                         <button
                                                             type="button"
                                                             className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-gray-400 border border-gray-400 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"

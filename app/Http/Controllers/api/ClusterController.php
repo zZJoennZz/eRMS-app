@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cluster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ClusterController extends Controller
 {
@@ -37,6 +38,23 @@ class ClusterController extends Controller
     public function store(Request $request)
     {
         //
+        if (Auth::user()->type === "ADMIN" || Auth::user()->type === "DEV") {
+            try {
+                DB::beginTransaction();
+
+                $new_cluster = new Cluster();
+                $new_cluster->name = $request->cluster;
+                $new_cluster->save();
+
+                DB::commit();
+                return send200Response();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return send400Response($e->getMessage());
+            }
+        } else {
+            return send401Response();
+        }
     }
 
     /**
@@ -45,6 +63,12 @@ class ClusterController extends Controller
     public function show(string $id)
     {
         //
+        if (Auth::user()->type === "ADMIN" || Auth::user()->type === "DEV") {
+            $clusters = Cluster::find($id);
+            return send200Response($clusters);
+        } else {
+            return send401Response();
+        }
     }
 
     /**
@@ -61,6 +85,23 @@ class ClusterController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        if (Auth::user()->type === "ADMIN" || Auth::user()->type === "DEV") {
+            try {
+                DB::beginTransaction();
+
+                $cluster = Cluster::find($id);
+                $cluster->name = $request->cluster;
+                $cluster->save();
+
+                DB::commit();
+                return send200Response();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return send400Response($e->getMessage());
+            }
+        } else {
+            return send401Response();
+        }
     }
 
     /**

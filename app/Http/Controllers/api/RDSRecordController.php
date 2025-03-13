@@ -7,6 +7,7 @@ use App\Models\RDSRecord;
 use App\Models\RDSRecordDocument;
 use App\Models\RDSRecordHistory;
 use App\Models\RecordsDispositionSchedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -135,11 +136,23 @@ class RDSRecordController extends Controller
 
             $most_recent_record = collect($rds_data)
                 ->sortByDesc(function ($item) {
-                    return \Carbon\Carbon::parse($item['period_covered_to']);
+                    return Carbon::parse($item['period_covered_to']);
                 })
                 ->first();
 
             foreach ($request->rdsRecords as $rds) {
+                $dateFrom = Carbon::parse($rds["period_covered_from"]);
+                $dateTo = Carbon::parse($rds["period_covered_to"]);
+
+                if ($dateFrom->isFuture() || $dateTo->isFuture()) {
+                    return send422Response("Please do not put future dates for period covered.");
+                }
+
+                if ($dateFrom->gt($dateTo)) {
+                    return send422Response("Period covered from should be before the period covered to.");
+                }
+
+
                 $sel_rds = RecordsDispositionSchedule::find($rds["records_disposition_schedules_id"]);
                 $new_rds_document = new RDSRecordDocument();
                 $new_rds_document->r_d_s_records_id = $new_rds_record->id;

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
 import { API_URL } from "../../configs/config";
 
 import { post, all } from "../../utils/rdsRecordFn";
+
+const CustomSelectRDS = lazy(() => import("../../components/CustomSelectRDS"));
 
 export default function AddRDSRecord({ closeHandler }) {
     const [rdsDetails, setRdsDetails] = useState({
@@ -156,7 +158,7 @@ export default function AddRDSRecord({ closeHandler }) {
             <form onSubmit={submitRds}>
                 <div
                     className="p-5 overflow-y-scroll"
-                    style={{ maxHeight: "80vh" }}
+                    style={{ height: "80vh" }}
                 >
                     <div className="font-semibold">Records Details</div>
                     <div className="text-xs text-gray-600 mb-4 italic">
@@ -169,7 +171,7 @@ export default function AddRDSRecord({ closeHandler }) {
                         >
                             <div className="mb-4">
                                 <label>RDS - Description of Document</label>
-                                <select
+                                {/* <select
                                     name="records_disposition_schedules_id"
                                     value={
                                         record.records_disposition_schedules_id
@@ -195,7 +197,12 @@ export default function AddRDSRecord({ closeHandler }) {
                                     ) : (
                                         <option>NO RDS AVAILABLE</option>
                                     )}
-                                </select>
+                                </select> */}
+                                <CustomSelectRDS
+                                    rds={rds}
+                                    index={index}
+                                    handleInputChange={handleInputChange}
+                                />
                             </div>
                             {/* <div className="mb-4">
                                 <label>Description of Document</label>

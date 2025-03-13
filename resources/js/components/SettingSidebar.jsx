@@ -32,9 +32,20 @@ export default function SettingSidebar({ isSidebarOpen, toggleSideBar }) {
                 Options
             </h2>
             <nav className="space-y-2">
-                <a href="#" className="block p-2 rounded hover:bg-green-700">
-                    Account
+                <a
+                    href="/settings"
+                    className="block p-2 rounded hover:bg-green-700"
+                >
+                    Settings
                 </a>
+                {["DEV", "ADMIN"].includes(userType) && (
+                    <a
+                        href="/groups"
+                        className="block p-2 rounded hover:bg-green-700"
+                    >
+                        Groups
+                    </a>
+                )}
                 {/* {["DEV", "ADMIN"].includes(userType) && (
                     <a
                         href="/clusters"

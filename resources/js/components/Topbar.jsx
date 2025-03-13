@@ -138,6 +138,16 @@ export default function Topbar() {
                                 </a>
                             </li>
                         )}
+                        {/* {(userType === "BRANCH_HEAD" ||
+                            userType === "ADMIN" ||
+                            userType === "DEV" ||
+                            userType === "RECORDS_CUST") && (
+                            <li>
+                                <a href="/settings" className="block md:inline">
+                                    Settings
+                                </a>
+                            </li>
+                        )} */}
                         <li>
                             <a href="/settings" className="block md:inline">
                                 Settings

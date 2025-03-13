@@ -41,9 +41,13 @@ Route::prefix('v1')->group(function () {
         Route::post('decline-transaction', [TransactionController::class, 'decline_transaction']);
         Route::resource('transactions', TransactionController::class);
         Route::resource('users', UserController::class);
+        Route::post('reset-user-pw/{id?}', [UserController::class, 'reset_pw']);
+        Route::post('change-my-password', [UserController::class, 'change_own_password']);
         Route::resource('positions', PositionController::class);
         Route::resource('branches', BranchController::class);
         Route::resource('clusters', ClusterController::class);
+        Route::get('branch-detail', [BranchController::class, 'get_branch_profile']);
+        Route::put('save-branch-details', [BranchController::class, 'save_branch_details']);
 
         //borrow-return
         Route::post('borrow', [BorrowTransferController::class, 'borrow']);

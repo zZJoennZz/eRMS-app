@@ -215,7 +215,7 @@ export default function Root() {
                             <PrivateRoute allowedRoles={["DEV", "ADMIN"]} />
                         }
                     >
-                        <Route path="/clusters" element={<Cluster />} />
+                        <Route path="/groups" element={<Cluster />} />
                     </Route>
                     <Route
                         element={
