@@ -16,33 +16,33 @@ export default function Report() {
     function openDrawer(type) {
         if (type === "branchSummary") {
             setDrawerTitle("Records Summary Filter");
-            setShowDrawer(true);
         } else if (type === "branchBoxes") {
             setDrawerTitle("Box Summary Filter");
-            setShowDrawer(true);
         } else if (type === "disposedBoxSum") {
             setDrawerTitle("Disposed Box Summary Filter");
-            setShowDrawer(true);
         } else if (type === "disposedRecordsSum") {
             setDrawerTitle("Disposed Records Summary Filter");
-            setShowDrawer(true);
         } else if (type === "recordsByUser") {
             setDrawerTitle("Records by employee Filter");
-            setShowDrawer(true);
         } else if (type === "borrowsAndReturns") {
             setDrawerTitle("Borrows and Returns Filter");
-            setShowDrawer(true);
         } else if (type === "submittedDoc") {
             setDrawerTitle("Submitted Documents Filter");
-            setShowDrawer(true);
+        } else if (type === "warehouseSummary") {
+            setDrawerTitle("Warehouse Summary Filter");
+        } else if (type === "warehouseRecords") {
+            setDrawerTitle("Records Summary Filter");
         } else {
             toast.error("Please refresh the page.");
+            return false;
         }
         setSelectedForm(
             <Suspense fallback={<ComponentLoader />}>
                 <Filter type={type} closeHandler={sideDrawerClose} />
             </Suspense>
         );
+
+        setShowDrawer(true);
     }
 
     const sideDrawerClose = useCallback(() => {
@@ -164,6 +164,35 @@ export default function Report() {
                                     className="block ml-2 text-green-700 hover:text-green-500"
                                 >
                                     {">"} Current Borrows
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+                {["WAREHOUSE_CUST"].includes(userType) && (
+                    <>
+                        <div className="mb-3">
+                            <div className="text-uppercase text-sm text-slate-500">
+                                Summaries
+                            </div>
+                            <div>
+                                <button
+                                    onClick={() =>
+                                        openDrawer("warehouseSummary")
+                                    }
+                                    className="block ml-2 text-green-700 hover:text-green-500"
+                                >
+                                    {">"} Warehouse Summary
+                                </button>
+                            </div>
+                            <div>
+                                <button
+                                    onClick={() =>
+                                        openDrawer("warehouseRecords")
+                                    }
+                                    className="block ml-2 text-green-700 hover:text-green-500"
+                                >
+                                    {">"} Records Summary
                                 </button>
                             </div>
                         </div>

@@ -14,6 +14,7 @@ import BorrowsAndReturns from "./Summaries/BorrowsAndReturns";
 import CurrentBorrows from "./Summaries/CurrentBorrows";
 import EmployeeBorrows from "./Summaries/EmployeeBorrows";
 import SubmittedDocuments from "./Summaries/SubmittedDocuments";
+import WarehouseSummary from "./Summaries/WarehouseSummary";
 
 export default function ReportDocuments() {
     const { filters } = useParams();
@@ -45,6 +46,7 @@ export default function ReportDocuments() {
         };
     }, []);
     if (!reportData) return <ComponentLoader />;
+
     if (reportFilters.reportType === "warehouseRecords")
         return <WarehouseRecords reportData={reportData} />;
     if (reportFilters.reportType === "branchSummary")
@@ -65,6 +67,10 @@ export default function ReportDocuments() {
         return <EmployeeBorrows reportData={reportData} />;
     if (reportFilters.reportType === "submittedDoc")
         return <SubmittedDocuments reportData={reportData} />;
+    if (reportFilters.reportType === "submittedDoc")
+        return <SubmittedDocuments reportData={reportData} />;
+    if (reportFilters.reportType === "warehouseSummary")
+        return <WarehouseSummary reportData={reportData} />;
 
     return false;
 }

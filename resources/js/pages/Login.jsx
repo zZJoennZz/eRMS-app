@@ -8,9 +8,14 @@ import { API_URL } from "../configs/config";
 
 import { AuthContext } from "../contexts/AuthContext";
 
-import { ChevronDoubleRightIcon } from "@heroicons/react/24/solid";
+import {
+    ChevronDoubleRightIcon,
+    EyeIcon,
+    EyeSlashIcon,
+} from "@heroicons/react/24/solid";
 
 export default function Login() {
+    const [isShowPw, setIsShowPw] = useState(false);
     const [loginCredentials, setLoginCredentials] = useState({
         username: "",
         password: "",
@@ -76,7 +81,7 @@ export default function Login() {
                             required
                         />
                         <input
-                            type="password"
+                            type={isShowPw ? "text" : "password"}
                             name="password"
                             id="password"
                             autoComplete="current-password"
@@ -86,6 +91,22 @@ export default function Login() {
                             placeholder="Enter your password"
                             required
                         />
+                        <button
+                            type="button"
+                            onClick={() => setIsShowPw(!isShowPw)}
+                            className="text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full"
+                        >
+                            {isShowPw ? (
+                                <>
+                                    <EyeSlashIcon className="w-4 h-4 inline" />{" "}
+                                    Hide
+                                </>
+                            ) : (
+                                <>
+                                    <EyeIcon className="w-4 h-4 inline" /> Show
+                                </>
+                            )}
+                        </button>
                         <div className="mb-3 flex justify-end">
                             {/* <div className="text-sm flex-grow">
                                 <a

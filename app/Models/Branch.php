@@ -24,4 +24,9 @@ class Branch extends Model
     {
         return $this->belongsTo(Cluster::class, 'clusters_id', 'id');
     }
+
+    public function records()
+    {
+        return $this->hasMany(RDSRecord::class, 'branches_id', 'id');
+    }
 }

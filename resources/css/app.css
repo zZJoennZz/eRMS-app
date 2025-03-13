@@ -13,6 +13,16 @@ html {
     height: 100%;
 }
 
+@media print {
+    body {
+        overflow: visible !important;
+    }
+
+    html {
+        overflow: visible !important;
+    }
+}
+
 input[type="text"],
 input[type="password"],
 input[type="date"],

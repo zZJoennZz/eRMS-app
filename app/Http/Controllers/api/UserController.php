@@ -221,6 +221,7 @@ class UserController extends Controller
             if ($user->type === "ADMIN" || $user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD" || $user->type === "DEV") {
                 $get_user->username = $request->username;
                 $get_user->email = $request->email_address;
+                $get_user->type = $request->type;
                 $get_user->save();
 
                 $user_profile = UserProfile::find($get_user->profile->id);

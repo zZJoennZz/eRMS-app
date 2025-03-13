@@ -311,6 +311,7 @@ export default function Root() {
                                     "ADMIN",
                                     "RECORDS_CUST",
                                     "EMPLOYEE",
+                                    "WAREHOUSE_CUST",
                                 ]}
                             />
                         }

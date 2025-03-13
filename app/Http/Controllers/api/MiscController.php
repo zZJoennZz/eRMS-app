@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\RDSRecord;
 use App\Models\RDSRecordDocumentHistory;
 use App\Models\RDSTransaction;
@@ -401,7 +402,7 @@ class MiscController extends Controller
                     if ($request->searchField === "name") {
                         $resData = RDSRecord::whereHas('branch', function ($query) use ($request) {
                             $query->where('name', 'like', '%' . $request->searchTxt . '%')->where('clusters_id', Auth::user()->branch->clusters_id);
-                        })->whereHas('latest_history', function ($query) use ($startDate) {
+                        })->whereHas('latest_history', function ($query) {
                             $query->where('location', 'Warehouse')->where('action', 'transfer');
                         })
                             ->with(['documents.rds', 'latest_history'])
@@ -431,9 +432,60 @@ class MiscController extends Controller
                             ->with(['documents.rds', 'latest_history'])
                             ->where('status', 'APPROVED')
                             ->get();
+                    } elseif ($request->from_date) {
+                        $startDate = Carbon::parse($request->from_date)->startOfDay();
+                        $endDate = Carbon::parse($request->to_date)->endOfDay();
+                        if ($request->scope === "all") {
+                            $resData = RDSRecord::whereHas('branch', function ($query) {
+                                $query->where('clusters_id', Auth::user()->branch->clusters_id);
+                            })
+                                ->whereHas('latest_history', function ($query) use ($startDate, $endDate) {
+                                    $query
+                                        ->where('created_at', '>=', $startDate)
+                                        ->where('created_at', '<=', $endDate);
+                                })
+                                ->with(['documents.rds', 'latest_history'])
+                                ->where('status', 'APPROVED');
+                        } else {
+                            $resData = RDSRecord::whereHas('branch', function ($query) {
+                                $query->where('clusters_id', Auth::user()->branch->clusters_id);
+                            })
+                                ->whereHas('latest_history', function ($query) use ($startDate, $endDate) {
+                                    $query
+                                        ->where('created_at', '>=', $startDate)
+                                        ->where('created_at', '<=', $endDate);
+                                })
+                                ->where('branches_id', $request->scope)
+                                ->with(['documents.rds', 'latest_history'])
+                                ->where('status', 'APPROVED');
+                        }
+                        $resData = $resData->get();
                     } else {
                         return send400Response("Invalid parameters.");
                     }
+                } elseif ($request->reportType === "warehouseSummary") {
+                    $resData = RDSRecord::whereHas('latest_history', function ($query) use ($startDate, $endDate) {
+                        $query
+                            ->where('location', 'Warehouse')
+                            ->where('action', 'transfer')
+                            ->where('created_at', '>=', $startDate)
+                            ->where('created_at', '<=', $endDate);
+                    })
+                        ->with(['documents.rds', 'latest_history', 'branch'])
+                        ->where('status', 'APPROVED')
+                        ->get();
+
+                    $resData = Branch::whereHas('records.latest_history', function ($query) use ($startDate, $endDate) {
+                        $query->where('location', 'Warehouse')
+                            ->where('action', 'transfer')
+                            ->whereBetween('created_at', [$startDate, $endDate]);
+                    })
+                        ->with([
+                            'records' => function ($query) {
+                                $query->where('status', 'APPROVED')->with(['documents.rds', 'latest_history']);
+                            }
+                        ])
+                        ->get();
                 }
             }
 
@@ -529,7 +581,7 @@ class MiscController extends Controller
             }
             return send200Response($resData);
         } catch (\Exception $e) {
-            return send400Response();
+            return send400Response($e->getMessage());
         }
     }
 }

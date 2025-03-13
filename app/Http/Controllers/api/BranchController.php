@@ -18,11 +18,15 @@ class BranchController extends Controller
     {
         //
         $user = Auth::user();
+        $branches = [];
         if ($user->type !== "ADMIN" && $user->type !== "DEV") {
+            $branches = Branch::with('cluster')->where('clusters_id', $user->branch->clusters_id)->get();
+        } elseif ($user->type === "ADMIN" || $user->type === "DEV") {
+            $branches = Branch::with('cluster')->get();
+        } else {
             return send401Response();
         }
 
-        $branches = Branch::with('cluster')->get();
         return send200Response($branches);
     }
 

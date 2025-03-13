@@ -344,6 +344,14 @@ export default function Filter({ type }) {
             label: "Submitted Documents",
             fields: ["from_date", "to_date"],
         },
+        warehouseSummary: {
+            label: "Warehouse Summary",
+            fields: ["from_date", "to_date"],
+        },
+        warehouseRecords: {
+            label: "Records Summary",
+            fields: ["from_date", "to_date"],
+        },
     };
 
     return reportComponents[type] ? (
@@ -353,6 +361,7 @@ export default function Filter({ type }) {
 
 function ReportForm({ reportType, fields }) {
     const [users, setUsers] = useState([]);
+    const [branches, setBranches] = useState([]);
     const initialState = fields.reduce(
         (acc, field) => {
             acc[field] = "";
@@ -394,14 +403,34 @@ function ReportForm({ reportType, fields }) {
                 });
         }
 
+        async function getBranches() {
+            await axios
+                .get(`${API_URL}branches`, {
+                    headers: {
+                        Authorization: localStorage.getItem("token") || "",
+                    },
+                    cancelToken: source.token,
+                })
+                .then((res) => {
+                    setBranches(res.data.data);
+                })
+                .catch(() => {
+                    toast.error("Invalid parameters.");
+                });
+        }
+
         if (reportType === "recordsByUser") {
             getUsers();
+        }
+
+        if (reportType === "warehouseRecords") {
+            getBranches();
         }
 
         return () => {
             source.cancel();
         };
-    }, []);
+    }, [reportType]);
 
     return (
         <form>
@@ -505,6 +534,39 @@ function ReportForm({ reportType, fields }) {
                             </div>
                         </div>
                     ))}
+
+                {reportType === "warehouseRecords" && branches && (
+                    <div className="mb-4">
+                        <div className="mb-1">
+                            <label htmlFor="from_date">Scope</label>
+                        </div>
+                        <div>
+                            <select
+                                type="text"
+                                name="scope"
+                                id="scope"
+                                value={repFilter.scope}
+                                onChange={frmFieldHandler}
+                                className="w-full"
+                                required
+                            >
+                                <option>Please select scope of report</option>
+                                <option value="all">All branches</option>
+                                {branches.map(
+                                    (branch) =>
+                                        branch.name !== "Warehouse" && (
+                                            <option
+                                                value={branch.id}
+                                                key={branch.id}
+                                            >
+                                                {branch.name}
+                                            </option>
+                                        )
+                                )}
+                            </select>
+                        </div>
+                    </div>
+                )}
             </div>
             <div className="absolute bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
                 <button
