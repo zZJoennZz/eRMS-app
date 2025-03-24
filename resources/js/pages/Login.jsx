@@ -45,7 +45,8 @@ export default function Login() {
                     res.data.data.id,
                     res.data.data.type,
                     res.data.data.profile,
-                    res.data.data.branch
+                    res.data.data.branch,
+                    res.data.data.current_position
                 );
                 toast.success("Login success!");
             })

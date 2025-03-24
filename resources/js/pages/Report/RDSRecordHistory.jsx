@@ -67,6 +67,12 @@ export default function RDSRecordHistory() {
         DISPOSE: "Box Disposed",
         DECLINE_DISPOSAL: "Disposal Declined",
         SUBMIT_DISPOSAL: "Initiated Disposal",
+        INIT_BORROW: "Initiated Borrow",
+        PROCESSING: "Record Custodian Approved Borrow",
+        BORROW_APPROVED: "Branch Head Approved Borrow",
+        BORROWED: "Borrowed Box Received",
+        INIT_RETURN: "Initiated Return of Borrowed Box",
+        RETURNED: "Borrowed Box Returned to Records Custodian",
     };
 
     const mainHistory = [
@@ -77,6 +83,18 @@ export default function RDSRecordHistory() {
             }`,
             date: h.created_at,
         })),
+        ...(record?.documents || []).flatMap((dc) => [
+            ...(dc.history || []).map((dochis) => ({
+                action:
+                    dochis.action === "DECLINE"
+                        ? "Box Borrow Declined"
+                        : actionText[dochis.action] || dochis.action,
+                user: `${dochis?.action_by?.profile?.first_name || "Unknown"} ${
+                    dochis?.action_by?.profile?.last_name || ""
+                }`,
+                date: dochis.created_at,
+            })),
+        ]),
         ...(record?.transactions || []).flatMap((tx) => [
             ...(tx.transaction?.history || []).map((h) => ({
                 action: actionText[h.action] || h.action,

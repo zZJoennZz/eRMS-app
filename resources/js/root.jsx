@@ -42,20 +42,23 @@ export default function Root() {
     const [isLoading, setIsLoading] = useState(true);
     const [userType, setUserType] = useState("");
     const [currId, setCurrId] = useState(0);
+    const [currPosition, setCurrPosition] = useState({});
     const [branchDetails, setBranchDetails] = useState({});
 
-    function changeAuth(value, id, userType, profile, branchDets) {
+    function changeAuth(value, id, userType, profile, branchDets, currPos) {
         if (value === false) {
             localStorage.removeItem("token");
             setCurrId(0);
             setUserType("");
             setCurrProfile({});
+            setCurrPosition({});
         }
         setUserType(userType);
         setIsAuth(value);
         setCurrId(id);
         setCurrProfile(profile);
         setBranchDetails(branchDets);
+        setCurrPosition(currPos);
     }
 
     useEffect(() => {
@@ -82,12 +85,14 @@ export default function Root() {
                     setIsAuth(true);
                     setCurrProfile(res.data.data.profile);
                     setBranchDetails(res.data.data.branch);
+                    setCurrPosition(res.data.data.current_position);
                 })
                 .catch(() => {
                     setUserType("");
                     setIsAuth(false);
                     setCurrId(0);
                     setCurrProfile({});
+                    setCurrPosition({});
                     localStorage.removeItem("token");
                 });
 
@@ -108,8 +113,17 @@ export default function Root() {
             userType,
             currProfile,
             branchDetails,
+            currPosition,
         }),
-        [isAuth, currId, isLoading, userType, currProfile, branchDetails]
+        [
+            isAuth,
+            currId,
+            isLoading,
+            userType,
+            currProfile,
+            branchDetails,
+            currPosition,
+        ]
     );
 
     return (

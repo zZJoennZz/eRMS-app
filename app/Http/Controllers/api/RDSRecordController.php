@@ -382,7 +382,7 @@ class RDSRecordController extends Controller
         if ($user->type === "WAREHOUSE_CUST") {
             return send401Response();
         }
-        $rds_record = RDSRecord::with(['documents.rds', 'submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile'])
+        $rds_record = RDSRecord::with(['documents.rds', 'submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile', 'documents.history.action_by.profile'])
             ->where('branches_id', $user->branches_id)
             ->where('id', $id)
             ->first();

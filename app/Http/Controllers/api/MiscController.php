@@ -321,7 +321,7 @@ class MiscController extends Controller
             ->whereHas('document.record', function ($query) use ($user) {
                 $query->where('branches_id', $user->branches_id);
             })
-            ->where('status', '<>', 'RETURNED')
+            ->where('status', 'BORROWED')
             ->count();
         $pending_borrows = RDSRecordDocumentHistory::where('action', 'INIT_BORROW')
             ->where('users_id', $user->id)

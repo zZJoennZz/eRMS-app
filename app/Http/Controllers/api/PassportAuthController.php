@@ -99,6 +99,7 @@ class PassportAuthController extends Controller
                     'id' => $user->id,
                     'type' => $user->type,
                     'profile' => $user->profile,
+                    'current_position' => $user->profile->position,
                     'branch' => $user->branch
                 ]);
             } else {
@@ -136,7 +137,8 @@ class PassportAuthController extends Controller
                     "id" => Auth::user()->id,
                     "type" => Auth::user()->type,
                     "profile" => Auth::user()->profile,
-                    'branch' => Auth::user()->branch
+                    'branch' => Auth::user()->branch,
+                    "current_position" => Auth::user()->profile->position,
                 ], 'Token is valid.');
             } else {
                 return send401Response();

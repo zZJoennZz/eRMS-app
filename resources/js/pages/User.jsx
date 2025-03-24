@@ -33,7 +33,8 @@ export default function User() {
     });
     const getAllDisabledUsers = useQuery({
         queryKey: ["allDisabledUsers"],
-        queryFn: allDisabled,
+        queryFn: () =>
+            userType === "ADMIN" || userType === "DEV" ? allDisabled() : [],
         retry: 2,
         networkMode: "always",
     });
@@ -285,16 +286,20 @@ export default function User() {
                             </table>
                         </div>
 
-                        <div className="my-2">
-                            <button
-                                className="text-xs py-1 px-3 bg-slate-600 text-white rounded-full"
-                                onClick={() => setShowDisabled(!showDisabled)}
-                            >
-                                {showDisabled
-                                    ? "Hide Disabled Users"
-                                    : "Show Disabled Users"}
-                            </button>
-                        </div>
+                        {(userType === "ADMIN" || userType === "DEV") && (
+                            <div className="my-2">
+                                <button
+                                    className="text-xs py-1 px-3 bg-slate-600 text-white rounded-full"
+                                    onClick={() =>
+                                        setShowDisabled(!showDisabled)
+                                    }
+                                >
+                                    {showDisabled
+                                        ? "Hide Disabled Users"
+                                        : "Show Disabled Users"}
+                                </button>
+                            </div>
+                        )}
 
                         {(userType === "ADMIN" || userType === "DEV") &&
                             showDisabled && (
