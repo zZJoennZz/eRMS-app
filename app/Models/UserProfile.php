@@ -27,4 +27,14 @@ class UserProfile extends Model
     {
         return $this->hasOne(User::class, 'id', 'users_id');
     }
+
+    public function positions()
+    {
+        return $this->hasMany(UserPosition::class, 'user_profiles_id', 'id');
+    }
+
+    public function intervening_role()
+    {
+        return $this->hasMany(InterveningRole::class, 'user_profiles_id', 'id');
+    }
 }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('r_d_s_transactions_id');
             $table->longText('action');
+            $table->unsignedBigInteger('users_id');
             $table->date('action_date');
             $table->timestamps();
 

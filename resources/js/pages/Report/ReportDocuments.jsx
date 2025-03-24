@@ -50,9 +50,9 @@ export default function ReportDocuments() {
     if (reportFilters.reportType === "warehouseRecords")
         return <WarehouseRecords reportData={reportData} />;
     if (reportFilters.reportType === "branchSummary")
-        return <BranchRecords reportData={reportData} />;
+        return <BranchRecords reportData={reportData} filters={filters} />;
     if (reportFilters.reportType === "branchBoxes")
-        return <BranchBoxes reportData={reportData} />;
+        return <BranchBoxes reportData={reportData} filters={filters} />;
     if (reportFilters.reportType === "disposedBoxSum")
         return <DisposedBoxes reportData={reportData} />;
     if (reportFilters.reportType === "disposedRecordsSum")

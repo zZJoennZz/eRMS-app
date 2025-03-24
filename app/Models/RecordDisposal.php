@@ -14,6 +14,7 @@ class RecordDisposal extends Model
         'users_id',
         'remarks',
         'branches_id',
+        'branch_head_id',
         'other',
     ];
 
@@ -35,5 +36,10 @@ class RecordDisposal extends Model
     public function branch()
     {
         return $this->hasOne(Branch::class, 'id', 'branches_id');
+    }
+
+    public function branch_head()
+    {
+        return $this->hasOne(User::class, 'id', 'branch_head_id');
     }
 }

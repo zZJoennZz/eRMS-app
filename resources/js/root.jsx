@@ -23,6 +23,7 @@ const Disposal = lazy(() => import("./pages/Disposal"));
 const WarehouseMonitoring = lazy(() => import("./pages/WarehouseMonitoring"));
 const Report = lazy(() => import("./pages/Report"));
 const ReportDocuments = lazy(() => import("./pages/Report/ReportDocuments"));
+const RDSRecordHistory = lazy(() => import("./pages/Report/RDSRecordHistory"));
 const DisposedRecordsForm = lazy(() =>
     import("./pages/Report/DisposedRecordsForm")
 );
@@ -336,6 +337,24 @@ export default function Root() {
                         }
                     >
                         <Route path="/reports" element={<Report />} />
+                    </Route>
+                    <Route
+                        element={
+                            <PrivateRoute
+                                allowedRoles={[
+                                    "RECORDS_CUST",
+                                    "BRANCH_HEAD",
+                                    "DEV",
+                                    "ADMIN",
+                                    "EMPLOYEE",
+                                ]}
+                            />
+                        }
+                    >
+                        <Route
+                            path="/rds-record-history/:id"
+                            element={<RDSRecordHistory />}
+                        />
                     </Route>
                 </Routes>
             </Suspense>

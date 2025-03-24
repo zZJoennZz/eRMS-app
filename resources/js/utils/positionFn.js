@@ -36,3 +36,12 @@ export async function post(data) {
     });
     return res.data.data;
 }
+
+export async function switchPos(id) {
+    let res = await axios.put(`${API_URL}switch-position/${id}`, null, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}

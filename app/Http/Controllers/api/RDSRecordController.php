@@ -29,8 +29,9 @@ class RDSRecordController extends Controller
             $main_records = RDSRecord::with(['documents.history', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
             }])
-                ->whereHas('submitted_by_user.profile', function ($query) {
-                    $query->where('positions_id', '=', Auth::user()->profile->positions_id);
+                ->whereHas('documents', function ($query) {
+                    $query
+                        ->where('source_of_documents', '=', Auth::user()->profile->position->name);
                 })
                 ->where('status', '=', 'APPROVED')
                 ->where('branches_id', '=', Auth::user()->branches_id)
@@ -51,10 +52,17 @@ class RDSRecordController extends Controller
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->orderBy('box_number', 'asc')
                 ->get();
-
+            $declined_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->where('submitted_by', Auth::user()->id)
+                ->where('status', '=', 'DECLINED')
+                ->where('branches_id', '=', Auth::user()->branches_id)
+                ->get();
             $rds_record = new \Illuminate\Database\Eloquent\Collection();
             $rds_record = $rds_record->merge($main_records);
             $rds_record = $rds_record->merge($pending_records);
+            $rds_record = $rds_record->merge($declined_records);
         } elseif (Auth::user()->type === "BRANCH_HEAD" || Auth::user()->type === "RECORDS_CUST") {
             $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
@@ -214,6 +222,26 @@ class RDSRecordController extends Controller
     public function destroy(string $id)
     {
         //
+        $user = Auth::user();
+
+        if ($user->type !== "RECORDS_CUST" || $user->type !== "BRANCH_HEAD") {
+            return send401Response();
+        }
+
+        try {
+            DB::beginTransaction();
+            $rds_record = RDSRecord::find($id);
+
+            if ($rds_record->status !== "DISPOSED") {
+                return send422Response("You cannot delete boxes that aren't declined.");
+            }
+
+            $rds_record->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response();
+        }
     }
 
     public function warehouse_supply()
@@ -346,5 +374,19 @@ class RDSRecordController extends Controller
             DB::rollBack();
             return send400Response();
         }
+    }
+
+    public function rds_record_history($id)
+    {
+        $user = Auth::user();
+        if ($user->type === "WAREHOUSE_CUST") {
+            return send401Response();
+        }
+        $rds_record = RDSRecord::with(['documents.rds', 'submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile'])
+            ->where('branches_id', $user->branches_id)
+            ->where('id', $id)
+            ->first();
+
+        return send200Response($rds_record);
     }
 }

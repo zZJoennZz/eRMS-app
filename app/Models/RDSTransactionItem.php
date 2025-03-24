@@ -15,7 +15,7 @@ class RDSTransactionItem extends Model
 
     public function transaction()
     {
-        return $this->belongsTo(RDSTransaction::class, 'id', 'r_d_s_transactions_id');
+        return $this->belongsTo(RDSTransaction::class, 'r_d_s_transactions_id', 'id');
     }
 
     public function record()

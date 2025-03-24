@@ -54,3 +54,30 @@ export async function changeOwnPassword(data) {
     });
     return res.data.data;
 }
+
+export async function allDisabled() {
+    let res = await axios.get(`${API_URL}disabled-users`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}
+
+export async function disableUser(id) {
+    let res = await axios.put(`${API_URL}disable-user/${id}`, null, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}
+
+export async function enableUser(id) {
+    let res = await axios.put(`${API_URL}enable-user/${id}`, null, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}

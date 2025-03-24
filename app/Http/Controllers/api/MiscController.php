@@ -321,7 +321,7 @@ class MiscController extends Controller
             ->whereHas('document.record', function ($query) use ($user) {
                 $query->where('branches_id', $user->branches_id);
             })
-            ->where('status', 'BORROWED')
+            ->where('status', '<>', 'RETURNED')
             ->count();
         $pending_borrows = RDSRecordDocumentHistory::where('action', 'INIT_BORROW')
             ->where('users_id', $user->id)
@@ -419,8 +419,6 @@ class MiscController extends Controller
                             ->where('status', 'APPROVED')
                             ->get();
                     } elseif ($request->searchField === "history_created_at" && $request->dateFilterType === "date_range") {
-
-
                         $resData = RDSRecord::whereHas('branch', function ($query) {
                             $query->where('clusters_id', Auth::user()->branch->clusters_id);
                         })
@@ -441,10 +439,11 @@ class MiscController extends Controller
                             })
                                 ->whereHas('latest_history', function ($query) use ($startDate, $endDate) {
                                     $query
+                                        ->where('location', 'Warehouse')
                                         ->where('created_at', '>=', $startDate)
                                         ->where('created_at', '<=', $endDate);
                                 })
-                                ->with(['documents.rds', 'latest_history'])
+                                ->with(['latest_history', 'branch'])
                                 ->where('status', 'APPROVED');
                         } else {
                             $resData = RDSRecord::whereHas('branch', function ($query) {
@@ -456,7 +455,7 @@ class MiscController extends Controller
                                         ->where('created_at', '<=', $endDate);
                                 })
                                 ->where('branches_id', $request->scope)
-                                ->with(['documents.rds', 'latest_history'])
+                                ->with(['documents.rds', 'documents.record', 'latest_history'])
                                 ->where('status', 'APPROVED');
                         }
                         $resData = $resData->get();

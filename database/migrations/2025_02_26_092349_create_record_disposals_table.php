@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('users_id');
             $table->text('remarks')->nullable();
             $table->unsignedBigInteger('branches_id');
+            $table->unsignedBigInteger('branch_head_id');
             $table->text('other')->nullable();
             $table->timestamps();
 

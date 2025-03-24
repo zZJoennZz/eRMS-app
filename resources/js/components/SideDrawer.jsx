@@ -14,6 +14,13 @@ export default function SideDrawer({
                 showDrawer ? "w-screen" : "w-0 overflow-hidden p-0 m-0"
             } absolute h-screen top-0 right-0 z-40 bg-slate-800 bg-opacity-50 ease-in-out transition-all duration-100`}
         >
+            {/* <div
+                className={`${
+                    showDrawer
+                        ? twcssWidthClass + " overflow-y-auto"
+                        : "w-0 overflow-hidden p-0 m-0"
+                } absolute right-0 top-0 h-full bg-white z-50 transition-all ease-in-out duration-300`}
+            > */}
             <div
                 className={`${
                     showDrawer

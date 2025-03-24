@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\UserPosition;
 use App\Models\UserProfile;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -22,6 +23,11 @@ class UserProfileSeeder extends Seeder
             'others' => '',
             'positions_id' => 1,
         ]);
+        UserPosition::create([
+            'user_profiles_id' => 1,
+            'positions_id' => 1,
+            'type' => "MAIN",
+        ]);
 
         UserProfile::create([
             'users_id' => 2,
@@ -30,6 +36,11 @@ class UserProfileSeeder extends Seeder
             'last_name' => 'Bennett',
             'others' => '',
             'positions_id' => 6,
+        ]);
+        UserPosition::create([
+            'user_profiles_id' => 2,
+            'positions_id' => 6,
+            'type' => "MAIN",
         ]);
 
         UserProfile::create([
@@ -40,6 +51,11 @@ class UserProfileSeeder extends Seeder
             'others' => '',
             'positions_id' => 8,
         ]);
+        UserPosition::create([
+            'user_profiles_id' => 3,
+            'positions_id' => 8,
+            'type' => "MAIN",
+        ]);
 
         UserProfile::create([
             'users_id' => 4,
@@ -48,6 +64,11 @@ class UserProfileSeeder extends Seeder
             'last_name' => 'Chen',
             'others' => '',
             'positions_id' => 8,
+        ]);
+        UserPosition::create([
+            'user_profiles_id' => 4,
+            'positions_id' => 8,
+            'type' => "MAIN",
         ]);
 
         UserProfile::create([
@@ -58,6 +79,11 @@ class UserProfileSeeder extends Seeder
             'others' => '',
             'positions_id' => 3,
         ]);
+        UserPosition::create([
+            'user_profiles_id' => 5,
+            'positions_id' => 3,
+            'type' => "MAIN",
+        ]);
 
         UserProfile::create([
             'users_id' => 6,
@@ -66,6 +92,11 @@ class UserProfileSeeder extends Seeder
             'last_name' => 'Powell',
             'others' => '',
             'positions_id' => 3,
+        ]);
+        UserPosition::create([
+            'user_profiles_id' => 6,
+            'positions_id' => 3,
+            'type' => "MAIN",
         ]);
 
         UserProfile::create([
@@ -76,6 +107,11 @@ class UserProfileSeeder extends Seeder
             'others' => '',
             'positions_id' => 2,
         ]);
+        UserPosition::create([
+            'user_profiles_id' => 7,
+            'positions_id' => 2,
+            'type' => "MAIN",
+        ]);
 
         UserProfile::create([
             'users_id' => 8,
@@ -84,6 +120,11 @@ class UserProfileSeeder extends Seeder
             'last_name' => 'Mann',
             'others' => '',
             'positions_id' => 4,
+        ]);
+        UserPosition::create([
+            'user_profiles_id' => 8,
+            'positions_id' => 4,
+            'type' => "MAIN",
         ]);
     }
 }

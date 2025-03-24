@@ -1,12 +1,16 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import Topbar from "./Topbar";
+import PositionSwitcher from "./PositionSwitcher";
 
 export default function DashboardLayout({ children }) {
-    const { currProfile } = useContext(AuthContext);
+    const { currProfile, userType } = useContext(AuthContext);
     return (
         <div>
             <Topbar />
+            {userType === "EMPLOYEE" && (
+                <PositionSwitcher profileId={currProfile.id} />
+            )}
             <div className="container mx-auto p-4">
                 {children}
                 <div className="text-xs text-slate-600 my-2">

@@ -85,6 +85,16 @@ class TransactionController extends Controller
                     return send401Response();
                 }
 
+                $hasWarehouseCust = User::whereHas('branch', function ($query) {
+                    $query->where('clusters_id', Auth::user()->branch->clusters_id);
+                })
+                    ->where('type', 'WAREHOUSE_CUST')
+                    ->get();
+
+                if ($hasWarehouseCust->count() === 0) {
+                    return send422Response("Please make sure the branch have records custodian.");
+                }
+
                 $new_transaction = new RDSTransaction();
                 $new_transaction->status = "PENDING";
                 $new_transaction->type = "TRANSFER";
@@ -132,7 +142,7 @@ class TransactionController extends Controller
 
                 $new_transaction_history = new RDSTransactionHistory();
                 $new_transaction_history->r_d_s_transactions_id = $new_transaction->id;
-                $new_transaction_history->action = "SUBMIT";
+                $new_transaction_history->action = "INITIATE_TRANSFER";
                 $new_transaction_history->action_date = \Carbon\Carbon::now();
                 $new_transaction_history->save();
             } elseif ($request->transaction['type'] === 'WITHDRAW') {
@@ -187,7 +197,7 @@ class TransactionController extends Controller
 
                 $new_transaction_history = new RDSTransactionHistory();
                 $new_transaction_history->r_d_s_transactions_id = $new_transaction->id;
-                $new_transaction_history->action = "SUBMIT";
+                $new_transaction_history->action = "INITIATE_WITHDRAW";
                 $new_transaction_history->action_date = \Carbon\Carbon::now();
                 $new_transaction_history->save();
             } elseif ($request->transaction['type'] === "BORROW") {
@@ -376,7 +386,7 @@ class TransactionController extends Controller
                 $transaction->status = "FOR RECEIVING";
                 $new_transaction_history = new RDSTransactionHistory();
                 $new_transaction_history->r_d_s_transactions_id = $transaction->id;
-                $new_transaction_history->action = "APPROVE";
+                $new_transaction_history->action = "WAREHOUSE_APPROVE_WITHDRAW";
                 $new_transaction_history->action_date = \Carbon\Carbon::now();
                 $new_transaction_history->save();
                 $transaction->save();
@@ -384,10 +394,15 @@ class TransactionController extends Controller
                 DB::commit();
                 return send200Response();
             }
+
             $new_transaction_history = new RDSTransactionHistory();
             $new_transaction_history->r_d_s_transactions_id = $transaction->id;
             $transaction->status = "PROCESSING";
-            $new_transaction_history->action = "SUBMIT";
+            if ($user->type === "BRANCH_HEAD" && $transaction->type === "TRANSFER") {
+                $new_transaction_history->action = "BRANCH_HEAD_APPROVE_TRANSFER";
+            } elseif ($user->type === "BRANCH_HEAD" && $transaction->type === "WITHDRAW") {
+                $new_transaction_history->action = "BRANCH_HEAD_APPROVE_WITHDRAW";
+            }
             $new_transaction_history->action_date = \Carbon\Carbon::Now();
             $transaction->save();
             $new_transaction_history->save();
@@ -414,7 +429,11 @@ class TransactionController extends Controller
             if ($transaction->type === "RETURN" && $user->type === "RECORDS_CUST") {
                 $new_transaction_history->action = "RETURN";
             } else {
-                $new_transaction_history->action = "APPROVE";
+                if ($transaction->type === "TRANSFER") {
+                    $new_transaction_history->action = "WAREHOUSE_RECEIVE";
+                } elseif ($transaction->type === "WITHDRAW") {
+                    $new_transaction_history->action = "RECORD_CUST_RECEIVE";
+                }
             }
             $new_transaction_history->action_date = \Carbon\Carbon::Now();
             $new_transaction_history->save();

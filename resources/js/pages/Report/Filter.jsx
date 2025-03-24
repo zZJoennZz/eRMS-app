@@ -332,6 +332,10 @@ export default function Filter({ type }) {
             label: "Disposed Boxes",
             fields: ["from_date", "to_date"],
         },
+        disposedRecordsSum: {
+            label: "Disposed Records",
+            fields: ["from_date", "to_date"],
+        },
         borrowsAndReturns: {
             label: "Borrows and Returns",
             fields: ["from_date", "to_date"],
@@ -506,34 +510,32 @@ function ReportForm({ reportType, fields }) {
                     </div>
                 )}
                 {/* Future fields can be added dynamically here */}
-                {reportType === "branchSummary" ||
-                    (reportType === "branchBoxes" && (
-                        <div className="mb-4">
-                            <div className="mb-1">
-                                <label htmlFor="from_date">Scope</label>
-                            </div>
-                            <div>
-                                <select
-                                    type="text"
-                                    name="scope"
-                                    id="scope"
-                                    value={repFilter.scope}
-                                    onChange={frmFieldHandler}
-                                    className="w-full"
-                                    required
-                                >
-                                    <option>Select scope of report</option>
-                                    <option value="both">Both</option>
-                                    <option value="branch_only">
-                                        Branch Only
-                                    </option>
-                                    <option value="warehouse_only">
-                                        Warehouse Only
-                                    </option>
-                                </select>
-                            </div>
+                {(reportType === "branchSummary" ||
+                    reportType === "branchBoxes") && (
+                    <div className="mb-4">
+                        <div className="mb-1">
+                            <label htmlFor="from_date">Scope</label>
                         </div>
-                    ))}
+                        <div>
+                            <select
+                                type="text"
+                                name="scope"
+                                id="scope"
+                                value={repFilter.scope}
+                                onChange={frmFieldHandler}
+                                className="w-full"
+                                required
+                            >
+                                <option>Select scope of report</option>
+                                <option value="both">Both</option>
+                                <option value="branch_only">Branch Only</option>
+                                <option value="warehouse_only">
+                                    Warehouse Only
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 {reportType === "warehouseRecords" && branches && (
                     <div className="mb-4">
@@ -568,7 +570,7 @@ function ReportForm({ reportType, fields }) {
                     </div>
                 )}
             </div>
-            <div className="absolute bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
+            <div className="md:absolute md:bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
                 <button
                     onClick={prepareFilters}
                     type="button"

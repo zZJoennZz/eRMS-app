@@ -18,7 +18,11 @@ export default function Dashboard() {
                 Good day, {currProfile.first_name}! 😊
             </h1>
             <div className="text-md mb-4 text-slate-600">
-                (🏦 {branchDetails.name})
+                (🏦{" "}
+                {userType === "ADMIN" || userType === "DEV"
+                    ? "Developer"
+                    : branchDetails.name}
+                )
             </div>
             <div className="mb-5 text-slate-500 text-xs">
                 Stay on top of your work with a quick overview of your progress.

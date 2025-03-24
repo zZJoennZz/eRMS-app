@@ -11,6 +11,8 @@ use App\Http\Controllers\api\RDSController;
 use App\Http\Controllers\api\RDSRecordController;
 use App\Http\Controllers\api\TransactionController;
 use App\Http\Controllers\api\UserController;
+use App\Models\InterveningRole;
+use App\Models\RDSRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +50,10 @@ Route::prefix('v1')->group(function () {
         Route::resource('clusters', ClusterController::class);
         Route::get('branch-detail', [BranchController::class, 'get_branch_profile']);
         Route::put('save-branch-details', [BranchController::class, 'save_branch_details']);
+        Route::resource('intervening-roles', InterveningRole::class);
+        Route::get('rds-record-history/{id?}', [RDSRecordController::class, 'rds_record_history']);
+        Route::put('switch-position/{id?}', [UserController::class, 'switch_position']);
+        Route::get('get-positions/{id?}', [PositionController::class, 'get_own_positions']);
 
         //borrow-return
         Route::post('borrow', [BorrowTransferController::class, 'borrow']);
@@ -83,6 +89,11 @@ Route::prefix('v1')->group(function () {
         Route::post('record-report', [MiscController::class, 'print_filtered_warehouse_records']);
 
         Route::get('print/{id?}', [MiscController::class, 'get_document_record']);
+
+        //enable/disable
+        Route::put('disable-user/{id}', [UserController::class, 'set_inactive']);
+        Route::put('enable-user/{id}', [UserController::class, 'set_enable']);
+        Route::get('disabled-users', [UserController::class, 'disabled_users']);
     });
 
     Route::middleware('guest')->group(function () {

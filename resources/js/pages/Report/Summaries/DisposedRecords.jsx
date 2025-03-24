@@ -38,27 +38,40 @@ export default function DisposedRecords({ reportData }) {
                     </thead>
                     <tbody>
                         {reportData.map((d) =>
-                            d.items.map((item) =>
-                                item.record.documents.map((doc) => (
+                            d.items.map((item) => (
+                                <>
                                     <tr
-                                        key={"doc" + doc.id}
+                                        key={"item" + item.id}
                                         className="border-b border-black"
                                     >
-                                        <td className="border-r border-black p-2">
-                                            {doc.rds.item_number}
-                                        </td>
-                                        <td className="border-r border-black p-2">
-                                            {doc.source_of_documents}
-                                        </td>
-                                        <td className="border-r border-black p-2">
-                                            {doc.description_of_document}
-                                        </td>
-                                        <td className="border-black p-2">
-                                            {formatDate(d.created_at)}
+                                        <td
+                                            className="border-r border-black p-2"
+                                            colSpan={4}
+                                        >
+                                            {item.record.box_number}
                                         </td>
                                     </tr>
-                                ))
-                            )
+                                    {item.record.documents.map((doc) => (
+                                        <tr
+                                            key={"doc" + doc.id}
+                                            className="border-b border-black"
+                                        >
+                                            <td className="border-r border-black p-2">
+                                                {doc.rds.item_number}
+                                            </td>
+                                            <td className="border-r border-black p-2">
+                                                {doc.source_of_documents}
+                                            </td>
+                                            <td className="border-r border-black p-2">
+                                                {doc.description_of_document}
+                                            </td>
+                                            <td className="border-black p-2">
+                                                {formatDate(d.created_at)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </>
+                            ))
                         )}
                     </tbody>
                 </table>

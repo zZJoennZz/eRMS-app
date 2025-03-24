@@ -59,7 +59,7 @@ export default function SettingSidebar({ isSidebarOpen, toggleSideBar }) {
                         href="/branches"
                         className="block p-2 rounded hover:bg-green-700"
                     >
-                        Branches
+                        Entities
                     </a>
                 )}
                 {["DEV", "ADMIN", "BRANCH_HEAD", "RECORDS_CUST"].includes(

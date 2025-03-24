@@ -201,7 +201,7 @@ export default function AddBranch({ closeHandler }) {
                         </div>
                     </div>
                 </div>
-                <div className="absolute bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
+                <div className="md:absolute md:bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
                     <button
                         type="submit"
                         className={`${

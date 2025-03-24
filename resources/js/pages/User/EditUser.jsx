@@ -6,6 +6,8 @@ import { API_URL } from "../../configs/config";
 import { update, resetPassword } from "../../utils/userFn";
 import { AuthContext } from "../../contexts/AuthContext";
 
+import { XMarkIcon } from "@heroicons/react/24/solid";
+
 export default function EditUser({ closeHandler, selUserId, rerender }) {
     const { userType } = useContext(AuthContext);
 
@@ -19,9 +21,11 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
         positions_id: 0,
         type: "",
         branches_id: 0,
+        intervening_positions: [],
     });
     const [allPositions, setAllPositions] = useState([]);
     const [displayedPositions, setDisplayPositions] = useState([]);
+    const [availableForIntrvnng, setAvailableForIntrvnng] = useState([]);
     // const [branches, setBranches] = useState([]);
 
     const queryClient = useQueryClient();
@@ -91,6 +95,7 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
     useEffect(() => {
         const source = axios.CancelToken.source();
         async function getUser() {
+            let userData;
             await axios
                 .get(`${API_URL}users/${selUserId}`, {
                     headers: {
@@ -99,17 +104,41 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                     cancelToken: source.token,
                 })
                 .then((res) => {
-                    let userData = res.data.data;
+                    userData = res.data.data;
+                    const posIds = userData.profile.positions
+                        .filter((obj) => obj.type !== "MAIN")
+                        .map((d) => d.positions_id);
+                    const mainPosition = userData.profile.positions.filter(
+                        (d) => d.type === "MAIN"
+                    );
                     setUserDetail({
                         username: userData.username,
                         email_address: userData.email,
                         first_name: userData.profile.first_name,
                         middle_name: userData.profile.middle_name,
                         last_name: userData.profile.last_name,
-                        positions_id: userData.profile.positions_id,
+                        positions_id: mainPosition[0].positions_id,
                         type: userData.type,
                         branches_id: userData.branches_id,
+                        intervening_positions: allPositions.filter((d) =>
+                            posIds.includes(d.id)
+                        ),
                     });
+                    if (userData.type === "EMPLOYEE") {
+                        // Compute filtered positions first
+                        const filteredPositions = allPositions.filter(
+                            (d) => d.type === userData.type
+                        );
+
+                        setDisplayPositions(filteredPositions);
+
+                        // Use functional update to ensure latest state
+                        setAvailableForIntrvnng(() =>
+                            filteredPositions.filter(
+                                (d) => d.id !== userData.profile.positions_id
+                            )
+                        );
+                    }
                 })
                 .catch((err) => {
                     if (axios.isCancel(err)) {
@@ -122,9 +151,9 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
         getUser();
 
         return () => {
-            source.cancel();
+            source.cancel("Component unmounted or dependencies changed");
         };
-    }, [rerender]);
+    }, [rerender, selUserId, allPositions]);
 
     function frmFieldHandler(e) {
         setUserDetail((prev) => {
@@ -145,6 +174,15 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                 };
             });
         }
+
+        if (
+            e.target.name === "positions_id" &&
+            userDetail.type === "EMPLOYEE"
+        ) {
+            setAvailableForIntrvnng(
+                displayedPositions.filter((d) => d.id !== e.target.value)
+            );
+        }
     }
 
     const saveUser = useMutation({
@@ -161,6 +199,7 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                 positions_id: 0,
                 type: "EMPLOYEE",
                 branches_id: 0,
+                intervening_positions: [],
             });
             queryClient.invalidateQueries({ queryKey: ["allUsers"] });
             toast.success("User account successfully updated!");
@@ -195,6 +234,28 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
         if (confirm("Are you sure to reset the password of this user?")) {
             resetPw.mutate();
         }
+    }
+
+    function addInterveningPosition(pos) {
+        setUserDetail((prev) => ({
+            ...prev,
+            intervening_positions: [...(prev.intervening_positions || []), pos],
+        }));
+        setAvailableForIntrvnng(
+            availableForIntrvnng.filter((d) => d.id !== pos.id)
+        );
+    }
+
+    function removePosition(pos) {
+        setUserDetail((prev) => ({
+            ...prev,
+            intervening_positions: prev.intervening_positions.filter(
+                (d) => d.id !== pos.id
+            ),
+        }));
+        setAvailableForIntrvnng((prev) =>
+            [...prev, pos].sort((a, b) => a.id - b.id)
+        );
     }
 
     return (
@@ -344,15 +405,24 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                                     Select account role of this user
                                 </option>
                                 <option value="EMPLOYEE">Employee</option>
-                                {(userType === "BRANCH_HEAD" ||
-                                    userType === "ADMIN" ||
+                                {(userType === "ADMIN" ||
                                     userType === "DEV") && (
                                     <>
                                         <option value="RECORDS_CUST">
                                             Records Custodian
                                         </option>
+                                        <option value="WAREHOUSE_CUST">
+                                            Warehouse Custodian
+                                        </option>
                                         <option value="BRANCH_HEAD">
                                             Branch Head
+                                        </option>
+                                    </>
+                                )}
+                                {userType === "BRANCH_HEAD" && (
+                                    <>
+                                        <option value="RECORDS_CUST">
+                                            Records Custodian
                                         </option>
                                     </>
                                 )}
@@ -371,7 +441,6 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                                 name="positions_id"
                                 id="positions_id"
                                 value={userDetail.positions_id}
-                                defaultValue={userDetail.positions_id}
                                 onChange={frmFieldHandler}
                                 className="w-full"
                                 required
@@ -393,6 +462,50 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                             </select>
                         </div>
                     </div>
+                    {userDetail.type === "EMPLOYEE" && (
+                        <>
+                            <label className="block">
+                                Additional Positions
+                            </label>
+                            <div className="flex flex-wrap gap-2 ">
+                                {userDetail.intervening_positions?.map(
+                                    (pos) => (
+                                        <div
+                                            key={pos.id}
+                                            className="flex items-center gap-2 bg-gray-100 p-2 rounded"
+                                        >
+                                            <span>{pos.name}</span>
+                                            <button
+                                                onClick={removePosition.bind(
+                                                    this,
+                                                    pos
+                                                )}
+                                                type="button"
+                                            >
+                                                <XMarkIcon className="w-5 h-5 text-red-500 cursor-pointer" />
+                                            </button>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {availableForIntrvnng.map((pos) => (
+                                    <button
+                                        key={pos.id}
+                                        type="button"
+                                        onClick={() =>
+                                            addInterveningPosition(pos)
+                                        }
+                                        className="border px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                                    >
+                                        {pos.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
                     {/* {(userType === "BRANCH_HEAD" ||
                         userType === "DEV" ||
                         userType === "ADMIN") && (
@@ -425,7 +538,7 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                         </div>
                     )} */}
                 </div>
-                <div className="absolute bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
+                <div className="md:absolute md:bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
                     <button
                         type="submit"
                         className={`${

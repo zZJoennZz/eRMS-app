@@ -24,7 +24,7 @@ export default function BranchHeadDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/transactions" className="hover:underline">
-                                Transfers
+                                Records for Storage
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -41,7 +41,7 @@ export default function BranchHeadDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/transactions" className="hover:underline">
-                                Withdraws
+                                Box Withdrawn from Warehouse
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -58,7 +58,7 @@ export default function BranchHeadDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/borrows" className="hover:underline">
-                                Borrows
+                                Records for Retrieval
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>

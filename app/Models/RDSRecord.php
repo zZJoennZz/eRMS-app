@@ -44,4 +44,9 @@ class RDSRecord extends Model
     {
         return $this->hasOne(User::class, 'id', 'submitted_by');
     }
+
+    public function transactions()
+    {
+        return $this->hasMany(RDSTransactionItem::class, 'r_d_s_records_id', 'id');
+    }
 }

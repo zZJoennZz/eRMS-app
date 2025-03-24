@@ -187,7 +187,7 @@ export default function AddRDS({ closeHandler }) {
                     <div className="mb-4">
                         <div className="mb-1">
                             <label>
-                                Has Condition When to Start Retention Period?{" "}
+                                Has Condition for Disposal?{" "}
                                 <small>
                                     (Make sure to put the condition in remarks)
                                 </small>
@@ -204,7 +204,7 @@ export default function AddRDS({ closeHandler }) {
                         </div>
                     </div>
                 </div>
-                <div className="absolute bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
+                <div className="md:absolute md:bottom-0 p-5 bg-slate-200 border-t border-slate-300 w-full">
                     <button
                         type="submit"
                         className={`${

@@ -22,7 +22,7 @@ export default function RCDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/rds-records" className="hover:underline">
-                                Pending Box
+                                Records for Storage
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -39,7 +39,7 @@ export default function RCDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/transactions" className="hover:underline">
-                                Pending Withdraw
+                                Box Withdrawn from Warehouse
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -56,7 +56,7 @@ export default function RCDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/borrows" className="hover:underline">
-                                Pending Borrows
+                                Records for Retrieval
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -73,7 +73,7 @@ export default function RCDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/borrows" className="hover:underline">
-                                Pending Returns
+                                Records for Return
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>

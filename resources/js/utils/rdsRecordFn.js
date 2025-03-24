@@ -68,3 +68,13 @@ export async function warehouseSupply() {
 
     return res.data.data;
 }
+
+export async function getHistory(id) {
+    let res = await axios.get(`${API_URL}rds-record-history/${id}`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

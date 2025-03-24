@@ -1,12 +1,6 @@
-import React, {
-    Suspense,
-    lazy,
-    useCallback,
-    useContext,
-    useState,
-} from "react";
+import React, { useContext, useState } from "react";
 
-import axios from "axios";
+// import axios from "axios";
 
 import DashboardLayout from "../components/DashboardLayout";
 
@@ -26,13 +20,14 @@ import { AuthContext } from "../contexts/AuthContext";
 import SideDrawer from "../components/SideDrawer";
 import ComponentLoader from "../components/ComponentLoader";
 
-import { CheckCircleIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
 import { formatDate } from "../utils/utilities";
 import { API_URL } from "../configs/config";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Disposal() {
+    const [filterLocation, setFilterLocation] = useState("All");
     const { userType } = useContext(AuthContext);
 
     const queryClient = useQueryClient();
@@ -68,11 +63,12 @@ export default function Disposal() {
     });
 
     const processDisposal = useMutation({
-        mutationFn: () => post(cart),
+        mutationFn: () => post({ cart, location: filterLocation }),
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["recordsForDisposals"],
             });
+            setCart([]);
             toast.success("Disposal has been submitted.");
         },
         onError: (err) => {
@@ -160,6 +156,20 @@ export default function Disposal() {
         }
     }
 
+    const filterData = (data) => {
+        if (filterLocation === "All") return data;
+
+        if (filterLocation === "Warehouse") {
+            return data.filter(
+                (item) => item.latest_history?.location === "Warehouse"
+            );
+        } else {
+            return data.filter(
+                (item) => item.latest_history?.location !== "Warehouse"
+            );
+        }
+    };
+
     return (
         <DashboardLayout>
             {userType === "RECORDS_CUST" && (
@@ -173,6 +183,21 @@ export default function Disposal() {
                 </button>
             )}
             <h1 className="text-xl font-semibold mb-1">Disposals</h1>
+            <div className="mb-3 flex gap-3">
+                <label className="font-semibold">Filter by Location:</label>
+                <select
+                    value={filterLocation}
+                    onChange={(e) => {
+                        setCart([]);
+                        setFilterLocation(e.target.value);
+                    }}
+                    className="border border-gray-300 p-1 rounded"
+                >
+                    <option value="All">All</option>
+                    <option value="Branch">Branch</option>
+                    <option value="Warehouse">Warehouse</option>
+                </select>
+            </div>
             <div className="text-xs mb-5">
                 You can process the upcoming and overdue boxes at the same time.
             </div>
@@ -201,19 +226,21 @@ export default function Disposal() {
                                 </tr>
                             ) : (
                                 recordsForDisposals.data &&
-                                recordsForDisposals.data.upcoming.map(
-                                    (data) => {
-                                        let sasd = "sad";
+                                filterData(
+                                    recordsForDisposals.data?.upcoming || []
+                                ).map((data) => {
+                                    let sasd = "sad";
 
-                                        return (
-                                            <tr
-                                                key={data.id}
-                                                id={data.id}
-                                                className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
-                                            >
-                                                <td className="py-2 text-left border-b border-slate-300">
-                                                    {userType ===
-                                                        "RECORDS_CUST" && (
+                                    return (
+                                        <tr
+                                            key={data.id}
+                                            id={data.id}
+                                            className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
+                                        >
+                                            <td className="py-2 text-left border-b border-slate-300">
+                                                {userType === "RECORDS_CUST" &&
+                                                    filterLocation !==
+                                                        "All" && (
                                                         <button
                                                             type="button"
                                                             className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
@@ -238,23 +265,22 @@ export default function Disposal() {
                                                                 : "+"}
                                                         </button>
                                                     )}
-                                                </td>
-                                                <td className="py-2 text-left border-b border-slate-300">
-                                                    {data.box_number}
-                                                </td>
-                                                <td className="py-2 text-left border-b border-slate-300">
-                                                    {data.documents.length}
-                                                </td>
-                                                <td className="py-2 text-left border-b border-slate-300">
-                                                    {formatDate(
-                                                        data.documents[0]
-                                                            .projected_date_of_disposal
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    }
-                                )
+                                            </td>
+                                            <td className="py-2 text-left border-b border-slate-300">
+                                                {data.box_number}
+                                            </td>
+                                            <td className="py-2 text-left border-b border-slate-300">
+                                                {data.documents.length}
+                                            </td>
+                                            <td className="py-2 text-left border-b border-slate-300">
+                                                {formatDate(
+                                                    data.documents[0]
+                                                        .projected_date_of_disposal
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
@@ -280,37 +306,41 @@ export default function Disposal() {
                                 </tr>
                             ) : (
                                 recordsForDisposals.data &&
-                                recordsForDisposals.data.overdue.map((data) => (
+                                filterData(
+                                    recordsForDisposals.data?.overdue || []
+                                ).map((data) => (
                                     <tr
                                         key={data.id}
                                         id={data.id}
                                         className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
                                     >
                                         <td className="py-2 text-left border-b border-slate-300">
-                                            {userType === "RECORDS_CUST" && (
-                                                <button
-                                                    type="button"
-                                                    className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
-                                                        cart.some(
+                                            {userType === "RECORDS_CUST" &&
+                                                filterLocation !== "All" && (
+                                                    <button
+                                                        type="button"
+                                                        className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
+                                                            cart.some(
+                                                                (item) =>
+                                                                    item.id ===
+                                                                    data.id
+                                                            )
+                                                                ? "bg-green-500 text-white border border-green-500"
+                                                                : "bg-green-700 text-white border border-green-700"
+                                                        }`}
+                                                        onClick={() =>
+                                                            toggleCart(data)
+                                                        }
+                                                    >
+                                                        {cart.some(
                                                             (item) =>
                                                                 item.id ===
                                                                 data.id
                                                         )
-                                                            ? "bg-green-500 text-white border border-green-500"
-                                                            : "bg-green-700 text-white border border-green-700"
-                                                    }`}
-                                                    onClick={() =>
-                                                        toggleCart(data)
-                                                    }
-                                                >
-                                                    {cart.some(
-                                                        (item) =>
-                                                            item.id === data.id
-                                                    )
-                                                        ? "-"
-                                                        : "+"}
-                                                </button>
-                                            )}
+                                                            ? "-"
+                                                            : "+"}
+                                                    </button>
+                                                )}
                                         </td>
                                         <td className="py-2 text-left border-b border-slate-300">
                                             {data.box_number}
@@ -361,14 +391,6 @@ export default function Disposal() {
                                         className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
                                     >
                                         <td className="py-2 text-left border-b border-slate-300">
-                                            <a
-                                                href={`/report/disposed-records-form/${data.id}`}
-                                                target="_blank"
-                                            >
-                                                <div className="group-hover:block hidden group-hover:absolute text-xs bg-opacity-40 bg-white px-2 py-1">
-                                                    Click to view report
-                                                </div>
-                                            </a>
                                             <div
                                                 className={`inline ${
                                                     data.status === "PENDING" &&
@@ -377,10 +399,23 @@ export default function Disposal() {
                                                     data.status ===
                                                         "APPROVED" &&
                                                     "bg-blue-500"
-                                                }  text-white text-xs px-2 py-1 rounded-full`}
+                                                } ${
+                                                    data.status ===
+                                                        "DECLINED" &&
+                                                    "bg-red-500"
+                                                } text-white text-xs px-2 py-1 rounded-full`}
                                             >
                                                 {data.status}
                                             </div>
+
+                                            <a
+                                                href={`/report/disposed-records-form/${data.id}`}
+                                                target="_blank"
+                                            >
+                                                <div className="text-xs inline bg-green-500 text-green-800 rounded-full px-2 py-1 ml-2">
+                                                    Click to view report
+                                                </div>
+                                            </a>
                                         </td>
                                         <td className="py-2 text-left border-b border-slate-300">
                                             {formatDate(data.created_at)}
@@ -476,14 +511,6 @@ export default function Disposal() {
                                             className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
                                         >
                                             <td className="py-2 text-left border-b border-slate-300">
-                                                <a
-                                                    href={`/report/disposed-records-form/${data.id}`}
-                                                    target="_blank"
-                                                >
-                                                    <div className="group-hover:block hidden group-hover:absolute text-xs bg-opacity-40 bg-white px-2 py-1">
-                                                        Click to view report
-                                                    </div>
-                                                </a>
                                                 <div
                                                     className={`inline ${
                                                         data.status ===
@@ -501,6 +528,14 @@ export default function Disposal() {
                                                 >
                                                     {data.status}
                                                 </div>
+                                                <a
+                                                    href={`/report/disposed-records-form/${data.id}`}
+                                                    target="_blank"
+                                                >
+                                                    <div className="text-xs inline bg-green-500 text-green-800 rounded-full px-2 py-1 ml-2">
+                                                        Click to view report
+                                                    </div>
+                                                </a>
                                             </td>
                                             <td className="py-2 text-left border-b border-slate-300">
                                                 {formatDate(data.created_at)}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserPosition;
 use App\Models\UserProfile;
 use Exception;
 use Illuminate\Http\Request;
@@ -22,14 +23,18 @@ class UserController extends Controller
         $user = Auth::user();
         $users = [];
         if ($user->type === "DEV" || $user->type === "ADMIN") {
-            $users = User::with(['profile', 'branch', 'profile.position'])->get();
+            $users = User::with(['profile', 'branch', 'profile.position', 'profile.positions.position'])
+                ->where('is_inactive', 0)
+                ->get();
         } elseif ($user->type === "BRANCH_HEAD") {
-            $users = User::with(['profile', 'branch', 'profile.position'])
+            $users = User::with(['profile.positions.position', 'branch', 'profile.position', 'profile.positions.position'])
                 ->where('branches_id', $user->branches_id)
+                ->where('is_inactive', 0)
                 ->get();
         } elseif ($user->type === "RECORDS_CUST") {
-            $users = User::with(['profile', 'branch', 'profile.position'])
+            $users = User::with(['profile.positions.position', 'branch', 'profile.position', 'profile.positions.position'])
                 ->where('branches_id', $user->branches_id)
+                ->where('is_inactive', 0)
                 ->where('type', '<>', 'BRANCH_HEAD')
                 ->get();
         } else {
@@ -79,6 +84,12 @@ class UserController extends Controller
                 $new_user_profile->last_name = $request->last_name;
                 $new_user_profile->positions_id = $request->positions_id;
                 $new_user_profile->save();
+
+                $new_user_position = new UserPosition();
+                $new_user_position->user_profiles_id = $new_user_profile->id;
+                $new_user_position->positions_id = $request->positions_id;
+                $new_user_position->type = "MAIN";
+                $new_user_position->save();
             } elseif ($user->type === "BRANCH_HEAD" || $user->type === "RECORDS_CUST") {
                 if ($user->type === "RECORDS_CUST" && $request->type !== "BRANCH_HEAD" && $request->type !== "RECORDS_CUST" && $request->type !== "DEV" && $request->type !== "WAREHOUSE") {
 
@@ -103,6 +114,12 @@ class UserController extends Controller
                     $new_user_profile->last_name = $request->last_name;
                     $new_user_profile->positions_id = $request->positions_id;
                     $new_user_profile->save();
+
+                    $new_user_position = new UserPosition();
+                    $new_user_position->user_profiles_id = $new_user_profile->id;
+                    $new_user_position->positions_id = $request->positions_id;
+                    $new_user_position->type = "MAIN";
+                    $new_user_position->save();
                 } elseif ($user->type === "BRANCH_HEAD" && $request->type !== "DEV" && $request->type !== "WAREHOUSE") {
                     $request->validate([
                         'username' => 'required|unique:users',
@@ -125,6 +142,12 @@ class UserController extends Controller
                     $new_user_profile->last_name = $request->last_name;
                     $new_user_profile->positions_id = $request->positions_id;
                     $new_user_profile->save();
+
+                    $new_user_position = new UserPosition();
+                    $new_user_position->user_profiles_id = $new_user_profile->id;
+                    $new_user_position->positions_id = $request->positions_id;
+                    $new_user_position->type = "MAIN";
+                    $new_user_position->save();
                 } else {
                     DB::rollBack();
                     return send401Response();
@@ -146,7 +169,9 @@ class UserController extends Controller
     public function show(string $id)
     {
         //
-        $user = User::where('id', $id)->with(['profile'])->first();
+        $user = User::where('id', $id)
+            ->with(['profile.positions.position'])
+            ->first();
         return send200Response($user);
     }
 
@@ -184,6 +209,14 @@ class UserController extends Controller
                 $emailRules = 'required|email|unique:users,email';
             }
 
+            if ($get_user->type === "RECORDS_CUST" && count($request->intervening_positions) > 0) {
+                return send422Response("RC can't have intervening positions.");
+            }
+
+            if ($get_user->type === "BRANCH_HEAD" && count($request->intervening_positions) > 0) {
+                return send422Response("BH can't have intervening positions.");
+            }
+
             if ($user->type === "RECORDS_CUST") {
                 $typeRules = 'required|in:EMPLOYEE';
             } elseif ($user->type === "BRANCH_HEAD") {
@@ -207,7 +240,9 @@ class UserController extends Controller
                 'middle_name' => 'max:200',
                 'last_name' => $nameRules,
                 'type' => $typeRules,
-                'positions_id' => 'required|exists:positions,id'
+                'positions_id' => 'required|exists:positions,id',
+                'intervening_positions' => 'array',
+                'intervening_positions.id' => 'exists:positions,id'
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -231,6 +266,22 @@ class UserController extends Controller
                 $user_profile->positions_id = $request->positions_id;
                 $user_profile->save();
 
+                UserPosition::where('user_profiles_id', $id)->delete();
+
+                $main_user_position = new UserPosition();
+                $main_user_position->user_profiles_id = $get_user->profile->id;
+                $main_user_position->type = "MAIN";
+                $main_user_position->positions_id = $request->positions_id;
+                $main_user_position->save();
+
+                foreach ($request->intervening_positions as $ip) {
+                    $inter_user_position = new UserPosition();
+                    $inter_user_position->user_profiles_id = $get_user->profile->id;
+                    $inter_user_position->type = "INTERVENING";
+                    $inter_user_position->positions_id = $ip['id'];
+                    $inter_user_position->save();
+                }
+
                 DB::commit();
                 return send200Response();
             } else {
@@ -249,6 +300,21 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function disabled_users()
+    {
+        $user = Auth::user();
+
+        if ($user->type !== "ADMIN" && $user->type !== "DEV") {
+            return send401Response();
+        }
+
+        $users = User::with(['profile', 'branch', 'profile.position', 'profile.positions.position'])
+            ->where('is_inactive', 1)
+            ->get();
+
+        return send200Response($users);
     }
 
     public function reset_pw($id)
@@ -288,6 +354,85 @@ class UserController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             return send400Response($e->getMessage());
+        }
+    }
+
+    public function switch_position($id)
+    {
+        try {
+            $user = Auth::user();
+            DB::beginTransaction();
+            if ($user->type !== "EMPLOYEE") {
+                return send401Response();
+            }
+            $position = UserPosition::find($id);
+            if ($user->profile->positions_id === $position->positions_id) {
+                return send422Response("Your selected position is already active.");
+            }
+
+            $is_position_available = UserPosition::where('user_profiles_id', $user->profile->id)
+                ->where('id', $id)
+                ->get()
+                ->count() > 0 ? true : false;
+
+            if ($is_position_available) {
+                $user_profile = UserProfile::find($user->profile->id);
+                $user_profile->positions_id = $position->positions_id;
+                $user_profile->save();
+            } else {
+                return send400Response("Position not available for this account.");
+            }
+            DB::commit();
+            return send200Response();
+        } catch (Exception $e) {
+            DB::rollBack();
+            return send400Response();
+        }
+    }
+
+    public function set_inactive($id)
+    {
+        try {
+            DB::beginTransaction();
+            $user = Auth::user();
+            if ($user->type !== "ADMIN" && $user->type !== "DEV") {
+                return send401Response();
+            }
+
+            $sel_user = User::find($id);
+
+            $sel_user->is_inactive = true;
+            $sel_user->save();
+
+            DB::commit();
+
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response();
+        }
+    }
+
+    public function set_enable($id)
+    {
+        try {
+            DB::beginTransaction();
+            $user = Auth::user();
+            if ($user->type !== "ADMIN" && $user->type !== "DEV") {
+                return send401Response();
+            }
+
+            $sel_user = User::find($id);
+
+            $sel_user->is_inactive = false;
+            $sel_user->save();
+
+            DB::commit();
+
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response();
         }
     }
 }

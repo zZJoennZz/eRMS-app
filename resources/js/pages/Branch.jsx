@@ -51,7 +51,7 @@ export default function Branch() {
                     <AddBranch closeHandler={sideDrawerClose} />
                 </Suspense>
             );
-            setDrawerTitle("Add Branch");
+            setDrawerTitle("Add Entity");
             setShowDrawer(true);
         } else if (type === "edit") {
             setRerender((prev) => prev + 1);
@@ -64,7 +64,7 @@ export default function Branch() {
                     />
                 </Suspense>
             );
-            setDrawerTitle("Edit Branch");
+            setDrawerTitle("Edit Entity");
             setShowDrawer(true);
         } else {
             toast.error("Please refresh the page.");
@@ -111,7 +111,7 @@ export default function Branch() {
                                 </svg>
                             </button>
                             <h1 className="text-xl font-semibold">
-                                Branch List
+                                Entity List
                             </h1>
                         </header>
                         <div className="mb-3">
@@ -122,7 +122,7 @@ export default function Branch() {
                                 value={searchTxt}
                                 onChange={(e) => setSearchTxt(e.target.value)}
                                 className="w-full"
-                                placeholder="Search branch here"
+                                placeholder="Search entity here"
                             />
                         </div>
                         <div className="mb-3">
@@ -131,14 +131,14 @@ export default function Branch() {
                                 onClick={() => openDrawer("new")}
                             >
                                 <PlusIcon className="w-4 h-4 inline mr-2" /> Add
-                                Branch
+                                Entity
                             </button>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="mb-3 w-full">
                                 <thead className="text-left text-xs font-semibold border-t border-b border-lime-600">
                                     <tr>
-                                        <th className="py-2">Branch</th>
+                                        <th className="py-2">Entity Name</th>
                                         <th className="py-2">Code</th>
                                         <th className="py-2">Group</th>
                                     </tr>

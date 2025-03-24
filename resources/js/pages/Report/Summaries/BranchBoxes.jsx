@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { formatDate } from "../../../utils/utilities";
 import { AuthContext } from "../../../contexts/AuthContext";
 
-export default function BranchRecords({ reportData }) {
+export default function BranchRecords({ reportData, filters }) {
     const { currProfile, branchDetails } = useContext(AuthContext);
     return (
         <div className="p-4 w-full max-w-4xl mx-auto text-sm font-sans print:m-0 print:p-1">
@@ -12,7 +12,13 @@ export default function BranchRecords({ reportData }) {
                 </div>
                 eRMS Report
                 <div className="text-xl font-bold text-center mt-10">
-                    SUMMARY OF BRANCH BOXES
+                    SUMMARY OF{" "}
+                    {JSON.parse(filters).scope === "branch_only" && "BRANCH"}
+                    {JSON.parse(filters).scope === "warehouse_only" &&
+                        "WAREHOUSE"}
+                    {JSON.parse(filters).scope === "both" &&
+                        "BRANCH AND WAREHOUSE"}{" "}
+                    BOXES
                 </div>
                 <div className="text-lg font-bold text-center mt-1 mb-5">
                     {branchDetails.name}

@@ -282,13 +282,16 @@ export default function RDSRecord() {
                                                 colSpan={12}
                                                 className="py-2 text-left border-b border-slate-300"
                                             >
-                                                {data.status === "APPROVED" &&
+                                                {(data.status === "APPROVED" ||
+                                                    data.status ===
+                                                        "DISPOSED") &&
                                                     data.box_number}
-                                                {data.status === "DECLINED" && (
-                                                    <div className="inline text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">
-                                                        Declined
-                                                    </div>
-                                                )}
+                                                {data.status === "DECLINED" &&
+                                                    userType === "EMPLOYEE" && (
+                                                        <div className="inline text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">
+                                                            Declined
+                                                        </div>
+                                                    )}
                                                 {data.status === "PENDING" && (
                                                     <div className="bg-gray-500 text-xs inline text-white py-0.5 px-2 rounded-full ml-1">
                                                         Pending
@@ -345,6 +348,18 @@ export default function RDSRecord() {
                                                 {data.status === "DISPOSED" && (
                                                     <div className="inline ml-2 rounded-full bg-red-600 text-white px-1.5 py-0.5 text-xs">
                                                         Disposed
+                                                    </div>
+                                                )}
+                                                {userType !==
+                                                    "WAREHOUSE_CUST" && (
+                                                    <div className="mt-3">
+                                                        <a
+                                                            href={`/rds-record-history/${data.id}`}
+                                                            target="_blank"
+                                                            className="text-xs text-blue-600 hover:underline"
+                                                        >
+                                                            View Box History
+                                                        </a>
                                                     </div>
                                                 )}
                                             </td>

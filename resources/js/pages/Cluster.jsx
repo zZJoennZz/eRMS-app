@@ -131,7 +131,7 @@ export default function Cluster() {
                                 onClick={() => openDrawer("new")}
                             >
                                 <PlusIcon className="w-4 h-4 inline mr-2" /> Add
-                                Branch
+                                Group
                             </button>
                         </div>
                         <div className="overflow-x-auto">

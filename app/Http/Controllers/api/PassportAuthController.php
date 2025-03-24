@@ -88,9 +88,19 @@ class PassportAuthController extends Controller
             if (Auth::attempt($data)) {
                 /** @var \App\Models\User $user **/
                 $user = Auth::user();
+
+                if ($user->is_inactive) {
+                    return send400Response("The account you are trying to use is inactive. Please contact branch head or the web developer/administrator.");
+                }
                 $token = $user->createToken(env('AUTH_SECRET') ?? 'AWEDASDS@232')->accessToken;
 
-                return send200Response(['token' => $token, 'id' => $user->id, 'type' => $user->type, 'profile' => $user->profile, 'branch' => $user->branch]);
+                return send200Response([
+                    'token' => $token,
+                    'id' => $user->id,
+                    'type' => $user->type,
+                    'profile' => $user->profile,
+                    'branch' => $user->branch
+                ]);
             } else {
                 return send401Response();
             }

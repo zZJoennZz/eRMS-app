@@ -184,7 +184,7 @@ const DisposedRecordsForm = () => {
                                 );
                             })
                         )}
-                    {[...Array(20 - rowCtr)].map((x, i) => (
+                    {[...Array(10 - rowCtr)].map((x, i) => (
                         <tr>
                             <td className="border-black text-white p-2 text-xs">
                                 -
@@ -203,7 +203,17 @@ const DisposedRecordsForm = () => {
                             </div>
                             <div className="text-left text-xs uppercase">
                                 {!isLoading &&
-                                    recordDisposal.user.branch.agency_name}
+                                    recordDisposal.other !== null &&
+                                    (JSON.parse(recordDisposal.other)
+                                        .location === "Warehouse"
+                                        ? "Warehouse"
+                                        : recordDisposal.user.branch
+                                              .location_of_records)}
+
+                                {!isLoading &&
+                                    recordDisposal.other === null &&
+                                    recordDisposal.user.branch
+                                        .location_of_records}
                             </div>
                         </td>
                         <td colSpan="2" className="border border-black p-2">
@@ -265,11 +275,14 @@ const DisposedRecordsForm = () => {
                         <td colSpan="2">
                             <div className="w-10/12 border-b border-black mt-10 text-center">
                                 {!isLoading &&
-                                    branchHead.profile.first_name +
+                                    recordDisposal.branch_head.profile
+                                        .first_name +
                                         " " +
-                                        branchHead.profile.middle_name +
+                                        recordDisposal.branch_head.profile
+                                            .middle_name +
                                         " " +
-                                        branchHead.profile.last_name}
+                                        recordDisposal.branch_head.profile
+                                            .last_name}
                             </div>
                             <div className="text-center w-10/12 text-xs">
                                 Name and Signature of Agency Head

@@ -26,14 +26,14 @@ class DisposalController extends Controller
                 $query->where('projected_date_of_disposal', '<', now()->toDateString());
             })
                 ->where('branches_id', $user->branches_id)
-                ->with(['documents.rds'])
+                ->with(['documents.rds', 'latest_history'])
                 ->where('status', 'APPROVED')
                 ->get();
             $upcomingRecords = RDSRecord::whereHas('documents', function ($query) {
                 $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
             })
                 ->where('branches_id', $user->branches_id)
-                ->with(['documents.rds'])
+                ->with(['documents.rds', 'latest_history'])
                 ->where('status', 'APPROVED')
                 ->get();
             $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile'])
@@ -62,7 +62,7 @@ class DisposalController extends Controller
     {
         $user = Auth::user();
         try {
-            $cart = $request->all();
+            $cart = $request->cart;
 
             //VALIDATIONS
             $cartIds = collect($cart)->pluck('id');
@@ -84,10 +84,18 @@ class DisposalController extends Controller
                 return send422Response('One or more document does not belong to your branch.');
             }
             DB::beginTransaction();
+
+            $branch_head = User::where('branches_id', Auth::user()->branches_id)
+                ->with(['profile'])
+                ->where('type', 'BRANCH_HEAD')
+                ->first();
+
             $new_rds_disposal = new RecordDisposal();
             $new_rds_disposal->status = "PENDING";
             $new_rds_disposal->users_id  = $user->id;
             $new_rds_disposal->branches_id  = $user->branches_id;
+            $new_rds_disposal->branch_head_id  = $branch_head->id;
+            $new_rds_disposal->other  = json_encode(["location" => $request->location]);
             $new_rds_disposal->save();
 
             foreach ($cart as $c) {
@@ -99,6 +107,13 @@ class DisposalController extends Controller
                 $rds_record = RDSRecord::find($c['id']);
                 $rds_record->status = "PENDING_DISPOSAL";
                 $rds_record->save();
+
+                $new_record_history = new RDSRecordHistory();
+                $new_record_history->r_d_s_records_id = $rds_record->id;
+                $new_record_history->action = "SUBMIT_DISPOSAL";
+                $new_record_history->location = $rds_record->latest_history->location;
+                $new_record_history->users_id = $user->id;
+                $new_record_history->save();
             }
 
             $new_rds_disposal_history = new RecordDisposalHistory();
@@ -111,6 +126,7 @@ class DisposalController extends Controller
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
+            return $e;
             return send400Response();
         }
     }
@@ -118,15 +134,10 @@ class DisposalController extends Controller
     public function get_report($id)
     {
         try {
-            $disposal_form = RecordDisposal::with(['items.record.documents.rds', 'user.profile.position', 'user.branch'])->where('id', $id)->first();
-            $branch_head = User::where('branches_id', Auth::user()->branches_id)
-                ->with(['profile'])
-                ->where('type', 'BRANCH_HEAD')
-                ->first();
+            $disposal_form = RecordDisposal::with(['items.record.documents.rds', 'user.profile.position', 'user.branch', 'branch_head.profile'])->where('id', $id)->first();
 
             $res = [
                 'disposal_form' => $disposal_form,
-                'branch_head' => $branch_head,
             ];
 
             return send200Response($res);
@@ -151,7 +162,7 @@ class DisposalController extends Controller
             $new_record_disposal_history = new RecordDisposalHistory();
             $new_record_disposal_history->record_disposals_id  = $record_disposal->id;
             $new_record_disposal_history->action  = "APPROVED";
-            $new_record_disposal_history->remarks  = "APPROVED for subission.";
+            $new_record_disposal_history->remarks  = "APPROVED for submission.";
             $new_record_disposal_history->users_id  = $user->id;
             $new_record_disposal_history->save();
 
@@ -214,6 +225,19 @@ class DisposalController extends Controller
             $record_disposal = RecordDisposal::find($id);
             $record_disposal->status = "DECLINED";
             $record_disposal->save();
+
+            foreach ($record_disposal->items as $item) {
+                $rds_record = RDSRecord::find($item->r_d_s_records_id);
+                $rds_record->status = "APPROVED";
+                $rds_record->save();
+
+                $new_record_history = new RDSRecordHistory();
+                $new_record_history->r_d_s_records_id = $rds_record->id;
+                $new_record_history->action = "DECLINE_DISPOSAL";
+                $new_record_history->location = $rds_record->latest_history->location;
+                $new_record_history->users_id = $user->id;
+                $new_record_history->save();
+            }
 
             $new_record_disposal_history = new RecordDisposalHistory();
             $new_record_disposal_history->record_disposals_id  = $record_disposal->id;

@@ -23,6 +23,6 @@ ReactDOM.createRoot(document.getElementById("app")).render(
             theme="colored"
             position="bottom-right"
         />
-        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+        <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
 );
