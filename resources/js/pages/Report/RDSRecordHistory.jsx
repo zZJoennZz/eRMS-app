@@ -67,12 +67,16 @@ export default function RDSRecordHistory() {
         DISPOSE: "Box Disposed",
         DECLINE_DISPOSAL: "Disposal Declined",
         SUBMIT_DISPOSAL: "Initiated Disposal",
-        INIT_BORROW: "Initiated Borrow",
-        PROCESSING: "Record Custodian Approved Borrow",
-        BORROW_APPROVED: "Branch Head Approved Borrow",
-        BORROWED: "Borrowed Box Received",
-        INIT_RETURN: "Initiated Return of Borrowed Box",
-        RETURNED: "Borrowed Box Returned to Records Custodian",
+        INIT_BORROW: "Initiated Borrow of",
+        PROCESSING: "Record Custodian Approved Borrow of",
+        BORROW_APPROVED: "Branch Head Approved Borrow of",
+        BORROWED: "Borrowed Received",
+        INIT_RETURN: "Initiated Return of",
+        RETURNED: "Returned to Records Custodian",
+        INIT_RELEASE: "Initiated Release of Box",
+        RELEASE: "Approved Release of Box",
+        BRANCH_HEAD_APPROVE_RELEASE: "Box Released",
+        RETURN_RELEASE: "Box Returned from Release",
     };
 
     const mainHistory = [
@@ -87,8 +91,11 @@ export default function RDSRecordHistory() {
             ...(dc.history || []).map((dochis) => ({
                 action:
                     dochis.action === "DECLINE"
-                        ? "Box Borrow Declined"
-                        : actionText[dochis.action] || dochis.action,
+                        ? "Borrow Declined: " + dc.description_of_document
+                        : actionText[dochis.action] +
+                              ": " +
+                              dc.description_of_document ||
+                          dochis.action + ": " + dc.description_of_document,
                 user: `${dochis?.action_by?.profile?.first_name || "Unknown"} ${
                     dochis?.action_by?.profile?.last_name || ""
                 }`,
@@ -97,7 +104,10 @@ export default function RDSRecordHistory() {
         ]),
         ...(record?.transactions || []).flatMap((tx) => [
             ...(tx.transaction?.history || []).map((h) => ({
-                action: actionText[h.action] || h.action,
+                action:
+                    h.action === "INIT_RELEASE"
+                        ? actionText[h.action] + ": " + tx.transaction.remarks
+                        : actionText[h.action] || h.action,
                 user: `${h?.user?.profile?.first_name || "Unknown"} ${
                     h?.user?.profile?.last_name || ""
                 }`,

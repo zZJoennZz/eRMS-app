@@ -1,21 +1,22 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { AuthContext } from "./contexts/AuthContext";
-
 import { Route, Routes } from "react-router-dom";
 import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
+import PreLoader from "./components/PreLoader";
+import axios from "axios";
+import { API_URL } from "./configs/config";
 
-// //public
+// Lazy-loaded components
 const Login = lazy(() => import("./pages/Login"));
-
-//private
-const RDS = lazy(() => import("./pages/RDS"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const RDSRecord = lazy(() => import("./pages/RDSRecord"));
 const Transaction = lazy(() => import("./pages/Transaction"));
+const RDSRecord = lazy(() => import("./pages/RDSRecord"));
+const RDS = lazy(() => import("./pages/RDS"));
 const Setting = lazy(() => import("./pages/Setting"));
 const User = lazy(() => import("./pages/User"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const Cluster = lazy(() => import("./pages/Cluster"));
 const Branch = lazy(() => import("./pages/Branch"));
 const Borrow = lazy(() => import("./pages/Borrow"));
@@ -27,14 +28,8 @@ const RDSRecordHistory = lazy(() => import("./pages/Report/RDSRecordHistory"));
 const DisposedRecordsForm = lazy(() =>
     import("./pages/Report/DisposedRecordsForm")
 );
-
-//everyone
-const Unauthorized = lazy(() => import("./pages/Unauthorized"));
-
-import PreLoader from "./components/PreLoader";
-
-import axios from "axios";
-import { API_URL } from "./configs/config";
+const Turnover = lazy(() => import("./pages/Setting/Turnover"));
+const TurnoverForms = lazy(() => import("./pages/Report/TurnoverForms"));
 
 export default function Root() {
     const [isAuth, setIsAuth] = useState(false);
@@ -46,7 +41,7 @@ export default function Root() {
     const [branchDetails, setBranchDetails] = useState({});
 
     function changeAuth(value, id, userType, profile, branchDets, currPos) {
-        if (value === false) {
+        if (!value) {
             localStorage.removeItem("token");
             setCurrId(0);
             setUserType("");
@@ -67,10 +62,10 @@ export default function Root() {
         async function checkToken() {
             setIsLoading(true);
             abortController = new AbortController();
-            let signal = abortController.signal;
+            const signal = abortController.signal;
 
-            await axios
-                .post(
+            try {
+                const res = await axios.post(
                     `${API_URL}check_token`,
                     { signal },
                     {
@@ -78,29 +73,28 @@ export default function Root() {
                             Authorization: localStorage.getItem("token") || "",
                         },
                     }
-                )
-                .then((res) => {
-                    setUserType(res.data.data.type);
-                    setCurrId(res.data.data.id);
-                    setIsAuth(true);
-                    setCurrProfile(res.data.data.profile);
-                    setBranchDetails(res.data.data.branch);
-                    setCurrPosition(res.data.data.current_position);
-                })
-                .catch(() => {
-                    setUserType("");
-                    setIsAuth(false);
-                    setCurrId(0);
-                    setCurrProfile({});
-                    setCurrPosition({});
-                    localStorage.removeItem("token");
-                });
-
-            setIsLoading(false);
+                );
+                const { type, id, profile, branch, current_position } =
+                    res.data.data;
+                setUserType(type);
+                setCurrId(id);
+                setIsAuth(true);
+                setCurrProfile(profile);
+                setBranchDetails(branch);
+                setCurrPosition(current_position);
+            } catch {
+                setUserType("");
+                setIsAuth(false);
+                setCurrId(0);
+                setCurrProfile({});
+                setCurrPosition({});
+                localStorage.removeItem("token");
+            } finally {
+                setIsLoading(false);
+            }
         }
 
         checkToken();
-
         return () => abortController.abort();
     }, []);
 
@@ -126,250 +120,170 @@ export default function Root() {
         ]
     );
 
+    const renderPrivateRoute = (allowedRoles, path, Component) => (
+        <Route element={<PrivateRoute allowedRoles={allowedRoles} />}>
+            <Route path={path} element={<Component />} />
+        </Route>
+    );
+
     return (
         <AuthContext.Provider value={contextValue}>
             <Suspense fallback={<PreLoader />}>
                 <Routes>
-                    <Route exact path="/" element={<PublicRoute />}>
-                        <Route path="/" element={<Login />} />
-                    </Route>
+                    {/* Public Routes */}
                     <Route element={<PublicRoute />}>
+                        <Route path="/" element={<Login />} />
                         <Route
                             path="/forgot-password"
                             element={<ForgotPassword />}
                         />
                     </Route>
-                    <Route
-                        exact
-                        path="/unauthorized"
-                        element={<Unauthorized />}
-                    />
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "EMPLOYEE",
-                                    "WAREHOUSE_CUST",
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/dashboard" element={<Dashboard />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "EMPLOYEE",
-                                    "WAREHOUSE_CUST",
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/transactions" element={<Transaction />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "EMPLOYEE",
-                                    "WAREHOUSE_CUST",
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/rds-records" element={<RDSRecord />} />
-                    </Route>
-                    <Route element={<PrivateRoute allowedRoles={["DEV"]} />}>
-                        <Route path="/rds" element={<RDS />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "EMPLOYEE",
-                                    "WAREHOUSE_CUST",
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/settings" element={<Setting />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/users" element={<User />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute allowedRoles={["DEV", "ADMIN"]} />
-                        }
-                    >
-                        <Route path="/groups" element={<Cluster />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute allowedRoles={["DEV", "ADMIN"]} />
-                        }
-                    >
-                        <Route path="/branches" element={<Branch />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                    "EMPLOYEE",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/borrows" element={<Borrow />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/disposals" element={<Disposal />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route
-                            path="/report/disposed-records-form/:id"
-                            element={<DisposedRecordsForm />}
-                        />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "WAREHOUSE_CUST",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route
-                            path="/warehouse-monitoring"
-                            element={<WarehouseMonitoring />}
-                        />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "WAREHOUSE_CUST",
-                                    "DEV",
-                                    "ADMIN",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route
-                            path="/print-warehouse-documents/:filters"
-                            element={<ReportDocuments />}
-                        />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                    "RECORDS_CUST",
-                                    "EMPLOYEE",
-                                    "WAREHOUSE_CUST",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route
-                            path="/print-branch-summary/:filters"
-                            element={<ReportDocuments />}
-                        />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                    "EMPLOYEE",
-                                    "WAREHOUSE_CUST",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route path="/reports" element={<Report />} />
-                    </Route>
-                    <Route
-                        element={
-                            <PrivateRoute
-                                allowedRoles={[
-                                    "RECORDS_CUST",
-                                    "BRANCH_HEAD",
-                                    "DEV",
-                                    "ADMIN",
-                                    "EMPLOYEE",
-                                ]}
-                            />
-                        }
-                    >
-                        <Route
-                            path="/rds-record-history/:id"
-                            element={<RDSRecordHistory />}
-                        />
-                    </Route>
+                    <Route path="/unauthorized" element={<Unauthorized />} />
+
+                    {/* Private Routes */}
+                    {renderPrivateRoute(
+                        [
+                            "EMPLOYEE",
+                            "WAREHOUSE_CUST",
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                        ],
+                        "/dashboard",
+                        Dashboard
+                    )}
+                    {renderPrivateRoute(
+                        [
+                            "EMPLOYEE",
+                            "WAREHOUSE_CUST",
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                        ],
+                        "/transactions",
+                        Transaction
+                    )}
+                    {renderPrivateRoute(
+                        [
+                            "EMPLOYEE",
+                            "WAREHOUSE_CUST",
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                        ],
+                        "/rds-records",
+                        RDSRecord
+                    )}
+                    {renderPrivateRoute(["DEV"], "/rds", RDS)}
+                    {renderPrivateRoute(
+                        [
+                            "EMPLOYEE",
+                            "WAREHOUSE_CUST",
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                        ],
+                        "/settings",
+                        Setting
+                    )}
+                    {renderPrivateRoute(
+                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN"],
+                        "/users",
+                        User
+                    )}
+                    {renderPrivateRoute(["DEV", "ADMIN"], "/groups", Cluster)}
+                    {renderPrivateRoute(["DEV", "ADMIN"], "/branches", Branch)}
+                    {renderPrivateRoute(
+                        [
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "EMPLOYEE",
+                        ],
+                        "/borrows",
+                        Borrow
+                    )}
+                    {renderPrivateRoute(
+                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN"],
+                        "/disposals",
+                        Disposal
+                    )}
+                    {renderPrivateRoute(
+                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN"],
+                        "/report/disposed-records-form/:id",
+                        DisposedRecordsForm
+                    )}
+                    {renderPrivateRoute(
+                        ["WAREHOUSE_CUST", "DEV", "ADMIN"],
+                        "/warehouse-monitoring",
+                        WarehouseMonitoring
+                    )}
+                    {renderPrivateRoute(
+                        ["WAREHOUSE_CUST", "DEV", "ADMIN"],
+                        "/print-warehouse-documents/:filters",
+                        ReportDocuments
+                    )}
+                    {renderPrivateRoute(
+                        [
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "RECORDS_CUST",
+                            "EMPLOYEE",
+                            "WAREHOUSE_CUST",
+                        ],
+                        "/print-branch-summary/:filters",
+                        ReportDocuments
+                    )}
+                    {renderPrivateRoute(
+                        [
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "EMPLOYEE",
+                            "WAREHOUSE_CUST",
+                        ],
+                        "/reports",
+                        Report
+                    )}
+                    {renderPrivateRoute(
+                        [
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "EMPLOYEE",
+                        ],
+                        "/rds-record-history/:id",
+                        RDSRecordHistory
+                    )}
+                    {renderPrivateRoute(
+                        ["BRANCH_HEAD", "RECORDS_CUST"],
+                        "/turnover",
+                        Turnover
+                    )}
+                    {renderPrivateRoute(
+                        [
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "EMPLOYEE",
+                        ],
+                        "/rds-record-history/:id",
+                        RDSRecordHistory
+                    )}
+                    {renderPrivateRoute(
+                        ["BRANCH_HEAD", "RECORDS_CUST"],
+                        "/print-turnover",
+                        TurnoverForms
+                    )}
                 </Routes>
             </Suspense>
         </AuthContext.Provider>

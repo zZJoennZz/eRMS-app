@@ -39,6 +39,7 @@ class DisposalController extends Controller
             $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile'])
                 ->where('branches_id', $user->branches_id)
                 ->where('status', '<>', 'DISPOSED')
+                ->orderBy('created_at', 'DESC')
                 ->get();
             $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile'])
                 ->where('branches_id', $user->branches_id)

@@ -32,13 +32,13 @@ class TransactionController extends Controller
                         $query->where('branches_id', $user->branches_id);
                     })
                     ->orderBy('created_at', 'DESC')
-                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
+                    ->with(['rds_records.record.branch', 'rds_records.record.latest_history', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
                     ->get();
             } elseif ($user->type === "BRANCH_HEAD" || $user->type === "RECORDS_CUST") {
                 $transaction = RDSTransaction::whereHas('rds_records.record', function ($query) use ($user) {
                     $query->where('branches_id', $user->branches_id);
                 })
-                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
+                    ->with(['rds_records.record.branch', 'rds_records.record.latest_history', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
                     ->orderBy('created_at', 'DESC')
                     ->get();
             } elseif ($user->type === "WAREHOUSE_CUST") {
@@ -47,18 +47,15 @@ class TransactionController extends Controller
                 })
                     ->where('type', '<>', 'RETURN')
                     ->where('type', '<>', 'BORROW')
-                    ->with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
+                    ->with(['rds_records.record.branch', 'rds_records.record.latest_history', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
                     ->orderBy('created_at', 'DESC')
                     ->get();
             } else {
-                $transaction = RDSTransaction::with(['rds_records.record.branch', 'receiver_user', 'issuer_user', 'submitted_by_user', 'history'])
-                    ->where('status', '<>', 'PENDING')
-                    ->orderBy('created_at', 'DESC')
-                    ->get();
+                return send401Response();
             }
             return send200Response($transaction);
         } catch (\Exception $e) {
-            return send400Response();
+            return send400Response($e->getMessage());
         }
     }
 
@@ -128,7 +125,7 @@ class TransactionController extends Controller
                         return send400Response('Box number: ' . $get_rds_record->box_number . ' currently has a pending transaction!');
                     }
 
-                    $invalid_actions = ['BORROW', 'TRANSFER'];
+                    $invalid_actions = ['BORROW', 'TRANSFER', 'RELEASE'];
                     if (in_array($get_rds_record->history[$get_rds_record->history->count() - 1]->action, $invalid_actions)) {
                         DB::rollBack();
                         return send400Response();
@@ -157,6 +154,7 @@ class TransactionController extends Controller
                 $new_transaction->issuer = User::whereHas('branch', function ($query) {
                     $query->where('clusters_id', Auth::user()->branch->clusters_id);
                 })
+                    ->where('is_inactive', false)
                     ->where('type', 'WAREHOUSE_CUST')
                     ->first()->id;
                 $new_transaction->submitted_by = Auth::user()->id;
@@ -183,7 +181,7 @@ class TransactionController extends Controller
                         return send400Response('Box number: ' . $get_rds_record->box_number . ' currently has a pending transaction!');
                     }
 
-                    $invalid_actions = ['WITHDRAW', 'RETURN'];
+                    $invalid_actions = ['WITHDRAW', 'RETURN', 'RELEASE'];
                     if (in_array($get_rds_record->history[$get_rds_record->history->count() - 1]->action, $invalid_actions)) {
                         DB::rollBack();
                         return send400Response('Item is not available.');
@@ -200,21 +198,24 @@ class TransactionController extends Controller
                 $new_transaction_history->action = "INITIATE_WITHDRAW";
                 $new_transaction_history->action_date = \Carbon\Carbon::now();
                 $new_transaction_history->save();
-            } elseif ($request->transaction['type'] === "BORROW") {
-                if (Auth::user()->type !== "EMPLOYEE") {
+            } elseif ($request->transaction["type"] === "RELEASE") {
+                if (Auth::user()->type !== "RECORDS_CUST") {
                     return send401Response();
                 }
 
                 $new_transaction = new RDSTransaction();
                 $new_transaction->status = "PENDING";
-                $new_transaction->type = "BORROW";
+                $new_transaction->type = "RELEASE";
                 $new_transaction->transaction_date = \Carbon\Carbon::now();
-                $new_transaction->issuer = Auth::user()->id;
+                $new_transaction->receiver = User::whereHas('branch', function ($query) {
+                    $query->where('clusters_id', Auth::user()->branch->clusters_id);
+                })
+                    ->where('is_inactive', false)
+                    ->where('type', 'WAREHOUSE_CUST')
+                    ->first()->id;
                 $new_transaction->submitted_by = Auth::user()->id;
                 $new_transaction->remarks = $request->transaction['remarks'];
-                $new_transaction->receiver = User::where('branches_id', Auth::user()->branches_id)
-                    ->where('type', 'RECORDS_CUST')
-                    ->first()->id;
+                $new_transaction->issuer = Auth::user()->id;
                 $new_transaction->save();
 
                 //validate the cart
@@ -236,7 +237,7 @@ class TransactionController extends Controller
                         return send400Response('Box number: ' . $get_rds_record->box_number . ' currently has a pending transaction!');
                     }
 
-                    $invalid_actions = ['TRANSFER', 'BORROW'];
+                    $invalid_actions = ['WITHDRAW', 'RETURN', 'RELEASE'];
                     if (in_array($get_rds_record->history[$get_rds_record->history->count() - 1]->action, $invalid_actions)) {
                         DB::rollBack();
                         return send400Response('Item is not available.');
@@ -250,7 +251,7 @@ class TransactionController extends Controller
 
                 $new_transaction_history = new RDSTransactionHistory();
                 $new_transaction_history->r_d_s_transactions_id = $new_transaction->id;
-                $new_transaction_history->action = "SUBMIT";
+                $new_transaction_history->action = "INIT_RELEASE";
                 $new_transaction_history->action_date = \Carbon\Carbon::now();
                 $new_transaction_history->save();
             } else {
@@ -317,6 +318,7 @@ class TransactionController extends Controller
                     $new_transaction->submitted_by = Auth::user()->id;
                     $new_transaction->remarks = "Justification: " . $request->remarks;
                     $new_transaction->issuer = User::where('branches_id', Auth::user()->branches_id)
+                        ->where('is_inactive', false)
                         ->where('type', 'RECORDS_CUST')
                         ->first()->id;
                     $new_transaction->save();
@@ -433,6 +435,8 @@ class TransactionController extends Controller
                     $new_transaction_history->action = "WAREHOUSE_RECEIVE";
                 } elseif ($transaction->type === "WITHDRAW") {
                     $new_transaction_history->action = "RECORD_CUST_RECEIVE";
+                } elseif ($transaction->type === "RELEASE") {
+                    $new_transaction_history->action = "BRANCH_HEAD_APPROVE_RELEASE";
                 }
             }
             $new_transaction_history->action_date = \Carbon\Carbon::Now();
@@ -449,6 +453,8 @@ class TransactionController extends Controller
                 }
                 if ($user->type === 'WAREHOUSE_CUST') {
                     $new_rds_record_history->action = "TRANSFER";
+                } elseif ($user->type === "BRANCH_HEAD" && $transaction->type === "RELEASE") {
+                    $new_rds_record_history->action = "RELEASE";
                 } elseif ($user->type === "RECORDS_CUST" && $transaction->type === "RETURN") {
                     $new_rds_record_history->action = "RETURN";
                 } elseif ($user->type === "RECORDS_CUST") {
@@ -491,6 +497,49 @@ class TransactionController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return send400Response();
+        }
+    }
+
+    public function return_release($id)
+    {
+        try {
+            $user = Auth::user();
+
+            DB::beginTransaction();
+            $transaction = RDSTransaction::find($id);
+
+            if ($transaction->type !== "RELEASE") {
+                DB::rollBack();
+                return send400Response("Invalid record!");
+            }
+
+            if ($transaction->rds_records[0]->record->latest_history->action !== "RELEASE") {
+                DB::rollBack();
+                return send400Response("Invalid record!");
+            }
+
+            if ($transaction->submitted_by_user->branches_id !== $user->branches_id) {
+                DB::rollBack();
+                return send401Response();
+            }
+
+            $transaction->type = "RELEASE_RETURNED";
+            $transaction->save();
+
+            foreach ($transaction->rds_records as $rec) {
+                $new_record_history = new RDSRecordHistory();
+                $new_record_history->r_d_s_records_id = $rec->record->id;
+                $new_record_history->users_id = $user->id;
+                $new_record_history->action = "RETURN_RELEASE";
+                $new_record_history->location = $user->branch->name;
+                $new_record_history->save();
+            }
+
+            DB::commit();
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response($e->getMessage());
         }
     }
 }

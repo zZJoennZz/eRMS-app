@@ -59,3 +59,13 @@ export async function processTransaction(data) {
 
     return res.data.data;
 }
+
+export async function returnRelease(id) {
+    let res = await axios.put(`${API_URL}return-transfer/${id}`, null, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

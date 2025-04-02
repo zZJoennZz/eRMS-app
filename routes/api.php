@@ -10,6 +10,7 @@ use App\Http\Controllers\api\PositionController;
 use App\Http\Controllers\api\RDSController;
 use App\Http\Controllers\api\RDSRecordController;
 use App\Http\Controllers\api\TransactionController;
+use App\Http\Controllers\api\TurnoverController;
 use App\Http\Controllers\api\UserController;
 use App\Models\InterveningRole;
 use App\Models\RDSRecord;
@@ -35,12 +36,14 @@ Route::prefix('v1')->group(function () {
 
         Route::resource('rds', RDSController::class);
         Route::get('rds-records/approved-rds-records', [RDSRecordController::class, 'approved_rds_records']);
+        Route::get('get-rds-records/{id?}', [RDSRecordController::class, 'show']);
         Route::post('approve-rds', [RDSRecordController::class, 'approve_rds_record']);
         Route::post('decline-rds', [RDSRecordController::class, 'decline_record']);
         Route::resource('rds-records', RDSRecordController::class);
         Route::post('approve-transaction', [TransactionController::class, 'approve_transaction']);
         Route::post('process-transaction', [TransactionController::class, 'process_transaction']);
         Route::post('decline-transaction', [TransactionController::class, 'decline_transaction']);
+        Route::put('return-transfer/{id?}', [TransactionController::class, 'return_release']);
         Route::resource('transactions', TransactionController::class);
         Route::resource('users', UserController::class);
         Route::post('reset-user-pw/{id?}', [UserController::class, 'reset_pw']);
@@ -94,6 +97,13 @@ Route::prefix('v1')->group(function () {
         Route::put('disable-user/{id}', [UserController::class, 'set_inactive']);
         Route::put('enable-user/{id}', [UserController::class, 'set_enable']);
         Route::get('disabled-users', [UserController::class, 'disabled_users']);
+
+        Route::get('branch-records', [RDSRecordController::class, 'get_branch_records']);
+        Route::get('turnover', [TurnoverController::class, 'get_turnover_request']);
+        Route::get('turnover-report', [TurnoverController::class, 'get_turnover_for_report']);
+        Route::post('turnover', [TurnoverController::class, 'create_turnover']);
+        Route::put('turnover/{id?}', [TurnoverController::class, 'approve_turnover']);
+        Route::get('check-turnover', [TurnoverController::class, 'check_for_existing_turnover_request']);
     });
 
     Route::middleware('guest')->group(function () {

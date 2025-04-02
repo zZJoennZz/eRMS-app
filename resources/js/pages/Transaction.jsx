@@ -14,6 +14,7 @@ import {
     approveTransaction,
     processTransaction,
     declineTransaction,
+    returnRelease,
 } from "../utils/transactionFn";
 
 import { toast } from "react-toastify";
@@ -27,6 +28,10 @@ const EditRDS = lazy(() => import("./RDS/EditRDS"));
 import { AuthContext } from "../contexts/AuthContext";
 
 import { PlusIcon } from "@heroicons/react/24/solid";
+import {
+    ArrowTopRightOnSquareIcon,
+    ChevronRightIcon,
+} from "@heroicons/react/24/outline";
 
 export default function Transaction() {
     const { userType } = useContext(AuthContext);
@@ -62,6 +67,20 @@ export default function Transaction() {
             setJustification("");
             queryClient.invalidateQueries({ queryKey: ["allTransactions"] });
             toast.success("Transaction successfully approved!");
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
+
+    const beginReturnRelease = useMutation({
+        mutationFn: () => returnRelease(changeTransactionStatusId),
+        onSuccess: () => {
+            setChangeTransactionStatusId(0);
+            setJustification("");
+            queryClient.invalidateQueries({ queryKey: ["allTransactions"] });
+            toast.success("Released box successfully returned!");
         },
         onError: (err) => {
             toast.error(err.response.data.message);
@@ -161,6 +180,14 @@ export default function Transaction() {
         }
     }
 
+    function confirmReturnRelease(id) {
+        if (confirm("Confirming this box has been returned?")) {
+            setChangeTransactionStatusId(id);
+            beginReturnRelease.mutate();
+            return 1;
+        }
+    }
+
     function getDateDifference(startDate) {
         let date1 = new Date(startDate);
 
@@ -247,7 +274,10 @@ export default function Transaction() {
                                                 className="py-2 text-left border-b border-slate-300"
                                             >
                                                 <div className="bg-slate-700 mr-2 text-white rounded-full inline-block px-2 py-1 text-xs">
-                                                    {data.type}
+                                                    {data.type ===
+                                                    "RELEASE_RETURNED"
+                                                        ? "RELEASE RETURNED"
+                                                        : data.type}
                                                 </div>
                                                 {(data.status === "PENDING" ||
                                                     data.status ===
@@ -360,14 +390,14 @@ export default function Transaction() {
                                                         </button>
                                                     )}
                                                 {userType === "BRANCH_HEAD" &&
-                                                    data.type === "BORROW" &&
+                                                    data.type === "RELEASE" &&
                                                     data.status ===
-                                                        "PROCESSING" && (
+                                                        "PENDING" && (
                                                         <button
                                                             type="button"
                                                             className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
                                                             onClick={() =>
-                                                                startProcessTransaction(
+                                                                confirmTransaction(
                                                                     data.id
                                                                 )
                                                             }
@@ -469,6 +499,22 @@ export default function Transaction() {
                                                             Decline
                                                         </button>
                                                     )}
+
+                                                {data.rds_records[0].record
+                                                    .latest_history.action ===
+                                                    "RELEASE" && (
+                                                    <button
+                                                        className={`ml-1 px-2 py-1 shadow-md text-xs duration-300 rounded bg-cyan-600 text-white hover:bg-cyan-500`}
+                                                        onClick={() =>
+                                                            confirmReturnRelease(
+                                                                data.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Return
+                                                        <ChevronRightIcon className="ml-1 w-3 h-3 inline" />
+                                                    </button>
+                                                )}
                                             </td>
                                             <td className="py-2 text-center border-b border-slate-300">
                                                 {data.transaction_date}
@@ -487,8 +533,37 @@ export default function Transaction() {
                                                     className="py-2 text-left border-b border-slate-300"
                                                     colSpan={3}
                                                 >
-                                                    {rds.record.box_number} -{" "}
-                                                    {rds.record.branch.name}
+                                                    {userType !==
+                                                    "WAREHOUSE_CUST" ? (
+                                                        <a
+                                                            href={`/rds-record-history/${rds.record.id}`}
+                                                            target="_blank"
+                                                            className="text-lime-700 hover:text-lime-500 transition-all ease-in-out duration-300"
+                                                        >
+                                                            {
+                                                                rds.record
+                                                                    .box_number
+                                                            }{" "}
+                                                            -{" "}
+                                                            {
+                                                                rds.record
+                                                                    .branch.name
+                                                            }
+                                                            <ArrowTopRightOnSquareIcon className="w-4 h-4 inline ml-1" />
+                                                        </a>
+                                                    ) : (
+                                                        <>
+                                                            {
+                                                                rds.record
+                                                                    .box_number
+                                                            }{" "}
+                                                            -{" "}
+                                                            {
+                                                                rds.record
+                                                                    .branch.name
+                                                            }
+                                                        </>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

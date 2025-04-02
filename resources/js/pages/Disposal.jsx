@@ -28,6 +28,7 @@ import { XCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Disposal() {
     const [filterLocation, setFilterLocation] = useState("All");
+    const [selectAll, setSelectAll] = useState(false);
     const { userType } = useContext(AuthContext);
 
     const queryClient = useQueryClient();
@@ -170,6 +171,26 @@ export default function Disposal() {
         }
     };
 
+    function selectAllBoxes() {
+        // console.log([
+        //     ...filterData(recordsForDisposals.data?.upcoming || []),
+        //     ...filterData(recordsForDisposals.data?.overdue || []),
+        // ]);
+        // return;
+        if (filterLocation === "All") {
+            return false;
+        }
+        if (selectAll) {
+            setCart([]);
+        } else {
+            setCart([
+                ...filterData(recordsForDisposals.data?.upcoming || []),
+                ...filterData(recordsForDisposals.data?.overdue || []),
+            ]);
+        }
+        setSelectAll(!selectAll);
+    }
+
     return (
         <DashboardLayout>
             {userType === "RECORDS_CUST" && (
@@ -190,6 +211,7 @@ export default function Disposal() {
                     onChange={(e) => {
                         setCart([]);
                         setFilterLocation(e.target.value);
+                        setSelectAll(false);
                     }}
                     className="border border-gray-300 p-1 rounded"
                 >
@@ -201,6 +223,16 @@ export default function Disposal() {
             <div className="text-xs mb-5">
                 You can process the upcoming and overdue boxes at the same time.
             </div>
+            {filterLocation !== "All" && userType === "RECORDS_CUST" && (
+                <div className="mb-4">
+                    <button
+                        className={`bg-green-700 text-white px-2 py-1 rounded-full text-sm`}
+                        onClick={selectAllBoxes}
+                    >
+                        {selectAll ? "Unselect all" : "Select All"}
+                    </button>
+                </div>
+            )}
             <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2 mb-5">
                 <div className="overflow-x-auto bg-gradient-to-r from-lime-100 to-green-50 shadow-md shadow-blue-200 rounded-lg p-4">
                     <h2 className="font-semibold mb-2">Upcoming Disposal/s</h2>
@@ -267,7 +299,13 @@ export default function Disposal() {
                                                     )}
                                             </td>
                                             <td className="py-2 text-left border-b border-slate-300">
-                                                {data.box_number}
+                                                <a
+                                                    href={`/rds-record-history/${data.id}`}
+                                                    target="_blank"
+                                                    className="text-lime-700 hover:text-lime-500 transition-all ease-in-out duration-300"
+                                                >
+                                                    {data.box_number}
+                                                </a>
                                             </td>
                                             <td className="py-2 text-left border-b border-slate-300">
                                                 {data.documents.length}
@@ -292,9 +330,13 @@ export default function Disposal() {
                         <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
                             <tr>
                                 <th></th>
-                                <th className="text-left py-2">RDS</th>
-                                <th className="text-left py-2">Borrower</th>
-                                <th className="text-left py-2">Date</th>
+                                <th className="text-left py-2">Box Number</th>
+                                <th className="text-left py-2">
+                                    # of Documents
+                                </th>
+                                <th className="text-left py-2">
+                                    Projected Disposal Date
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -343,7 +385,13 @@ export default function Disposal() {
                                                 )}
                                         </td>
                                         <td className="py-2 text-left border-b border-slate-300">
-                                            {data.box_number}
+                                            <a
+                                                href={`/rds-record-history/${data.id}`}
+                                                target="_blank"
+                                                className="text-lime-700 hover:text-lime-500 transition-all ease-in-out duration-300"
+                                            >
+                                                {data.box_number}
+                                            </a>
                                         </td>
                                         <td className="py-2 text-left border-b border-slate-300">
                                             {data.documents.length}

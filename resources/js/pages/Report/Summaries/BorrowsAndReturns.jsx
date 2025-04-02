@@ -64,6 +64,7 @@ export default function BorrowsAndReturns({ reportData }) {
                                     {d.status === "RECEIVING" && "Receiving"}
                                     {d.status === "BORROWED" && "Borrowed"}
                                     {d.status === "RETURNED" && "Returned"}
+                                    {d.status === "DECLINED" && "Declined"}
                                 </td>
                             </tr>
                         ))}

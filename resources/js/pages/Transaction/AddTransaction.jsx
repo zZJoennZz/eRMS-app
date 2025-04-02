@@ -118,21 +118,9 @@ export default function AddTransaction({ closeHandler }) {
                             >
                                 <option>Select type of transaction!</option>
 
-                                {userType === "EMPLOYEE" ? (
-                                    <>
-                                        <option value="BORROW">Borrow</option>
-                                        <option value="RETURN">Return</option>
-                                    </>
-                                ) : (
-                                    <>
-                                        <option value="TRANSFER">
-                                            Transfer
-                                        </option>
-                                        <option value="WITHDRAW">
-                                            Withdraw
-                                        </option>
-                                    </>
-                                )}
+                                <option value="TRANSFER">Transfer</option>
+                                <option value="WITHDRAW">Withdraw</option>
+                                <option value="RELEASE">Release</option>
                             </select>
                         </div>
                     </div>
@@ -244,9 +232,53 @@ export default function AddTransaction({ closeHandler }) {
                                     </div>
                                 )
                         )}
+
+                    {transaction.type === "RELEASE" &&
+                        records.map(
+                            (record) =>
+                                record.status === "APPROVED" &&
+                                record.history[0].location !== "Warehouse" &&
+                                record.documents.filter(
+                                    (doc) => doc.current_status === "AVAILABLE"
+                                ).length === record.documents.length && (
+                                    <div className="mb-4" key={record.id}>
+                                        <li className="flex justify-between py-1">
+                                            {record.box_number}
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    toggleCart(record)
+                                                }
+                                                className={`ml-2 px-2 py-1 transition-all duration-500 rounded ${
+                                                    cart.some(
+                                                        (item) =>
+                                                            item.id ===
+                                                            record.id
+                                                    )
+                                                        ? "bg-red-500 text-white"
+                                                        : "bg-blue-500 text-white"
+                                                }`}
+                                            >
+                                                {cart.some(
+                                                    (item) =>
+                                                        item.id === record.id
+                                                )
+                                                    ? "Remove"
+                                                    : "Add to List"}
+                                            </button>
+                                        </li>
+                                    </div>
+                                )
+                        )}
+
                     <div className="mb-4">
                         <div className="mb-1">
-                            <label htmlFor="remarks">Remarks</label>
+                            <label htmlFor="remarks">
+                                {transaction.type === "RELEASE"
+                                    ? "Release to/Reason"
+                                    : "Remarks"}
+                            </label>
                         </div>
                         <div>
                             <textarea

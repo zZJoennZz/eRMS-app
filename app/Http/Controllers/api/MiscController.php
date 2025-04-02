@@ -405,8 +405,8 @@ class MiscController extends Controller
                         })->whereHas('latest_history', function ($query) {
                             $query->where('location', 'Warehouse')->where('action', 'transfer');
                         })
-                            ->with(['documents.rds', 'latest_history'])
-                            ->where('status', 'APPROVED')
+                            ->with(['documents.rds', 'latest_history', 'branch'])
+                            ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                             ->get();
                     } elseif ($request->searchField === "history_created_at" && $request->dateFilterType === "as_of") {
                         $resData = RDSRecord::whereHas('branch', function ($query) {
@@ -415,8 +415,8 @@ class MiscController extends Controller
                             ->whereHas('latest_history', function ($query) use ($startDate) {
                                 $query->where('location', 'Warehouse')->where('action', 'transfer')->where('created_at', '<=', $startDate->endOfDay());
                             })
-                            ->with(['documents.rds', 'latest_history'])
-                            ->where('status', 'APPROVED')
+                            ->with(['documents.rds', 'latest_history', 'branch'])
+                            ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                             ->get();
                     } elseif ($request->searchField === "history_created_at" && $request->dateFilterType === "date_range") {
                         $resData = RDSRecord::whereHas('branch', function ($query) {
@@ -427,8 +427,8 @@ class MiscController extends Controller
                                     ->where('created_at', '>=', $startDate)
                                     ->where('created_at', '<=', $endDate);
                             })
-                            ->with(['documents.rds', 'latest_history'])
-                            ->where('status', 'APPROVED')
+                            ->with(['documents.rds', 'latest_history', 'branch'])
+                            ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                             ->get();
                     } elseif ($request->from_date) {
                         $startDate = Carbon::parse($request->from_date)->startOfDay();
@@ -443,46 +443,54 @@ class MiscController extends Controller
                                         ->where('created_at', '>=', $startDate)
                                         ->where('created_at', '<=', $endDate);
                                 })
-                                ->with(['latest_history', 'branch'])
-                                ->where('status', 'APPROVED');
+                                ->with(['documents.rds', 'latest_history', 'branch'])
+                                ->where('status', '<>', 'DISPOSED');
                         } else {
                             $resData = RDSRecord::whereHas('branch', function ($query) {
                                 $query->where('clusters_id', Auth::user()->branch->clusters_id);
                             })
                                 ->whereHas('latest_history', function ($query) use ($startDate, $endDate) {
                                     $query
+                                        ->where('location', 'Warehouse')
                                         ->where('created_at', '>=', $startDate)
                                         ->where('created_at', '<=', $endDate);
                                 })
                                 ->where('branches_id', $request->scope)
-                                ->with(['documents.rds', 'documents.record', 'latest_history'])
-                                ->where('status', 'APPROVED');
+                                ->with(['documents.rds', 'documents.record', 'latest_history', 'branch'])
+                                ->where('status', '<>', 'DISPOSED');
                         }
                         $resData = $resData->get();
                     } else {
                         return send400Response("Invalid parameters.");
                     }
                 } elseif ($request->reportType === "warehouseSummary") {
-                    $resData = RDSRecord::whereHas('latest_history', function ($query) use ($startDate, $endDate) {
+                    $startDate = Carbon::parse($request->from_date)->startOfDay();
+                    $endDate = Carbon::parse($request->to_date)->endOfDay();
+                    // $resData = RDSRecord::whereHas('latest_history', function ($query) use ($startDate, $endDate) {
+                    //     $query
+                    //         ->where('location', 'Warehouse')
+                    //         ->where('created_at', '>=', $startDate)
+                    //         ->where('created_at', '<=', $endDate);
+                    // })
+                    //     ->with(['documents.rds', 'latest_history', 'branch'])
+                    //     ->where('status', '<>', 'DISPOSED')
+                    //     ->get();
+                    $resData = Branch::whereHas('records.latest_history', function ($query) use ($startDate, $endDate) {
                         $query
                             ->where('location', 'Warehouse')
-                            ->where('action', 'transfer')
-                            ->where('created_at', '>=', $startDate)
-                            ->where('created_at', '<=', $endDate);
-                    })
-                        ->with(['documents.rds', 'latest_history', 'branch'])
-                        ->where('status', 'APPROVED')
-                        ->get();
-
-                    $resData = Branch::whereHas('records.latest_history', function ($query) use ($startDate, $endDate) {
-                        $query->where('location', 'Warehouse')
-                            ->where('action', 'transfer')
                             ->whereBetween('created_at', [$startDate, $endDate]);
                     })
                         ->with([
-                            'records' => function ($query) {
-                                $query->where('status', 'APPROVED')->with(['documents.rds', 'latest_history']);
-                            }
+                            'records' => function ($query) use ($startDate, $endDate) {
+                                $query
+                                    ->where('status', '<>', 'DISPOSED')
+                                    ->with(['documents.rds', 'latest_history'])
+                                    ->whereHas('latest_history', function ($query1) use ($startDate, $endDate) {
+                                        $query1
+                                            ->where('location', 'Warehouse')
+                                            ->whereBetween('created_at', [$startDate, $endDate]);
+                                    });
+                            },
                         ])
                         ->get();
                 }
@@ -497,7 +505,7 @@ class MiscController extends Controller
                 if ($request->reportType === "branchSummary" || $request->reportType === "branchBoxes") {
                     $resData = RDSRecord::where('branches_id', $user->branches_id)
                         ->with(['documents.rds', 'latest_history', 'submitted_by_user.profile'])
-                        ->where('status', 'APPROVED')
+                        ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                         ->whereBetween('created_at', [$startDate, $endDate]);
 
                     if ($request->scope === "branch_only") {
@@ -530,7 +538,7 @@ class MiscController extends Controller
                         //     $query->where('action', '!=', 'TRANSFER')
                         //         ->where('location', '!=', 'Warehouse');
                         // })
-                        ->where('status', 'APPROVED')
+                        ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                         ->where('submitted_by', $request->users_id)
                         ->get();
                 } elseif ($request->reportType === "borrowsAndReturns") {
@@ -573,7 +581,7 @@ class MiscController extends Controller
                         //     $query->where('action', '!=', 'TRANSFER')
                         //         ->where('location', '!=', 'Warehouse');
                         // })
-                        ->where('status', 'APPROVED')
+                        ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                         ->whereBetween('created_at', [$startDate, $endDate])
                         ->get();
                 }

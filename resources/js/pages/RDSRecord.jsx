@@ -18,7 +18,7 @@ import SideDrawer from "../components/SideDrawer";
 import ComponentLoader from "../components/ComponentLoader";
 
 const AddRDSRecord = lazy(() => import("./RDSRecord/AddRDSRecord"));
-// const EditRDS = lazy(() => import("./RDS/EditRDS"));
+const EditRDSRecord = lazy(() => import("./RDSRecord/EditRDSRecord"));
 
 import {
     PlusIcon,
@@ -116,7 +116,7 @@ export default function RDSRecord() {
         }
     }
 
-    function openDrawer(type) {
+    function openDrawer(type, record = null) {
         if (type === "new") {
             setSelectedForm(
                 <Suspense fallback={<ComponentLoader />}>
@@ -124,6 +124,17 @@ export default function RDSRecord() {
                 </Suspense>
             );
             setDrawerTitle("Add Record");
+            setShowDrawer(true);
+        } else if (type === "edit" && record) {
+            setSelectedForm(
+                <Suspense fallback={<ComponentLoader />}>
+                    <EditRDSRecord
+                        closeHandler={sideDrawerClose}
+                        record={record}
+                    />
+                </Suspense>
+            );
+            setDrawerTitle("Edit Record");
             setShowDrawer(true);
         } else {
             toast.error("Please refresh the page.");
@@ -274,8 +285,8 @@ export default function RDSRecord() {
                                 .map((data) => (
                                     <>
                                         <tr
-                                            key={data.id}
-                                            id={data.id}
+                                            key={"data" + data.id}
+                                            id={"data" + data.id}
                                             className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
                                         >
                                             <td
@@ -284,13 +295,29 @@ export default function RDSRecord() {
                                             >
                                                 {(data.status === "APPROVED" ||
                                                     data.status ===
-                                                        "DISPOSED") &&
+                                                        "DISPOSED" ||
+                                                    data.status ===
+                                                        "RELEASED") &&
                                                     data.box_number}
+                                                {data.status === "DECLINED" && (
+                                                    <div className="inline text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">
+                                                        Declined
+                                                    </div>
+                                                )}
                                                 {data.status === "DECLINED" &&
                                                     userType === "EMPLOYEE" && (
-                                                        <div className="inline text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">
-                                                            Declined
-                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openDrawer(
+                                                                    "edit",
+                                                                    data
+                                                                )
+                                                            }
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-blue-700 border border-blue-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                        >
+                                                            Edit
+                                                        </button>
                                                     )}
                                                 {data.status === "PENDING" && (
                                                     <div className="bg-gray-500 text-xs inline text-white py-0.5 px-2 rounded-full ml-1">
@@ -345,6 +372,12 @@ export default function RDSRecord() {
                                                     </div>
                                                 )}
 
+                                                {data.status === "RELEASED" && (
+                                                    <div className="inline ml-2 rounded-full bg-yellow-600 text-white px-1.5 py-0.5 text-xs">
+                                                        Released: Asssds
+                                                    </div>
+                                                )}
+
                                                 {data.status === "DISPOSED" && (
                                                     <div className="inline ml-2 rounded-full bg-red-600 text-white px-1.5 py-0.5 text-xs">
                                                         Disposed
@@ -376,8 +409,8 @@ export default function RDSRecord() {
                                                     currId;
                                             return (
                                                 <tr
-                                                    key={doc.id}
-                                                    id={doc.id}
+                                                    key={"doc" + doc.id}
+                                                    id={"doc" + doc.id}
                                                     className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
                                                 >
                                                     <td className="py-2 text-left border-b border-slate-300">

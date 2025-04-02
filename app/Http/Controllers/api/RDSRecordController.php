@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\RDSRecord;
 use App\Models\RDSRecordDocument;
+use App\Models\RDSRecordDocumentHistory;
 use App\Models\RDSRecordHistory;
 use App\Models\RecordsDispositionSchedule;
 use Carbon\Carbon;
@@ -44,10 +45,7 @@ class RDSRecordController extends Controller
                     $query
                         ->where('source_of_documents', '=', Auth::user()->profile->position->name);
                 })
-                ->whereHas('latest_history', function ($query) {
-                    $query
-                        ->where('users_id', Auth::user()->id);
-                })
+                ->where('submitted_by', Auth::user()->id)
                 ->where('status', '=', 'PENDING')
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->orderBy('box_number', 'asc')
@@ -55,6 +53,10 @@ class RDSRecordController extends Controller
             $declined_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
             }])
+                ->whereHas('documents', function ($query) {
+                    $query
+                        ->where('source_of_documents', '=', Auth::user()->profile->position->name);
+                })
                 ->where('submitted_by', Auth::user()->id)
                 ->where('status', '=', 'DECLINED')
                 ->where('branches_id', '=', Auth::user()->branches_id)
@@ -64,12 +66,30 @@ class RDSRecordController extends Controller
             $rds_record = $rds_record->merge($pending_records);
             $rds_record = $rds_record->merge($declined_records);
         } elseif (Auth::user()->type === "BRANCH_HEAD" || Auth::user()->type === "RECORDS_CUST") {
-            $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+            $main_records = RDSRecord::with(['documents.history', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
             }])
+                ->where('status', '=', 'APPROVED')
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->orderBy('box_number', 'asc')
                 ->get();
+            $pending_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->where('status', '=', 'PENDING')
+                ->where('branches_id', '=', Auth::user()->branches_id)
+                ->orderBy('box_number', 'asc')
+                ->get();
+            $declined_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->where('status', '=', 'DECLINED')
+                ->where('branches_id', '=', Auth::user()->branches_id)
+                ->get();
+            $rds_record = new \Illuminate\Database\Eloquent\Collection();
+            $rds_record = $rds_record->merge($pending_records);
+            $rds_record = $rds_record->merge($main_records);
+            $rds_record = $rds_record->merge($declined_records);
         } else {
             $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
@@ -197,7 +217,14 @@ class RDSRecordController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $rds_record = RDSRecord::with(['documents.history', 'documents.rds', 'history' => function ($query) {
+            return $query->orderBy('created_at', 'desc');
+        }])
+            ->where('id', $id)
+            ->orderBy('box_number', 'asc')
+            ->first();
+
+        return send200Response($rds_record);
     }
 
     /**
@@ -214,6 +241,75 @@ class RDSRecordController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        try {
+            $user = Auth::user();
+
+            DB::beginTransaction();
+            $rds_record = RDSRecord::find($id);
+            if ($user->branches_id !== $rds_record->branches_id) {
+                return send401Response();
+            }
+
+            $rds_record_documents = RDSRecordDocument::where('r_d_s_records_id', $id)->get();
+
+            $rds_record_documents_id_only = $rds_record_documents->pluck('id')->toArray();
+
+            RDSRecordDocumentHistory::whereIn('record_documents_id', $rds_record_documents_id_only)
+                ->delete();
+
+            RDSRecordDocument::where('r_d_s_records_id', $id)
+                ->delete();
+
+            $rds_data = $request->documents;
+
+            $most_recent_record = collect($rds_data)
+                ->sortByDesc(function ($item) {
+                    return Carbon::parse($item['period_covered_to']);
+                })
+                ->first();
+
+            foreach ($request->documents as $rds) {
+                $dateFrom = Carbon::parse($rds["period_covered_from"]);
+                $dateTo = Carbon::parse($rds["period_covered_to"]);
+
+                if ($dateFrom->isFuture() || $dateTo->isFuture()) {
+                    return send422Response("Please do not put future dates for period covered.");
+                }
+
+                if ($dateFrom->gt($dateTo)) {
+                    return send422Response("Period covered from should be before the period covered to.");
+                }
+
+
+                $sel_rds = RecordsDispositionSchedule::find($rds["records_disposition_schedules_id"]);
+                $new_rds_document = new RDSRecordDocument();
+                $new_rds_document->r_d_s_records_id = $id;
+                $new_rds_document->records_disposition_schedules_id = $rds["records_disposition_schedules_id"];
+                $new_rds_document->source_of_documents = Auth::user()->profile->position->name;
+                $new_rds_document->period_covered_from = $rds["period_covered_from"];
+                $new_rds_document->period_covered_to = $rds["period_covered_to"];
+                $new_rds_document->projected_date_of_disposal = date('Y-m-d', strtotime($most_recent_record['period_covered_to'] . ' +' . $sel_rds->active + $sel_rds->storage . 'years'));
+                $new_rds_document->description_of_document = $sel_rds->record_series_title_and_description;
+                $new_rds_document->remarks = $rds["remarks"];
+
+                $new_rds_document->save();
+            }
+
+            $rds_record->status = "PENDING";
+            $rds_record->save();
+
+            $new_rds_record_history = new RDSRecordHistory();
+            $new_rds_record_history->r_d_s_records_id = $id;
+            $new_rds_record_history->users_id = $user->id;
+            $new_rds_record_history->action = "SUBMIT";
+            $new_rds_record_history->location = $user->branch->name;
+            $new_rds_record_history->save();
+
+            DB::commit();
+            return send200Response();
+        } catch (\Exception $e) {
+            return send400Response();
+        }
     }
 
     /**
@@ -386,6 +482,23 @@ class RDSRecordController extends Controller
             ->where('branches_id', $user->branches_id)
             ->where('id', $id)
             ->first();
+
+        return send200Response($rds_record);
+    }
+
+    public function get_branch_records()
+    {
+        $user = Auth::user();
+        if ($user->type === "WAREHOUSE_CUST") {
+            return send401Response();
+        }
+        $rds_record = RDSRecord::with(['documents.rds', 'submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile', 'documents.history.action_by.profile'])
+            ->where('branches_id', $user->branches_id)
+            ->whereHas('latest_history', function ($query) {
+                $query->where('location', '<>', 'Warehouse');
+            })
+            ->where('status', '<>', 'DISPOSED')
+            ->get();
 
         return send200Response($rds_record);
     }

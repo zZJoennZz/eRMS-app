@@ -72,6 +72,14 @@ export default function SettingSidebar({ isSidebarOpen, toggleSideBar }) {
                         Users
                     </a>
                 )}
+                {["BRANCH_HEAD", "RECORDS_CUST"].includes(userType) && (
+                    <a
+                        href="/turnover"
+                        className="block p-2 rounded hover:bg-green-700"
+                    >
+                        Turnover Records
+                    </a>
+                )}
                 <a
                     href="/dashboard"
                     className="block p-2 rounded hover:bg-green-700"

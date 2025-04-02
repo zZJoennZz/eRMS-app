@@ -25,7 +25,7 @@ export default function WarehouseDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/transactions" className="hover:underline">
-                                Pending Box
+                                Box for Storage
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -42,7 +42,7 @@ export default function WarehouseDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/transactions" className="hover:underline">
-                                Receive Withdraw
+                                Box for Withdrawal
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>

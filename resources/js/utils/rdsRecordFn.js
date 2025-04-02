@@ -78,3 +78,13 @@ export async function getHistory(id) {
 
     return res.data.data;
 }
+
+export async function updateRdsRecord(data, id) {
+    let res = await axios.put(`${API_URL}rds-records/${id}`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

@@ -52,6 +52,13 @@ const DisposedRecordsForm = () => {
                     </span>
                 </div>
             )}
+            {!isLoading && recordDisposal.status === "DECLINED" && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+                    <span className="text-9xl font-bold text-red-500 rotate-45">
+                        DECLINED
+                    </span>
+                </div>
+            )}
             <div className="float-right">Accomplish in 3 copies</div>
             <div>NAP Form No.3</div>
             <div>Revised 2012</div>
