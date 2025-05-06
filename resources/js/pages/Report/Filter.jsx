@@ -356,6 +356,10 @@ export default function Filter({ type }) {
             label: "Records Summary",
             fields: ["from_date", "to_date"],
         },
+        dueForDisposal: {
+            label: "Due for Disposal",
+            fields: [],
+        },
     };
 
     return reportComponents[type] ? (

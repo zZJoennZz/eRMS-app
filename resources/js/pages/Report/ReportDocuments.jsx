@@ -15,6 +15,7 @@ import CurrentBorrows from "./Summaries/CurrentBorrows";
 import EmployeeBorrows from "./Summaries/EmployeeBorrows";
 import SubmittedDocuments from "./Summaries/SubmittedDocuments";
 import WarehouseSummary from "./Summaries/WarehouseSummary";
+import DueForDisposal from "./Summaries/DueForDisposal";
 
 export default function ReportDocuments() {
     const { filters } = useParams();
@@ -71,6 +72,8 @@ export default function ReportDocuments() {
         return <SubmittedDocuments reportData={reportData} />;
     if (reportFilters.reportType === "warehouseSummary")
         return <WarehouseSummary reportData={reportData} />;
+    if (reportFilters.reportType === "dueForDisposal")
+        return <DueForDisposal reportData={reportData} />;
 
     return false;
 }

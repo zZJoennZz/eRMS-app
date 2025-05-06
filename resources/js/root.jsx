@@ -30,6 +30,7 @@ const DisposedRecordsForm = lazy(() =>
 );
 const Turnover = lazy(() => import("./pages/Setting/Turnover"));
 const TurnoverForms = lazy(() => import("./pages/Report/TurnoverForms"));
+const OpenBox = lazy(() => import("./pages/OpenBox"));
 
 export default function Root() {
     const [isAuth, setIsAuth] = useState(false);
@@ -284,6 +285,7 @@ export default function Root() {
                         "/print-turnover",
                         TurnoverForms
                     )}
+                    {renderPrivateRoute(["RECORDS_CUST"], "/open-box", OpenBox)}
                 </Routes>
             </Suspense>
         </AuthContext.Provider>

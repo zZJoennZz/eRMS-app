@@ -381,10 +381,25 @@ class MiscController extends Controller
             ->where('r_d_s_records.status', 'APPROVED')
             ->count();
 
+        $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
+            $query->where('projected_date_of_disposal', '<', now()->toDateString());
+        })
+            ->whereHas('branch', function ($query) use ($user) {
+                $query->where('clusters_id', $user->branch->clusters_id);
+            })
+            ->whereHas('latest_history', function ($query1) {
+                $query1
+                    ->where('location', 'Warehouse');
+            })
+            ->where('status', 'APPROVED')
+            ->count();
+
         $res = [
             "for_receiving" => $for_receiving,
             "pending_withdraw" => $pending_withdraw,
             "boxes_in_warehouse" => $boxes_in_warehouse,
+            // "upcoming_disposals" => $upcoming_disposals,
+            "overdue_disposals" => $overdue_disposals,
         ];
 
         return send200Response($res);
@@ -493,6 +508,38 @@ class MiscController extends Controller
                             },
                         ])
                         ->get();
+                } elseif ($request->reportType === "dueForDisposal") {
+                    $upcoming_disposals = RDSRecord::with('latest_history')->whereHas('documents', function ($query) {
+                        $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
+                    })
+                        ->whereHas('branch', function ($query) use ($user) {
+                            $query->where('clusters_id', $user->branch->clusters_id);
+                        })
+                        ->whereHas('latest_history', function ($query1) use ($startDate, $endDate) {
+                            $query1
+                                ->where('location', 'Warehouse');
+                        })
+                        ->with(['documents', 'branch'])
+                        ->where('status', 'APPROVED')
+                        ->get();
+                    $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
+                        $query->where('projected_date_of_disposal', '<', now()->toDateString());
+                    })
+                        ->whereHas('branch', function ($query) use ($user) {
+                            $query->where('clusters_id', $user->branch->clusters_id);
+                        })
+                        ->whereHas('latest_history', function ($query1) {
+                            $query1
+                                ->where('location', 'Warehouse');
+                        })
+                        ->with(['documents', 'branch'])
+                        ->where('status', 'APPROVED')
+                        ->get();
+
+                    $resData = [
+                        'upcoming_disposals' => $upcoming_disposals,
+                        'overdue_disposals' => $overdue_disposals,
+                    ];
                 }
             }
 

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 import { API_URL } from "../../configs/config";
 
-import { post, all } from "../../utils/rdsRecordFn";
+import { post, all, addToOpen } from "../../utils/rdsRecordFn";
 
 const CustomSelectRDS = lazy(() => import("../../components/CustomSelectRDS"));
 
@@ -16,6 +16,8 @@ export default function AddRDSRecord({ closeHandler }) {
         period_covered_to: "",
         remarks: "",
     });
+
+    const [rerender, setRerender] = useState(0);
 
     const [rdsRecords, setRdsRecords] = useState([
         {
@@ -67,7 +69,7 @@ export default function AddRDSRecord({ closeHandler }) {
         return () => {
             source.cancel();
         };
-    }, []);
+    }, [rerender]);
 
     const handleInputChange = (index, event) => {
         const { name, value } = event.target;
@@ -90,6 +92,30 @@ export default function AddRDSRecord({ closeHandler }) {
             ]);
             queryClient.invalidateQueries({ queryKey: ["allRdsRecords"] });
             toast.success("RDS Record successfully added!");
+            setRerender((prev) => prev + 1);
+            closeHandler();
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
+
+    const saveRdsRecordAsOpen = useMutation({
+        mutationFn: () => addToOpen({ rdsRecords }),
+        onSuccess: () => {
+            setRdsRecords([
+                {
+                    records_disposition_schedules_id: "",
+                    description_of_document: "",
+                    period_covered_from: "",
+                    period_covered_to: "",
+                    remarks: "",
+                },
+            ]);
+            queryClient.invalidateQueries({ queryKey: ["allRdsRecords"] });
+            toast.success("RDS Record successfully added!");
+            setRerender((prev) => prev + 1);
             closeHandler();
         },
         onError: (err) => {
@@ -151,6 +177,10 @@ export default function AddRDSRecord({ closeHandler }) {
     function submitRds(e) {
         e.preventDefault();
         saveRdsRecord.mutate();
+    }
+
+    function submitRdsAsOpen() {
+        saveRdsRecordAsOpen.mutate();
     }
 
     return (
@@ -277,13 +307,39 @@ export default function AddRDSRecord({ closeHandler }) {
                     <button
                         type="submit"
                         className={`${
-                            saveRdsRecord.isLoading
+                            saveRdsRecord.isLoading ||
+                            saveRdsRecordAsOpen.isLoading
                                 ? "bg-gray-400 hover:bg-gray-300"
                                 : "bg-lime-600 hover:bg-lime-500"
                         } transition-all ease-in-out duration-300 text-white py-2 px-6 rounded`}
-                        disabled={saveRdsRecord.isLoading}
+                        disabled={
+                            saveRdsRecord.isLoading ||
+                            saveRdsRecordAsOpen.isLoading
+                        }
                     >
-                        {saveRdsRecord.isLoading ? "Saving..." : "Save"}
+                        {saveRdsRecord.isLoading ||
+                        saveRdsRecordAsOpen.isLoading
+                            ? "Saving..."
+                            : "Save"}
+                    </button>
+                    <button
+                        type="button"
+                        className={`${
+                            saveRdsRecord.isLoading ||
+                            saveRdsRecordAsOpen.isLoading
+                                ? "bg-gray-400 hover:bg-gray-300"
+                                : "bg-green-600 hover:bg-green-500"
+                        } transition-all ease-in-out duration-300 text-white py-2 px-6 rounded ml-2`}
+                        disabled={
+                            saveRdsRecord.isLoading ||
+                            saveRdsRecordAsOpen.isLoading
+                        }
+                        onClick={submitRdsAsOpen}
+                    >
+                        {saveRdsRecord.isLoading ||
+                        saveRdsRecordAsOpen.isLoading
+                            ? "Saving..."
+                            : "Submit as Open"}
                     </button>
                 </div>
             </form>

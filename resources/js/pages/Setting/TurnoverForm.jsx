@@ -5,7 +5,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { approveTurnover } from "../../utils/turnoverFn";
+import { approveTurnover, declineTurnover } from "../../utils/turnoverFn";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
@@ -19,7 +19,18 @@ export default function TurnoverForm({ turnoverData }) {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["checkTurnover"] });
             toast.success("Turnover request has been approved!");
-            closeHandler();
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
+
+    const declineTurnoverRequest = useMutation({
+        mutationFn: () => declineTurnover(turnoverData.id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["checkTurnover"] });
+            toast.success("Turnover request has been declined!");
         },
         onError: (err) => {
             toast.error(err.response.data.message);
@@ -31,6 +42,14 @@ export default function TurnoverForm({ turnoverData }) {
         e.preventDefault();
         if (confirm("Are you sure you want to approve this turnover?")) {
             approveTurnoverRequest.mutate();
+        }
+    }
+
+    function confirmDecline(e) {
+        e.preventDefault();
+
+        if (confirm("Are you sure you want to decline this turnover?")) {
+            declineTurnoverRequest.mutate();
         }
     }
 
@@ -204,6 +223,7 @@ export default function TurnoverForm({ turnoverData }) {
                 </button>
                 <button
                     type="button"
+                    onClick={confirmDecline}
                     className="mt-2 ml-2 border-2 border-red-700 text-red-600 px-4 py-2 rounded-full transition-all ease-in-out hover:bg-red-700 hover:text-white"
                 >
                     <XCircleIcon className="inline w-4 h-4" /> Decline

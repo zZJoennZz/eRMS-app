@@ -80,6 +80,26 @@ export default function WarehouseDashboard() {
                         </div>
                     </div>
                 </div>
+                <div className="mb-3 rounded-lg bg-gradient-to-r from-lime-700 to-lime-600 text-white p-5">
+                    <div className="flex items-center">
+                        <div className="text-2xl flex-grow">
+                            <a
+                                href={`/print-branch-summary/%7B"reportType":"dueForDisposal"%7D`}
+                                className="hover:underline"
+                            >
+                                Boxes Overdue for Disposal
+                                <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
+                            </a>
+                        </div>
+                        <div className="text-4xl">
+                            {getAcctSummary.isLoading ? (
+                                <div className="animate-bounce">...</div>
+                            ) : (
+                                getAcctSummary.data.overdue_disposals
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

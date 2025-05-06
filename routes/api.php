@@ -40,6 +40,9 @@ Route::prefix('v1')->group(function () {
         Route::post('approve-rds', [RDSRecordController::class, 'approve_rds_record']);
         Route::post('decline-rds', [RDSRecordController::class, 'decline_record']);
         Route::resource('rds-records', RDSRecordController::class);
+        Route::get('rds-records-open', [RDSRecordController::class, 'get_open_boxes']);
+        Route::post('rds-records-open', [RDSRecordController::class, 'add_to_open']);
+        Route::put('rds-records-open', [RDSRecordController::class, 'save_open_box_doc']);
         Route::post('approve-transaction', [TransactionController::class, 'approve_transaction']);
         Route::post('process-transaction', [TransactionController::class, 'process_transaction']);
         Route::post('decline-transaction', [TransactionController::class, 'decline_transaction']);
@@ -99,9 +102,11 @@ Route::prefix('v1')->group(function () {
         Route::get('disabled-users', [UserController::class, 'disabled_users']);
 
         Route::get('branch-records', [RDSRecordController::class, 'get_branch_records']);
+        Route::get('turnovers', [TurnoverController::class, 'get_past_turnovers']);
         Route::get('turnover', [TurnoverController::class, 'get_turnover_request']);
         Route::get('turnover-report', [TurnoverController::class, 'get_turnover_for_report']);
         Route::post('turnover', [TurnoverController::class, 'create_turnover']);
+        Route::post('decline-turnover/{id?}', [TurnoverController::class, 'decline_turnover']);
         Route::put('turnover/{id?}', [TurnoverController::class, 'approve_turnover']);
         Route::get('check-turnover', [TurnoverController::class, 'check_for_existing_turnover_request']);
     });

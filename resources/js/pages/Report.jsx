@@ -32,6 +32,8 @@ export default function Report() {
             setDrawerTitle("Warehouse Summary Filter");
         } else if (type === "warehouseRecords") {
             setDrawerTitle("Records Summary Filter");
+        } else if (type === "dueForDisposal") {
+            setDrawerTitle("Due for Disposal");
         } else {
             toast.error("Please refresh the page.");
             return false;
@@ -193,6 +195,14 @@ export default function Report() {
                                     className="block ml-2 text-green-700 hover:text-green-500"
                                 >
                                     {">"} Records Summary
+                                </button>
+                            </div>
+                            <div>
+                                <button
+                                    onClick={() => openDrawer("dueForDisposal")}
+                                    className="block ml-2 text-green-700 hover:text-green-500"
+                                >
+                                    {">"} Due for Disposal
                                 </button>
                             </div>
                         </div>

@@ -88,3 +88,33 @@ export async function updateRdsRecord(data, id) {
 
     return res.data.data;
 }
+
+export async function addToOpen(data) {
+    let res = await axios.post(`${API_URL}rds-records-open`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
+export async function getOpenBoxes() {
+    let res = await axios.get(`${API_URL}rds-records-open`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
+export async function createNewBoxForOpen(data) {
+    let res = await axios.put(`${API_URL}rds-records-open`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}

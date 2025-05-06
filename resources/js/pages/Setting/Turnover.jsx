@@ -7,10 +7,15 @@ import { API_URL } from "../../configs/config";
 import { AuthContext } from "../../contexts/AuthContext";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { submitTurnover, getTurnover } from "../../utils/turnoverFn";
+import {
+    submitTurnover,
+    getTurnover,
+    getTurnovers,
+} from "../../utils/turnoverFn";
 import { toast } from "react-toastify";
 import TurnoverForm from "./TurnoverForm";
 import { PrinterIcon } from "@heroicons/react/24/outline";
+import { formatDate } from "../../utils/utilities";
 
 export default function Turnover() {
     const { currId, userType } = useContext(AuthContext);
@@ -29,6 +34,13 @@ export default function Turnover() {
     });
 
     const queryClient = useQueryClient();
+
+    const getAllTurnovers = useQuery({
+        queryKey: ["allTurnovers"],
+        queryFn: getTurnovers,
+        retry: 2,
+        networkMode: "always",
+    });
 
     function toggleSideBar() {
         setIsOpenSidebarOpen(!isSidebarOpen);
@@ -131,10 +143,7 @@ export default function Turnover() {
     if (!isLoading && !hasTurnover && userType === "BRANCH_HEAD") {
         return (
             <DashboardLayout>
-                <div
-                    className="flex flex-col items-center justify-center"
-                    style={{ height: "60vh" }}
-                >
+                <div className="flex flex-col items-center justify-center">
                     <h1 className="text-2xl text-gray-800 mb-4 text-center leading-10">
                         No pending turnover requests.
                     </h1>
@@ -149,6 +158,92 @@ export default function Turnover() {
                         >
                             {"<"} Go Back
                         </a>
+                    </div>
+                </div>
+                <div className="w-100 h-px bg-gray-300 mt-5 mb-3"></div>
+                <div className="mt-4">
+                    <h2 className="text-lg font-bold">
+                        Turnover Request History
+                    </h2>
+                    <div className="overflow-x-auto">
+                        <table className="mb-3 w-full">
+                            <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
+                                <tr>
+                                    <th className="text-left py-2">Status</th>
+                                    <th className="text-left py-2">
+                                        Turnover To
+                                    </th>
+                                    <th className="py-2 text-left">
+                                        Turnover From
+                                    </th>
+                                    <th className="text-left py-2">
+                                        Date of Submission
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {getAllTurnovers.isLoading ? (
+                                    <tr>
+                                        <td colSpan={4}>
+                                            <ComponentLoader />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    getAllTurnovers.data &&
+                                    getAllTurnovers.data.map((data) => (
+                                        <tr
+                                            key={"doc" + data.id}
+                                            id={"doc" + data.id}
+                                            className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
+                                        >
+                                            <td className="py-2 text-left border-b border-slate-300">
+                                                {data.status === "APPROVED" && (
+                                                    <span className="text-green-600">
+                                                        Approved
+                                                    </span>
+                                                )}
+                                                {data.status === "DECLINED" && (
+                                                    <span className="text-red-600">
+                                                        Declined
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="py-2 border-b border-slate-300">
+                                                {
+                                                    data.added_by_user.profile
+                                                        .first_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .middle_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .last_name
+                                                }
+                                            </td>
+                                            <td className="py-2 border-b border-slate-300">
+                                                {
+                                                    data.added_by_user.profile
+                                                        .first_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .middle_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .last_name
+                                                }
+                                            </td>
+                                            <td className="py-2 border-b border-slate-300">
+                                                {formatDate(data.created_at)}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </DashboardLayout>

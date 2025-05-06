@@ -20,6 +20,18 @@ use function Symfony\Component\String\b;
 
 class TurnoverController extends Controller
 {
+    public function get_past_turnovers()
+    {
+
+        $user = Auth::user();
+        $turnover = Turnover::where('branches_id', $user->branches_id)
+            ->where('status', '<>', 'PENDING')
+            ->with(['user.profile.positions', 'items.rds_record.documents.rds', 'added_by_user.profile.positions'])
+            ->get();
+
+        return send200Response($turnover);
+    }
+
     public function check_for_existing_turnover_request()
     {
         $user = Auth::user();
@@ -225,6 +237,30 @@ class TurnoverController extends Controller
             return send200Response(
                 ['username' => $new_user->username,]
             );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response($e->getMessage());
+        }
+    }
+
+    public function decline_turnover($id)
+    {
+        try {
+            $user = Auth::user();
+            if ($user->type !== "BRANCH_HEAD") {
+                return send422Response('Only branch head can approve turnover requests.');
+            }
+            DB::beginTransaction();
+
+
+            $turnover = Turnover::where('id', $id)
+                ->where('status', '=', 'PENDING')
+                ->first();
+            $turnover->status = 'DECLINED';
+            $turnover->save();
+
+            DB::commit();
+            return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
             return send400Response($e->getMessage());

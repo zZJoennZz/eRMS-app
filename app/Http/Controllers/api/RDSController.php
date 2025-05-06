@@ -45,7 +45,7 @@ class RDSController extends Controller
             DB::beginTransaction();
 
             $request->validate([
-                'item_number' => 'required|string|max:255|unique:records_disposition_schedules,item_number',
+                'item_number' => 'required|string|max:255',
                 'record_series_title_and_description' => 'required|string|max:255',
                 'active' => 'required|numeric',
                 'storage' => 'required|numeric',

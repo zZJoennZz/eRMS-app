@@ -23,6 +23,7 @@ const EditRDSRecord = lazy(() => import("./RDSRecord/EditRDSRecord"));
 import {
     PlusIcon,
     ArrowPathRoundedSquareIcon,
+    FolderOpenIcon,
 } from "@heroicons/react/24/solid";
 
 import { AuthContext } from "../contexts/AuthContext";
@@ -192,6 +193,15 @@ export default function RDSRecord() {
                         <ArrowPathRoundedSquareIcon className="w-4 h-4 inline mr-2" />{" "}
                         Borrow & Return
                     </a>
+                    {userType === "RECORDS_CUST" && (
+                        <a
+                            href="/open-box"
+                            className="ml-3 px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 inline items-center"
+                        >
+                            <FolderOpenIcon className="w-4 h-4 inline mr-2" />{" "}
+                            Manage Open Boxes
+                        </a>
+                    )}
                 </div>
             )}
 
