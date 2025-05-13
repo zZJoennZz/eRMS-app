@@ -37,20 +37,32 @@ class PositionSeeder extends Seeder
         );
         Position::create(
             [
-                "name" => "Branch Head",
+                "name" => "Business Unit Head",
                 "type" => "BRANCH_HEAD"
             ]
         );
         Position::create(
             [
-                "name" => "Records Custodian",
+                "name" => "BU Records Custodian",
                 "type" => "RECORDS_CUST"
             ]
         );
         Position::create(
             [
-                "name" => "Warehouse Custodian",
+                "name" => "Record Center Custodian",
                 "type" => "WAREHOUSE_CUST"
+            ]
+        );
+        Position::create(
+            [
+                "name" => "Record Center Head",
+                "type" => "WAREHOUSE_HEAD"
+            ]
+        );
+        Position::create(
+            [
+                "name" => "Admin",
+                "type" => "ADMIN"
             ]
         );
         foreach ($names as $n) {
