@@ -294,9 +294,9 @@ export default function Borrow() {
                     <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
                         <tr>
                             <th></th>
-                            <th className="text-left py-2">RDS</th>
-                            <th className="text-left py-2">Borrower</th>
-                            <th className="text-left py-2">Date</th>
+                            <th className="text-left w-1/3 py-2">RDS Item Number- Records Series Title and Description</th>
+                            <th className="text-left w-1/3 py-2">Borrower</th>
+                            <th className="text-left w-1/3 py-2">Date</th>
                         </tr>
                     </thead>
                     <tbody>

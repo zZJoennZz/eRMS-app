@@ -12,12 +12,12 @@ export default function SubmittedDocuments({ reportData }) {
                 </div> */}
                 eRMS Report
                 <div className="text-xl font-bold text-center mt-10">
-                    SUBMITTED DOCUMENTS
+                    SUMMARY OF SUBMITTED DOCUMENTS
                 </div>
-                <div className="text-center mb-2">
+               { /*<div className="text-center mb-2">
                     {currProfile.first_name} {currProfile.middle_name}{" "}
                     {currProfile.last_name}
-                </div>
+            </div>*/}
                 <div className="text-lg font-bold text-center mt-1 mb-5">
                     {branchDetails.name}
                 </div>
@@ -26,16 +26,16 @@ export default function SubmittedDocuments({ reportData }) {
                 <table className="w-full border border-black text-left">
                     <thead>
                         <tr className="border-b border-black">
-                            <th className="border-r border-black w-1/4 p-2">
-                                RDS
+                            <th className="border-r border-black w-1/5 p-2">
+                                RDS Item Number
                             </th>
                             <th className="border-r border-black w-2/5 p-2">
-                                Documents
+                                Records Series Title and Description
                             </th>
                             <th className="border-r border-black w-1/5 p-2">
                                 Period
                             </th>
-                            <th className="border-black w-1/5 p-2">
+                            <th className="border-black w-2/5 p-2">
                                 Record Date
                             </th>
                         </tr>
@@ -97,13 +97,15 @@ export default function SubmittedDocuments({ reportData }) {
                         ))}
                     </tbody>
                 </table>
-                <div className="mt-16 text-center w-2/12">
+
+                <div className="text-left pt-2 w-2/12 mt-16">
+                    Prepared By:
+                </div>
+                <div className="  border-t  border-black mt-10 text-center w-2/12 ">
                     {currProfile.first_name} {currProfile.middle_name}{" "}
                     {currProfile.last_name}
                 </div>
-                <div className="text-center border-t border-black pt-2 w-2/12">
-                    Prepared By:
-                </div>
+                
             </div>
         </div>
     );

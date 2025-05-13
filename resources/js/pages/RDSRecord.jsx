@@ -161,9 +161,9 @@ export default function RDSRecord() {
                 } shadow-lg hover:scale-110 transform transition-all duration-300 focus:outline-none animate-pulse`}
                 onClick={submitBorrow}
             >
-                Borrow Item/s
+                Borrow Record/s
             </button>
-            <h1 className="text-xl font-semibold mb-2">Record</h1>
+            <h1 className="text-xl font-semibold mb-2"> Records</h1>
             {/* <div className="mb-3">
                 <input
                     type="text"
@@ -261,7 +261,7 @@ export default function RDSRecord() {
                                 Source of Documents
                             </th>
                             <th className="text-left py-2" rowSpan={2}>
-                                Description of Document
+                                Records Series Title and Description
                             </th>
                             <th className="text-left py-2" rowSpan={2}>
                                 Period Covered

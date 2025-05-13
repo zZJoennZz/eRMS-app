@@ -46,17 +46,17 @@ export default function BranchRecords({ reportData, filters }) {
                 <table className="w-full border border-black text-left">
                     <thead>
                         <tr className="border-b border-black">
-                            <th className="border-r border-black w-1/5 p-2">
+                            <th className="border-r border-black w-.5/5 p-2">
                                 Box Number
                             </th>
-                            <th className="border-r border-black w-1/4 p-2">
-                                RDS
+                            <th className="border-r border-black w-.75/4 p-2">
+                                RDS Item Number
                             </th>
-                            <th className="border-r border-black w-2/5 p-2">
-                                Documents
+                            <th className="border-r border-black w-3/5 p-2">
+                                Records Series Title and Description
                             </th>
                             <th className="border-r border-black w-1/5 p-2">
-                                Period
+                                Period 
                             </th>
                             <th className="border-black w-1/5 p-2">
                                 Record Date
@@ -96,13 +96,14 @@ export default function BranchRecords({ reportData, filters }) {
                         )}
                     </tbody>
                 </table>
-                <div className="mt-16 text-center w-2/12">
+                <div className="text-left mt-16  pt-2 w-2/12">
+                    Prepared By:
+                </div>
+                <div className="mt-10 border-t border-black text-center w-2/12">
                     {currProfile.first_name} {currProfile.middle_name}{" "}
                     {currProfile.last_name}
                 </div>
-                <div className="text-center border-t border-black pt-2 w-2/12">
-                    Prepared By:
-                </div>
+                
             </div>
         </div>
     );
