@@ -92,9 +92,9 @@ export default function AddBranch({ closeHandler }) {
                     <div className="font-semibold mb-4">Branch Details</div>
                     <div className="mb-4">
                         <div className="mb-1">
-                            Is warehouse?
+                            Is Record Center?
                             <div className="text-xs italic text-slate-600">
-                                Enable to mark as warehouse.
+                                Enable to mark as Record Center.
                             </div>
                         </div>
                         <div>

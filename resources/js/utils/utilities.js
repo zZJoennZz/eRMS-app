@@ -59,3 +59,16 @@ export function formatToPhp(number) {
 
     return formattedNumber;
 }
+
+export function calculateAging(fromDate) {
+    const startDate = new Date(fromDate);
+    const endDate = new Date();
+
+    // Calculate difference in milliseconds
+    const diffInMs = endDate - startDate;
+
+    // Convert milliseconds to days
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    return diffInDays;
+}

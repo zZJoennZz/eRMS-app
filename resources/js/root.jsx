@@ -29,6 +29,9 @@ const DisposedRecordsForm = lazy(() =>
     import("./pages/Report/DisposedRecordsForm")
 );
 const Turnover = lazy(() => import("./pages/Setting/Turnover"));
+const WarehouseTurnover = lazy(() =>
+    import("./pages/Setting/WarehouseTurnover")
+);
 const TurnoverForms = lazy(() => import("./pages/Report/TurnoverForms"));
 const OpenBox = lazy(() => import("./pages/OpenBox"));
 
@@ -270,6 +273,11 @@ export default function Root() {
                         Turnover
                     )}
                     {renderPrivateRoute(
+                        ["ADMIN", "DEV", "WAREHOUSE_CUST"],
+                        "/warehouse-turnover",
+                        WarehouseTurnover
+                    )}
+                    {renderPrivateRoute(
                         [
                             "RECORDS_CUST",
                             "BRANCH_HEAD",
@@ -285,6 +293,7 @@ export default function Root() {
                         "/print-turnover",
                         TurnoverForms
                     )}
+
                     {renderPrivateRoute(["RECORDS_CUST"], "/open-box", OpenBox)}
                 </Routes>
             </Suspense>

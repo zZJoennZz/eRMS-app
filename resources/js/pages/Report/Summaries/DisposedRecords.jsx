@@ -4,6 +4,26 @@ import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function DisposedRecords({ reportData }) {
     const { currProfile, branchDetails } = useContext(AuthContext);
+
+    // Group documents by box number
+    const groupedByBox = {};
+
+    reportData.forEach((d) => {
+        d.items.forEach((item) => {
+            const boxNumber = item.record.box_number;
+            if (!groupedByBox[boxNumber]) {
+                groupedByBox[boxNumber] = [];
+            }
+
+            item.record.documents.forEach((doc) => {
+                groupedByBox[boxNumber].push({
+                    ...doc,
+                    disposalDate: d.created_at,
+                });
+            });
+        });
+    });
+
     return (
         <div className="p-4 w-full max-w-4xl mx-auto text-sm font-sans print:m-0 print:p-1">
             <div className="text-sm mb-5">
@@ -23,6 +43,9 @@ export default function DisposedRecords({ reportData }) {
                     <thead>
                         <tr className="border-b border-black">
                             <th className="border-r border-black w-1/5 p-2">
+                                Box Number
+                            </th>
+                            <th className="border-r border-black w-1/5 p-2">
                                 RDS
                             </th>
                             <th className="border-r border-black w-1/5 p-2">
@@ -31,46 +54,39 @@ export default function DisposedRecords({ reportData }) {
                             <th className="border-r border-black w-2/5 p-2">
                                 Description of Documents
                             </th>
-                            <th className="border-r border-black w-1/5 p-2">
+                            <th className="border-black w-1/5 p-2">
                                 Disposal Date
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {reportData.map((d) =>
-                            d.items.map((item) => (
-                                <>
-                                    <tr
-                                        key={"item" + item.id}
-                                        className="border-b border-black"
-                                    >
+                        {Object.entries(groupedByBox).map(([boxNumber, docs]) =>
+                            docs.map((doc, index) => (
+                                <tr
+                                    key={doc.id}
+                                    className="border-b border-black"
+                                >
+                                    {index === 0 ? (
                                         <td
                                             className="border-r border-black p-2"
-                                            colSpan={4}
+                                            rowSpan={docs.length}
                                         >
-                                            {item.record.box_number}
+                                            {boxNumber}
                                         </td>
-                                    </tr>
-                                    {item.record.documents.map((doc) => (
-                                        <tr
-                                            key={"doc" + doc.id}
-                                            className="border-b border-black"
-                                        >
-                                            <td className="border-r border-black p-2">
-                                                {doc.rds.item_number}
-                                            </td>
-                                            <td className="border-r border-black p-2">
-                                                {doc.source_of_documents}
-                                            </td>
-                                            <td className="border-r border-black p-2">
-                                                {doc.description_of_document}
-                                            </td>
-                                            <td className="border-black p-2">
-                                                {formatDate(d.created_at)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </>
+                                    ) : null}
+                                    <td className="border-r border-black p-2">
+                                        {doc.rds.item_number}
+                                    </td>
+                                    <td className="border-r border-black p-2">
+                                        {doc.source_of_documents}
+                                    </td>
+                                    <td className="border-r border-black p-2">
+                                        {doc.description_of_document}
+                                    </td>
+                                    <td className="border-black p-2">
+                                        {formatDate(doc.disposalDate)}
+                                    </td>
+                                </tr>
                             ))
                         )}
                     </tbody>

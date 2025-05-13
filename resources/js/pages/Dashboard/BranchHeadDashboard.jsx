@@ -41,7 +41,7 @@ export default function BranchHeadDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/transactions" className="hover:underline">
-                                Box Withdrawn from Warehouse
+                                Box Withdrawn from Records Center
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -104,7 +104,7 @@ export default function BranchHeadDashboard() {
                                     href="/rds-records"
                                     className="hover:underline"
                                 >
-                                    Total Boxes in Warehouse
+                                    Total Boxes in Records Center
                                     <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                                 </a>
                             </div>
@@ -141,9 +141,9 @@ export default function BranchHeadDashboard() {
                             </div>
                         </div>
                     </div>
-                    <div className="rounded-lg bg-gradient-to-r from-lime-700 to-lime-600 text-white p-5">
+                    <div className="rounded-lg bg-gradient-to-r from-red-700 to-red-500 text-white font-bold p-5">
                         <div className="flex items-center">
-                            <div className="text-2xl flex-grow">
+                            <div className="text-2xl flex-grow ">
                                 <a
                                     href="/disposals"
                                     className="hover:underline"

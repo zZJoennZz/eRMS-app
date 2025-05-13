@@ -16,8 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-use function Symfony\Component\String\b;
-
 class TurnoverController extends Controller
 {
     public function get_past_turnovers()
@@ -57,7 +55,7 @@ class TurnoverController extends Controller
         $user = Auth::user();
         $turnover = Turnover::where('branches_id', $user->branches_id)
             ->where('status', '=', 'PENDING')
-            ->with(['user.profile.positions', 'items.rds_record.documents.rds', 'added_by_user.profile.positions'])
+            ->with(['user.profile.positions', 'items.rds_record.documents.rds', 'added_by_user.profile.positions', 'items.rds_record.latest_history'])
             ->first();
 
         $branch = Branch::find($user->branches_id);
@@ -94,9 +92,9 @@ class TurnoverController extends Controller
 
             $check_for_pending_boxes = RDSRecord::where('status', 'PENDING')
                 ->where('branches_id', $user->branches_id)
-                ->whereHas('latest_history', function ($query) {
-                    $query->where('location', '<>', 'WAREHOUSE');
-                })
+                // ->whereHas('latest_history', function ($query) {
+                //     $query->where('location', '<>', 'WAREHOUSE');
+                // })
                 ->get();
             if ($check_for_pending_boxes->count() > 0) {
                 return send422Response('Please process the pending boxes first!');
@@ -117,11 +115,11 @@ class TurnoverController extends Controller
             $turnover->branches_id = $user->branches_id;
             $turnover->save();
 
-            $rds_record = RDSRecord::whereHas('latest_history', function ($query) {
-                $query->where('location', '<>', 'WAREHOUSE');
-            })
-                ->where('branches_id', $user->branches_id)
+            $rds_record = RDSRecord::where('branches_id', $user->branches_id)
                 ->where('status', '<>', 'DISPOSED')
+                // ->whereHas('latest_history', function ($query) {
+                //     $query->where('location', '<>', 'WAREHOUSE');
+                // })
                 ->where('status', '<>', 'PENDING')
                 ->get();
 

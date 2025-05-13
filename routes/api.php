@@ -73,6 +73,7 @@ Route::prefix('v1')->group(function () {
         //disposal
         Route::get('disposals', [DisposalController::class, 'get_box_for_disposal']);
         Route::post('disposals', [DisposalController::class, 'submit_disposal']);
+        Route::put('disposals/authorize/{id?}', [DisposalController::class, 'authorize_disposal']);
         Route::put('disposals/approve/{id?}', [DisposalController::class, 'approve_disposal']);
         Route::put('disposals/confirm/{id?}', [DisposalController::class, 'confirm_disposal']);
         Route::get('disposals/print/{id?}', [DisposalController::class, 'get_report']);
@@ -85,6 +86,7 @@ Route::prefix('v1')->group(function () {
         Route::get('bh-dashboard', [MiscController::class, 'bh_dashboard']);
         Route::get('emp-dashboard', [MiscController::class, 'emp_dashboard']);
         Route::get('wh-dashboard', [MiscController::class, 'wh_dashboard']);
+        Route::get('admin-dashboard', [MiscController::class, 'admin_dashboard']);
 
         Route::get('employee-pending-transactions', [MiscController::class, 'get_employee_pending_transactions']);
         Route::get('pending-rds', [MiscController::class, 'get_pending_rds']);

@@ -103,7 +103,7 @@ export default function RDS() {
                             <th className="text-left py-2" rowSpan={2}>
                                 Item Number
                             </th>
-                            <th className="text-right py-2" rowSpan={2}>
+                            <th className="text-left py-2" rowSpan={2}>
                                 Record Series Title and Description
                             </th>
                             <th className="text-center py-2" colSpan={3}>

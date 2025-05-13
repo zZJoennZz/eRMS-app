@@ -18,6 +18,7 @@ class Turnover extends Model
         'current_job_holder_id',
         'incoming_job_holder_id',
         'status',
+        'other',
         'added_by',
         'branches_id',
     ];
@@ -35,5 +36,10 @@ class Turnover extends Model
     public function items()
     {
         return $this->hasMany(TurnoverItem::class, 'turnovers_id', 'id');
+    }
+
+    public function add_data()
+    {
+        return $this->hasOne(TurnoverData::class, 'turnovers_id', 'id');
     }
 }

@@ -129,7 +129,7 @@ export default function AddTransaction({ closeHandler }) {
                             <div className="mb-1">
                                 <label htmlFor="warehouse">To:</label>
                             </div>
-                            <div>Warehouse</div>
+                            <div>Records Center</div>
                         </div>
                     )}
                     {transaction.type === "WITHDRAW" && (
@@ -137,7 +137,7 @@ export default function AddTransaction({ closeHandler }) {
                             <div className="mb-1">
                                 <label htmlFor="warehouse">From:</label>
                             </div>
-                            <div>Warehouse</div>
+                            <div>Records Center</div>
                         </div>
                     )}
                     {transaction.type === "BORROW" && (

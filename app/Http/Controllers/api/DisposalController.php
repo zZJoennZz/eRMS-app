@@ -21,13 +21,14 @@ class DisposalController extends Controller
     public function get_box_for_disposal()
     {
         $user = Auth::user();
-        if ($user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD" || $user->type === "DEV" || $user->type === "ADMIN") {
+        if ($user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD") {
             $overdueRecords = RDSRecord::whereHas('documents', function ($query) {
                 $query->where('projected_date_of_disposal', '<', now()->toDateString());
             })
                 ->where('branches_id', $user->branches_id)
                 ->with(['documents.rds', 'latest_history'])
                 ->where('status', 'APPROVED')
+                ->where('box_number', '<>', value: 'OPEN')
                 ->get();
             $upcomingRecords = RDSRecord::whereHas('documents', function ($query) {
                 $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
@@ -35,6 +36,7 @@ class DisposalController extends Controller
                 ->where('branches_id', $user->branches_id)
                 ->with(['documents.rds', 'latest_history'])
                 ->where('status', 'APPROVED')
+                ->where('box_number', '<>', value: 'OPEN')
                 ->get();
             $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile'])
                 ->where('branches_id', $user->branches_id)
@@ -43,6 +45,35 @@ class DisposalController extends Controller
                 ->get();
             $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile'])
                 ->where('branches_id', $user->branches_id)
+                ->where('status', 'DISPOSED')
+                ->get();
+
+            $data = [
+                'overdue' => $overdueRecords,
+                'upcoming' => $upcomingRecords,
+                'pending' => $pendingDisposal,
+                'disposal_archive' => $disposal_archive,
+            ];
+
+            return send200Response($data);
+        } elseif ($user->type === "DEV" || $user->type === "ADMIN") {
+            $overdueRecords = RDSRecord::whereHas('documents', function ($query) {
+                $query->where('projected_date_of_disposal', '<', now()->toDateString());
+            })
+                ->with(['documents.rds', 'latest_history'])
+                ->where('status', 'APPROVED')
+                ->get();
+            $upcomingRecords = RDSRecord::whereHas('documents', function ($query) {
+                $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
+            })
+                ->with(['documents.rds', 'latest_history'])
+                ->where('status', 'APPROVED')
+                ->get();
+            $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile', 'branch'])
+                ->where('status', '<>', 'DISPOSED')
+                ->orderBy('created_at', 'DESC')
+                ->get();
+            $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile', 'branch'])
                 ->where('status', 'DISPOSED')
                 ->get();
 
@@ -83,6 +114,12 @@ class DisposalController extends Controller
                 ->count();
             if ($ctr_rds_record_belongs_to_branch > 0) {
                 return send422Response('One or more document does not belong to your branch.');
+            }
+            $check_if_box_is_open = RDSRecord::whereIn('id', $cartIds)
+                ->where('box_number', 'OPEN')
+                ->count();
+            if ($check_if_box_is_open > 0) {
+                return send422Response("You cannot dispose open box.");
             }
             DB::beginTransaction();
 
@@ -127,7 +164,6 @@ class DisposalController extends Controller
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
-            return $e;
             return send400Response();
         }
     }
@@ -147,18 +183,82 @@ class DisposalController extends Controller
         }
     }
 
+    public function authorize_disposal($id)
+    {
+        $user = Auth::user();
+
+        try {
+            if ($user->type !== "BRANCH_HEAD") {
+                return send401Response();
+            }
+
+            DB::beginTransaction();
+
+            $record_disposal = RecordDisposal::find($id);
+
+            if ($record_disposal->status === "AUTHORIZED" || $record_disposal->status === "APPROVED" || $record_disposal->status === "DISPOSED") {
+                DB::rollBack();
+                return send422Response("You are not allowed to proceed with this action. The record is already $record_disposal->status");
+            }
+
+            $record_disposal->status = "AUTHORIZED";
+            $record_disposal->save();
+
+            foreach ($record_disposal->items as $rec) {
+                $record = RDSRecord::find($rec->r_d_s_records_id);
+
+                $new_record_history = new RDSRecordHistory();
+                $new_record_history->r_d_s_records_id = $record->id;
+                $new_record_history->action = "AUTHORIZE_DISPOSE";
+                $new_record_history->location = $record->latest_history->location;
+                $new_record_history->users_id = $user->id;
+                $new_record_history->save();
+            }
+
+            $new_record_disposal_history = new RecordDisposalHistory();
+            $new_record_disposal_history->record_disposals_id  = $record_disposal->id;
+            $new_record_disposal_history->action  = "AUTHORIZED";
+            $new_record_disposal_history->remarks  = "AUTHORIZED for submission.";
+            $new_record_disposal_history->users_id  = $user->id;
+            $new_record_disposal_history->save();
+
+            DB::commit();
+            return send200Response();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response($e->getMessage());
+        }
+    }
+
     public function approve_disposal($id)
     {
         $user = Auth::user();
         try {
-            if ($user->type !== "BRANCH_HEAD" && $user->type !== "ADMIN" && $user->type !== "DEV") {
+            if ($user->type !== "ADMIN" && $user->type !== "DEV") {
                 return send401Response();
             }
 
             DB::beginTransaction();
             $record_disposal = RecordDisposal::find($id);
+
+            if ($record_disposal->status === "APPROVED" || $record_disposal->status === "DISPOSED") {
+                DB::rollBack();
+                return send422Response("You are not allowed to proceed with this action. The record is already $record_disposal->status");
+            }
+
             $record_disposal->status = "APPROVED";
             $record_disposal->save();
+
+            foreach ($record_disposal->items as $rec) {
+                $record = RDSRecord::find($rec->r_d_s_records_id);
+
+                $new_record_history = new RDSRecordHistory();
+                $new_record_history->r_d_s_records_id = $record->id;
+                $new_record_history->action = "APPROVE_DISPOSE";
+                $new_record_history->location = $record->latest_history->location;
+                $new_record_history->users_id = $user->id;
+                $new_record_history->save();
+            }
 
             $new_record_disposal_history = new RecordDisposalHistory();
             $new_record_disposal_history->record_disposals_id  = $record_disposal->id;
@@ -179,11 +279,17 @@ class DisposalController extends Controller
     {
         $user = Auth::user();
         try {
-            if ($user->type !== "BRANCH_HEAD" && $user->type !== "ADMIN" && $user->type !== "DEV") {
+            if ($user->type !== "BRANCH_HEAD") {
                 return send401Response();
             }
             DB::beginTransaction();
             $record_disposal = RecordDisposal::find($id);
+
+            if ($record_disposal->status === "DISPOSED") {
+                DB::rollBack();
+                return send422Response("You are not allowed to proceed with this action. The record is already $record_disposal->status");
+            }
+
             $record_disposal->status = "DISPOSED";
             $record_disposal->save();
 
@@ -219,7 +325,7 @@ class DisposalController extends Controller
     {
         $user = Auth::user();
         try {
-            if ($user->type !== "BRANCH_HEAD") {
+            if ($user->type !== "ADMIN" && $user->type !== "DEV" && $user->type !== "BRANCH_HEAD") {
                 return send401Response();
             }
             DB::beginTransaction();

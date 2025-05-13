@@ -29,6 +29,10 @@ import {
 import { AuthContext } from "../contexts/AuthContext";
 
 export default function RDSRecord() {
+    const [recordTypeFilter, setRecordTypeFilter] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+
     const { userType, currId } = useContext(AuthContext);
     const queryClient = useQueryClient();
     const getAllRdsRecords = useQuery({
@@ -160,7 +164,7 @@ export default function RDSRecord() {
                 Borrow Item/s
             </button>
             <h1 className="text-xl font-semibold mb-2">Record</h1>
-            <div className="mb-3">
+            {/* <div className="mb-3">
                 <input
                     type="text"
                     id="search"
@@ -170,7 +174,45 @@ export default function RDSRecord() {
                     className="w-full"
                     placeholder="Search RDS Record here"
                 />
+            </div> */}
+            <div className="mb-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input
+                    type="text"
+                    value={searchTxt}
+                    onChange={(e) => setSearchTxt(e.target.value)}
+                    className="w-full"
+                    placeholder="Search RDS Record here"
+                />
+
+                <select
+                    value={recordTypeFilter}
+                    onChange={(e) => setRecordTypeFilter(e.target.value)}
+                    className="w-full"
+                >
+                    <option value="">All Record Types</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="DECLINED">Declined</option>
+                    <option value="DISPOSED">Disposed</option>
+                    <option value="RELEASED">Released</option>
+                </select>
+
+                <div className="flex gap-2">
+                    <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="w-full"
+                    />
+                    <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="w-full"
+                    />
+                </div>
             </div>
+
             {userType !== "RECORDS_CUST" && userType !== "BRANCH_HEAD" && (
                 <div className="mb-3">
                     <button
@@ -285,11 +327,50 @@ export default function RDSRecord() {
                                             : []),
                                     ];
 
-                                    return searchableValues.some((value) =>
-                                        value
-                                            ?.toString()
-                                            .toLowerCase()
-                                            .includes(searchTxt.toLowerCase())
+                                    const matchesSearch = searchableValues.some(
+                                        (value) =>
+                                            value
+                                                ?.toString()
+                                                .toLowerCase()
+                                                .includes(
+                                                    searchTxt.toLowerCase()
+                                                )
+                                    );
+
+                                    const matchesType =
+                                        !recordTypeFilter ||
+                                        i.status === recordTypeFilter;
+
+                                    const matchesDate =
+                                        !dateFrom && !dateTo
+                                            ? true
+                                            : i.documents?.some((doc) => {
+                                                  const fromDate = new Date(
+                                                      doc.period_covered_from
+                                                  );
+                                                  const toDate = new Date(
+                                                      doc.period_covered_to
+                                                  );
+                                                  const filterFrom = dateFrom
+                                                      ? new Date(dateFrom)
+                                                      : null;
+                                                  const filterTo = dateTo
+                                                      ? new Date(dateTo)
+                                                      : null;
+
+                                                  return (
+                                                      (!filterFrom ||
+                                                          toDate >=
+                                                              filterFrom) &&
+                                                      (!filterTo ||
+                                                          fromDate <= filterTo)
+                                                  );
+                                              });
+
+                                    return (
+                                        matchesSearch &&
+                                        matchesType &&
+                                        matchesDate
                                     );
                                 })
                                 .map((data) => (
@@ -516,10 +597,12 @@ export default function RDSRecord() {
                                                         }
                                                     </td>
                                                     <td className="py-2 text-center border-b border-slate-300">
-                                                        {
-                                                            data.history[0]
-                                                                .location
-                                                        }
+                                                        {data.history[0]
+                                                            .location ===
+                                                        "Warehouse"
+                                                            ? "Records Center"
+                                                            : data.history[0]
+                                                                  .location}
                                                     </td>
                                                     <td className="py-2 text-center border-b border-slate-300">
                                                         {doc.remarks}

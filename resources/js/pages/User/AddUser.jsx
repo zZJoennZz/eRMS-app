@@ -279,19 +279,24 @@ export default function AddUser({ closeHandler }) {
                                 <option value="0">
                                     Select account role of this user
                                 </option>
-                                <option value="EMPLOYEE">Employee</option>
+                                <option value="EMPLOYEE">
+                                    Level 1 (Employee)
+                                </option>
                                 {(userType === "BRANCH_HEAD" ||
                                     userType === "ADMIN" ||
                                     userType === "DEV") && (
                                     <>
                                         <option value="RECORDS_CUST">
-                                            Records Custodian
+                                            Level 2 (BU Records Custodian)
                                         </option>
                                         <option value="WAREHOUSE_CUST">
-                                            Warehouse Custodian
+                                            Level 3 (Record Center Custodian)
                                         </option>
                                         <option value="BRANCH_HEAD">
-                                            Branch Head
+                                            Level 4 (Business Unit Head)
+                                        </option>
+                                        <option value="WAREHOUSE_HEAD">
+                                            Level 5 (Record Center Head)
                                         </option>
                                     </>
                                 )}

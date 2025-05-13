@@ -41,7 +41,7 @@ export default function SubmissionSummaryModal({
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white w-3/4 max-w-2xl rounded-lg shadow-lg p-6">
+            <div className="bg-white w-3/4 h-3/4 max-w-2xl rounded-lg shadow-lg p-6 overflow-auto">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">
                     Submission Summary
                 </h2>

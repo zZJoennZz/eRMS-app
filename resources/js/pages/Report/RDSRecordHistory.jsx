@@ -77,6 +77,8 @@ export default function RDSRecordHistory() {
         RELEASE: "Approved Release of Box",
         BRANCH_HEAD_APPROVE_RELEASE: "Box Released",
         RETURN_RELEASE: "Box Returned from Release",
+        AUTHORIZE_DISPOSE: "Authorized Disposal",
+        APPROVE_DISPOSE: "Approved Disposal",
     };
 
     const mainHistory = [

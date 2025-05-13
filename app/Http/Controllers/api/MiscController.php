@@ -110,7 +110,7 @@ class MiscController extends Controller
                 ->where('status', 'APPROVED')
                 ->get();
             $upcomingRecords = RDSRecord::whereHas('documents', function ($query) {
-                $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
+                $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
             })
                 ->with(['documents'])
                 ->where('status', 'APPROVED')
@@ -190,7 +190,7 @@ class MiscController extends Controller
             ->where('status', 'APPROVED')
             ->count();
         $upcoming_disposals = RDSRecord::with('latest_history')->whereHas('documents', function ($query) {
-            $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
+            $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
         })
             ->where('status', 'APPROVED')
             ->count();
@@ -199,6 +199,7 @@ class MiscController extends Controller
         })
             ->where('branches_id', $user->branches_id)
             ->where('status', 'APPROVED')
+            ->where('box_number', '<>', 'OPEN')
             ->count();
         $res = [
             "pending_boxes" => $pending_boxes,
@@ -277,7 +278,7 @@ class MiscController extends Controller
             ->where('status', 'APPROVED')
             ->count();
         $upcoming_disposals = RDSRecord::with('latest_history')->whereHas('documents', function ($query) {
-            $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
+            $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
         })
             ->where('status', 'APPROVED')
             ->count();
@@ -286,6 +287,7 @@ class MiscController extends Controller
         })
             ->where('branches_id', $user->branches_id)
             ->where('status', 'APPROVED')
+            ->where('box_number', '<>', 'OPEN')
             ->count();
         $res = [
             "pending_transfer" => $pending_transfer,
@@ -405,6 +407,24 @@ class MiscController extends Controller
         return send200Response($res);
     }
 
+    public function admin_dashboard()
+    {
+        $user = Auth::user();
+
+        if ($user->type !== "ADMIN" && $user->type !== "DEV") {
+            return send401Response();
+        }
+
+        $pending_disposal = RecordDisposal::where('status', 'AUTHORIZED')
+            ->count();
+
+        $res = [
+            "pending_disposal" => $pending_disposal,
+        ];
+
+        return send200Response($res);
+    }
+
     public function print_filtered_warehouse_records(Request $request)
     {
         try {
@@ -510,7 +530,7 @@ class MiscController extends Controller
                         ->get();
                 } elseif ($request->reportType === "dueForDisposal") {
                     $upcoming_disposals = RDSRecord::with('latest_history')->whereHas('documents', function ($query) {
-                        $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
+                        $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
                     })
                         ->whereHas('branch', function ($query) use ($user) {
                             $query->where('clusters_id', $user->branch->clusters_id);

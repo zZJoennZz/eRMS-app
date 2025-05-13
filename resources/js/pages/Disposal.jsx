@@ -11,6 +11,7 @@ import {
     approve,
     confirmDispose,
     declineDispose,
+    authDispose,
 } from "../utils/disposalFn";
 
 import { toast } from "react-toastify";
@@ -22,7 +23,7 @@ import ComponentLoader from "../components/ComponentLoader";
 
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
-import { formatDate } from "../utils/utilities";
+import { formatDate, calculateAging } from "../utils/utilities";
 import { API_URL } from "../configs/config";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 
@@ -48,6 +49,20 @@ export default function Disposal() {
             setCart([...cart, product]);
         }
     };
+
+    const authApproval = useMutation({
+        mutationFn: (id) => authDispose(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["recordsForDisposals"],
+            });
+            toast.success("Disposal has been authorized.");
+        },
+        onError: (err) => {
+            toast.error(err.response.data.message);
+        },
+        networkMode: "always",
+    });
 
     const processApproval = useMutation({
         mutationFn: (id) => approve(id),
@@ -135,6 +150,12 @@ export default function Disposal() {
         }
     }
 
+    function authSubmission(id) {
+        if (confirm("Are you sure to authorize this?")) {
+            authApproval.mutate(id);
+        }
+    }
+
     function approveSubmission(id) {
         if (confirm("Are you sure to approve this?")) {
             processApproval.mutate(id);
@@ -217,7 +238,7 @@ export default function Disposal() {
                 >
                     <option value="All">All</option>
                     <option value="Branch">Branch</option>
-                    <option value="Warehouse">Warehouse</option>
+                    <option value="Warehouse">Records Center</option>
                 </select>
             </div>
             <div className="text-xs mb-5">
@@ -233,37 +254,141 @@ export default function Disposal() {
                     </button>
                 </div>
             )}
-            <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2 mb-5">
-                <div className="overflow-x-auto bg-gradient-to-r from-lime-100 to-green-50 shadow-md shadow-blue-200 rounded-lg p-4">
-                    <h2 className="font-semibold mb-2">Upcoming Disposal/s</h2>
-                    <table className="mb-3 w-full">
-                        <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
-                            <tr>
-                                <th></th>
-                                <th className="text-left py-2">Box Number</th>
-                                <th className="text-left py-2">
-                                    # of Documents
-                                </th>
-                                <th className="text-left py-2">
-                                    Projected Disposal Date
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recordsForDisposals.isLoading ? (
+            {userType !== "DEV" && userType !== "ADMIN" && (
+                <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2 mb-5">
+                    <div className="overflow-x-auto bg-gradient-to-r from-lime-100 to-green-50 shadow-md shadow-blue-200 rounded-lg p-4">
+                        <h2 className="font-semibold mb-2">
+                            Upcoming Disposal/s
+                        </h2>
+                        <table className="mb-3 w-full">
+                            <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
                                 <tr>
-                                    <td colSpan={4}>
-                                        <ComponentLoader />
-                                    </td>
+                                    <th></th>
+                                    <th className="text-left py-2">
+                                        Box Number
+                                    </th>
+                                    <th className="text-left py-2">
+                                        # of Documents
+                                    </th>
+                                    <th className="text-left py-2">
+                                        Projected Disposal Date
+                                    </th>
                                 </tr>
-                            ) : (
-                                recordsForDisposals.data &&
-                                filterData(
-                                    recordsForDisposals.data?.upcoming || []
-                                ).map((data) => {
-                                    let sasd = "sad";
+                            </thead>
+                            <tbody>
+                                {recordsForDisposals.isLoading ? (
+                                    <tr>
+                                        <td colSpan={4}>
+                                            <ComponentLoader />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    recordsForDisposals.data &&
+                                    filterData(
+                                        recordsForDisposals.data?.upcoming || []
+                                    ).map((data) => {
+                                        let sasd = "sad";
 
-                                    return (
+                                        return (
+                                            <tr
+                                                key={data.id}
+                                                id={data.id}
+                                                className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
+                                            >
+                                                <td className="py-2 text-left border-b border-slate-300">
+                                                    {userType ===
+                                                        "RECORDS_CUST" &&
+                                                        filterLocation !==
+                                                            "All" && (
+                                                            <button
+                                                                type="button"
+                                                                className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
+                                                                    cart.some(
+                                                                        (
+                                                                            item
+                                                                        ) =>
+                                                                            item.id ===
+                                                                            data.id
+                                                                    )
+                                                                        ? "bg-green-500 text-white border border-green-500"
+                                                                        : "bg-green-700 text-white border border-green-700"
+                                                                }`}
+                                                                onClick={() =>
+                                                                    toggleCart(
+                                                                        data
+                                                                    )
+                                                                }
+                                                            >
+                                                                {cart.some(
+                                                                    (item) =>
+                                                                        item.id ===
+                                                                        data.id
+                                                                )
+                                                                    ? "-"
+                                                                    : "+"}
+                                                            </button>
+                                                        )}
+                                                </td>
+                                                <td className="py-2 text-left border-b border-slate-300">
+                                                    <a
+                                                        href={`/rds-record-history/${data.id}`}
+                                                        target="_blank"
+                                                        className="text-lime-700 hover:text-lime-500 transition-all ease-in-out duration-300"
+                                                    >
+                                                        {data.box_number}
+                                                    </a>
+                                                </td>
+                                                <td className="py-2 text-left border-b border-slate-300">
+                                                    {data.documents.length}
+                                                </td>
+                                                <td className="py-2 text-left border-b border-slate-300">
+                                                    {formatDate(
+                                                        data.documents[0]
+                                                            .projected_date_of_disposal
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="overflow-x-auto bg-gradient-to-r from-pink-200 to-red-100 shadow-md shadow-blue-200 rounded-lg p-4">
+                        <h2 className="font-semibold mb-2">
+                            Overdue Disposal/s
+                        </h2>
+                        <table className="mb-3 w-full">
+                            <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
+                                <tr>
+                                    <th></th>
+                                    <th className="text-left py-2">
+                                        Box Number
+                                    </th>
+                                    <th className="text-left py-2">
+                                        # of Documents
+                                    </th>
+                                    <th className="text-left py-2">
+                                        Projected Disposal Date
+                                    </th>
+                                    <th className="text-left py-2">
+                                        Days Overdue
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recordsForDisposals.isLoading ? (
+                                    <tr>
+                                        <td colSpan={4}>
+                                            <ComponentLoader />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    recordsForDisposals.data &&
+                                    filterData(
+                                        recordsForDisposals.data?.overdue || []
+                                    ).map((data) => (
                                         <tr
                                             key={data.id}
                                             id={data.id}
@@ -316,99 +441,20 @@ export default function Disposal() {
                                                         .projected_date_of_disposal
                                                 )}
                                             </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="overflow-x-auto bg-gradient-to-r from-pink-200 to-red-100 shadow-md shadow-blue-200 rounded-lg p-4">
-                    <h2 className="font-semibold mb-2">Overdue Disposal/s</h2>
-                    <table className="mb-3 w-full">
-                        <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
-                            <tr>
-                                <th></th>
-                                <th className="text-left py-2">Box Number</th>
-                                <th className="text-left py-2">
-                                    # of Documents
-                                </th>
-                                <th className="text-left py-2">
-                                    Projected Disposal Date
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recordsForDisposals.isLoading ? (
-                                <tr>
-                                    <td colSpan={4}>
-                                        <ComponentLoader />
-                                    </td>
-                                </tr>
-                            ) : (
-                                recordsForDisposals.data &&
-                                filterData(
-                                    recordsForDisposals.data?.overdue || []
-                                ).map((data) => (
-                                    <tr
-                                        key={data.id}
-                                        id={data.id}
-                                        className="group cursor-pointer hover:bg-white transition-all ease-in-out duration-300"
-                                    >
-                                        <td className="py-2 text-left border-b border-slate-300">
-                                            {userType === "RECORDS_CUST" &&
-                                                filterLocation !== "All" && (
-                                                    <button
-                                                        type="button"
-                                                        className={`mx-1 px-2 py-1 text-xs duration-300 rounded ${
-                                                            cart.some(
-                                                                (item) =>
-                                                                    item.id ===
-                                                                    data.id
-                                                            )
-                                                                ? "bg-green-500 text-white border border-green-500"
-                                                                : "bg-green-700 text-white border border-green-700"
-                                                        }`}
-                                                        onClick={() =>
-                                                            toggleCart(data)
-                                                        }
-                                                    >
-                                                        {cart.some(
-                                                            (item) =>
-                                                                item.id ===
-                                                                data.id
-                                                        )
-                                                            ? "-"
-                                                            : "+"}
-                                                    </button>
+                                            <td className="py-2 text-left border-b border-slate-300">
+                                                {calculateAging(
+                                                    data.documents[0]
+                                                        .projected_date_of_disposal
                                                 )}
-                                        </td>
-                                        <td className="py-2 text-left border-b border-slate-300">
-                                            <a
-                                                href={`/rds-record-history/${data.id}`}
-                                                target="_blank"
-                                                className="text-lime-700 hover:text-lime-500 transition-all ease-in-out duration-300"
-                                            >
-                                                {data.box_number}
-                                            </a>
-                                        </td>
-                                        <td className="py-2 text-left border-b border-slate-300">
-                                            {data.documents.length}
-                                        </td>
-                                        <td className="py-2 text-left border-b border-slate-300">
-                                            {formatDate(
-                                                data.documents[0]
-                                                    .projected_date_of_disposal
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            )}
             <div className="overflow-x-auto bg-gradient-to-r from-slate-200 to-gray-100 shadow-md shadow-blue-200 rounded-lg p-4 mb-5">
                 <h2 className="font-semibold mb-2">Submitted Disposal/s</h2>
                 <table className="mb-3 w-full">
@@ -443,6 +489,10 @@ export default function Disposal() {
                                                 className={`inline ${
                                                     data.status === "PENDING" &&
                                                     "bg-gray-500"
+                                                } ${
+                                                    data.status ===
+                                                        "AUTHORIZED" &&
+                                                    "bg-lime-600"
                                                 } ${
                                                     data.status ===
                                                         "APPROVED" &&
@@ -481,6 +531,23 @@ export default function Disposal() {
                                                         type="button"
                                                         className={`mx-1 float-right px-2 py-1 text-xs duration-300 rounded bg-green-700 text-white`}
                                                         onClick={() =>
+                                                            authSubmission(
+                                                                data.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Authorize{" "}
+                                                        <CheckCircleIcon className="w-5 h-5 inline" />
+                                                    </button>
+                                                )}
+                                            {(userType === "ADMIN" ||
+                                                userType === "DEV") &&
+                                                data.status ===
+                                                    "AUTHORIZED" && (
+                                                    <button
+                                                        type="button"
+                                                        className={`mx-1 float-right px-2 py-1 text-xs duration-300 rounded bg-green-700 text-white`}
+                                                        onClick={() =>
                                                             approveSubmission(
                                                                 data.id
                                                             )
@@ -488,6 +555,23 @@ export default function Disposal() {
                                                     >
                                                         Approve{" "}
                                                         <CheckCircleIcon className="w-5 h-5 inline" />
+                                                    </button>
+                                                )}
+                                            {(userType === "ADMIN" ||
+                                                userType === "DEV") &&
+                                                data.status ===
+                                                    "AUTHORIZED" && (
+                                                    <button
+                                                        type="button"
+                                                        className={`mx-1 float-right px-2 py-1 text-xs duration-300 rounded bg-green-700 text-white`}
+                                                        onClick={() =>
+                                                            confirmDeclineDispose(
+                                                                data.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Decline{" "}
+                                                        <XCircleIcon className="w-5 h-5 inline" />
                                                     </button>
                                                 )}
                                             {userType === "BRANCH_HEAD" &&

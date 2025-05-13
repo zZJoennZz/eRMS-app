@@ -6,6 +6,7 @@ import EmployeeDashboard from "./Dashboard/EmployeeDashboard";
 import RCDashboard from "./Dashboard/RCDashboard";
 import BranchHeadDashboard from "./Dashboard/BranchHeadDashboard";
 import WarehouseDashboard from "./Dashboard/WarehouseDashboard";
+import AdminDashboard from "./Dashboard/AdminDashboard";
 
 import { AuthContext } from "../contexts/AuthContext";
 
@@ -34,6 +35,7 @@ export default function Dashboard() {
             {userType === "RECORDS_CUST" && <RCDashboard />}
             {userType === "BRANCH_HEAD" && <BranchHeadDashboard />}
             {userType === "WAREHOUSE_CUST" && <WarehouseDashboard />}
+            {(userType === "ADMIN" || userType === "DEV") && <AdminDashboard />}
         </DashboardLayout>
     );
 }

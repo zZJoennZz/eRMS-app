@@ -98,9 +98,7 @@ const TurnoverForms = () => {
                     </div>
                 </div>
                 <div className="flex justify-between my-2">
-                    <div className="text-white w-4/12">
-                        <strong>Status of Designation:</strong>{" "}
-                    </div>
+                    <div className="text-white w-4/12"></div>
                     <div>
                         <input
                             type="checkbox"
@@ -120,9 +118,7 @@ const TurnoverForms = () => {
                     </div>
                 </div>
                 <div className="flex justify-between my-2">
-                    <div className="text-white w-4/12">
-                        <strong>Status of Designation:</strong>{" "}
-                    </div>
+                    <div className="text-white w-4/12"></div>
                     <div>
                         <input
                             type="checkbox"
@@ -134,16 +130,14 @@ const TurnoverForms = () => {
                         />{" "}
                         Co-terminus
                     </div>
-                    <div className="text-white">
+                    <div className="opacity-0">
                         From:{" "}
                         <u>{turnoverDetails.from_date ?? "___________"}</u>
                         to: <u>{turnoverDetails.to_date ?? "___________"}</u>
                     </div>
                 </div>
                 <div className="flex justify-between my-2">
-                    <div className="text-white w-4/12">
-                        <strong>Status of Designation:</strong>{" "}
-                    </div>
+                    <div className="text-white w-4/12"></div>
                     <div>
                         <input
                             type="checkbox"
@@ -155,12 +149,14 @@ const TurnoverForms = () => {
                         />{" "}
                         Directly-hired Contractual
                     </div>
-                    <div className="text-white">1123123123123</div>
+                    <div className="opacity-0">1123123123123</div>
                 </div>
 
                 <div className="flex my-2 space-x-3 items-center">
                     <div className="flex w-8/12 space-x-3">
-                        <div className="font-bold">Incoming Job Holder:</div>
+                        <div className="font-bold">
+                            Outgoing Record Custodian:
+                        </div>
                         <div className="flex-grow border-b border-black">
                             {turnoverDetails.added_by_user.profile.first_name}{" "}
                             {turnoverDetails.added_by_user.profile.middle_name}{" "}
@@ -177,7 +173,9 @@ const TurnoverForms = () => {
 
                 <div className="flex my-2 space-x-3 items-center">
                     <div className="flex w-8/12 space-x-3">
-                        <div className="font-bold">Incoming Job Holder:</div>
+                        <div className="font-bold">
+                            Incoming Record Custodian:
+                        </div>
                         <div className="flex-grow border-b border-black">
                             {turnoverDetails.user.profile.first_name}{" "}
                             {turnoverDetails.user.profile.middle_name}{" "}
@@ -195,23 +193,22 @@ const TurnoverForms = () => {
                 <table className="w-full border border-black mt-4">
                     <thead>
                         <tr>
-                            <th className="border border-black w-2/12 p-1">
+                            <th className="border border-black w-1/12 p-1">
                                 <div className="text-lg font-bold">
-                                    Name of File/Document
+                                    Box Number
                                 </div>
                             </th>
-                            <th className="border border-black w-4/12">
-                                <div className="text-lg font-bold">Form</div>
-                                <div className="font-bold italic">
-                                    (e.g., hard or soft copy or storage media)
+                            <th className="border border-black w-5/12 p-1">
+                                <div className="text-lg font-bold">
+                                    Record Series Title and Description
                                 </div>
                             </th>
-                            <th className="border border-black w-4/12">
+                            <th className="border border-black w-2/12">
                                 <div className="text-lg font-bold">
                                     Location
                                 </div>
                                 <div className="font-bold italic">
-                                    (e.g., area/cabinet/vault/stockroom)
+                                    (e.g., Branch Unit, Record Center)
                                 </div>
                             </th>
                             <th className="border border-black w-2/12">
@@ -232,11 +229,17 @@ const TurnoverForms = () => {
                             item.rds_record.documents.map((doc) => (
                                 <tr key={item.id + "id" + doc.id}>
                                     <td className="border-r border-b border-black p-1">
+                                        {item.rds_record.box_number}
+                                    </td>
+                                    <td className="border-r border-b border-black p-1">
                                         {doc.description_of_document}
                                     </td>
-                                    <td className="border-r border-b border-black p-1"></td>
                                     <td className="border-r border-b border-black p-1">
-                                        {branchDetails.location_of_records}
+                                        {item.rds_record.latest_history
+                                            .location === "Warehouse"
+                                            ? "Record Center"
+                                            : item.rds_record.latest_history
+                                                  .location}
                                     </td>
                                     <td className="border-b border-black p-1"></td>
                                 </tr>
@@ -250,6 +253,18 @@ const TurnoverForms = () => {
                     Disposition Schedule of the Bank.
                 </div>
 
+                <div className="mt-5 mb-2">
+                    I hereby certify that I have delivered the following
+                    documents to{" "}
+                    <u>
+                        {turnoverDetails.user.profile.first_name}{" "}
+                        {turnoverDetails.user.profile.middle_name}{" "}
+                        {turnoverDetails.user.profile.last_name}
+                    </u>
+                    , as the officially assigned personnel who will continue the
+                    transaciton/operations.
+                </div>
+
                 <div className="mt-10 flex space-x-3">
                     <div className="w-1/3">
                         <div className="text-lg font-bold mb-16">
@@ -261,7 +276,8 @@ const TurnoverForms = () => {
                             {turnoverDetails.added_by_user.profile.last_name}
                         </div>
                         <div className="text-center font-bold italic">
-                            Printed Name and Signature of Current Job Holder
+                            Printed Name and Signature of Current Record
+                            Custodian
                         </div>
                     </div>
                     <div className="w-1/3">
@@ -274,13 +290,12 @@ const TurnoverForms = () => {
                             {turnoverDetails.user.profile.last_name}
                         </div>
                         <div className="text-center font-bold italic">
-                            Printed Name and Signature of Incoming Job Holder
+                            Printed Name and Signature of Incoming Record
+                            Custodian
                         </div>
                     </div>
                     <div className="w-1/3">
-                        <div className="text-lg font-bold mb-16">
-                            ACKNOWLEDGED BY:
-                        </div>
+                        <div className="text-lg font-bold mb-16">NOTED BY:</div>
                         <div className="border-b border-black text-center">
                             {branchHead.profile.first_name}{" "}
                             {branchHead.profile.middle_name}{" "}
@@ -294,7 +309,7 @@ const TurnoverForms = () => {
                 </div>
             </div>
 
-            <div className="p-4 w-full max-w-4xl mx-auto text-sm font-sans print:m-0 print:p-1 force-next-page">
+            {/* <div className="p-4 w-full max-w-4xl mx-auto text-sm font-sans print:m-0 print:p-1 force-next-page">
                 <div className="block">
                     <div className="text-2xl font-bold text-right">CLASS D</div>
                     <div className="italic text-lg font-bold text-right">
@@ -405,7 +420,7 @@ const TurnoverForms = () => {
                         Turn-over of Records to Successor Form
                     </div>
                 </div>
-            </div>
+            </div> */}
         </>
     );
 };

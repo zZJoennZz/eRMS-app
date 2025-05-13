@@ -60,38 +60,6 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
         };
     }, [rerender]);
 
-    // useEffect(() => {
-    //     const source = axios.CancelToken.source();
-    //     async function getAllBranches() {
-    //         await axios
-    //             .get(`${API_URL}branches`, {
-    //                 headers: {
-    //                     Authorization: localStorage.getItem("token"),
-    //                 },
-    //                 cancelToken: source.token,
-    //             })
-    //             .then((res) => {
-    //                 let branchesData = res.data.data;
-    //                 setBranches(branchesData);
-    //             })
-    //             .catch((err) => {
-    //                 if (axios.isCancel(err)) {
-    //                     console.log("Request canceled");
-    //                 } else {
-    //                     console.log(err);
-    //                 }
-    //             });
-    //     }
-
-    //     if (userType !== "RECORDS_CUST" && userType !== "EMPLOYEE") {
-    //         getAllBranches();
-    //     }
-
-    //     return () => {
-    //         source.cancel();
-    //     };
-    // }, []);
-
     useEffect(() => {
         const source = axios.CancelToken.source();
         async function getUser() {
@@ -404,25 +372,30 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                                 <option value="0">
                                     Select account role of this user
                                 </option>
-                                <option value="EMPLOYEE">Employee</option>
+                                <option value="EMPLOYEE">
+                                    Level 1 (Employee)
+                                </option>
                                 {(userType === "ADMIN" ||
                                     userType === "DEV") && (
                                     <>
                                         <option value="RECORDS_CUST">
-                                            Records Custodian
+                                            Level 2 (BU Records Custodian)
                                         </option>
                                         <option value="WAREHOUSE_CUST">
-                                            Warehouse Custodian
+                                            Level 3 (Record Center Custodian)
                                         </option>
                                         <option value="BRANCH_HEAD">
-                                            Branch Head
+                                            Level 4 (Business Unit Head)
+                                        </option>
+                                        <option value="WAREHOUSE_HEAD">
+                                            Level 5 (Record Center Head)
                                         </option>
                                     </>
                                 )}
                                 {userType === "BRANCH_HEAD" && (
                                     <>
                                         <option value="RECORDS_CUST">
-                                            Records Custodian
+                                            Level 2 (BU Records Custodian)
                                         </option>
                                     </>
                                 )}

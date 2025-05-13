@@ -80,7 +80,7 @@ export default function WarehouseDashboard() {
                         </div>
                     </div>
                 </div>
-                <div className="mb-3 rounded-lg bg-gradient-to-r from-lime-700 to-lime-600 text-white p-5">
+                <div className="rounded-lg bg-gradient-to-r from-red-700 to-red-500 text-white font-bold p-5">
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a
