@@ -30,13 +30,14 @@ export default function BranchRecords({ reportData, filters }) {
                 </div>
                 eRMS Report
                 <div className="text-xl font-bold text-center mt-10">
-                    SUMMARY OF{" "}
+                    SUMMARY OF RECORDS{" "}
+                    <div  className="text-l text-center">
                     {JSON.parse(filters).scope === "branch_only" && "BRANCH"}
                     {JSON.parse(filters).scope === "warehouse_only" &&
                         "RECORDS CENTER"}
                     {JSON.parse(filters).scope === "both" &&
                         "BRANCH AND RECORDS CENTER"}{" "}
-                    RECORDS
+                    </div>
                 </div>
                 <div className="text-lg font-bold text-center mt-1 mb-5">
                     {branchDetails.name}
@@ -53,10 +54,10 @@ export default function BranchRecords({ reportData, filters }) {
                                 RDS Item Number
                             </th>
                             <th className="border-r border-black w-3/5 p-2">
-                                Records Series Title and Description
+                                Record Series Title and Description
                             </th>
                             <th className="border-r border-black w-1/5 p-2">
-                                Period 
+                                Period Covered
                             </th>
                             <th className="border-black w-1/5 p-2">
                                 Record Date

@@ -261,7 +261,7 @@ export default function RDSRecord() {
                                 Source of Documents
                             </th>
                             <th className="text-left py-2" rowSpan={2}>
-                                Records Series Title and Description
+                                Record Series Title and Description
                             </th>
                             <th className="text-left py-2" rowSpan={2}>
                                 Period Covered

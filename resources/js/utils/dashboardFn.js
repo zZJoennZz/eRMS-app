@@ -67,6 +67,17 @@ export async function whDashboard() {
     return res.data.data;
 }
 
+
+export async function whHeadDashboard() {
+    let res = await axios.get(`${API_URL}wh-head-dashboard`, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
 export async function adminDashboard() {
     let res = await axios.get(`${API_URL}admin-dashboard`, {
         headers: {

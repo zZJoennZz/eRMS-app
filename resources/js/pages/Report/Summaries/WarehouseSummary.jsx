@@ -12,7 +12,10 @@ export default function WarehouseSummary({ reportData }) {
                 </div>
                 eRMS Report
                 <div className="text-xl font-bold text-center mt-10">
-                    SUMMARY OF WAREHOUSE RECORDS
+                    SUMMARY OF RECORDS 
+                </div>
+                <div className="text-L font-bold text-center ">
+                RECORDS CENTER
                 </div>
             </div>
             <div>
@@ -23,7 +26,7 @@ export default function WarehouseSummary({ reportData }) {
                                 Branch
                             </th>
                             <th className="border-r border-black w-2/5 p-2">
-                                # of Boxes at the Warehouse
+                                NUMBER OF BOXES 
                             </th>
                         </tr>
                     </thead>
@@ -40,13 +43,14 @@ export default function WarehouseSummary({ reportData }) {
                         ))}
                     </tbody>
                 </table>
-                <div className="mt-16 text-center w-2/12">
+                <div className="text-left mt-16 pt-2 w-2/12">
+                    Prepared By:
+                </div>
+                <div className="mt-10 border-t border-black text-center w-2/12">
                     {currProfile.first_name} {currProfile.middle_name}{" "}
                     {currProfile.last_name}
                 </div>
-                <div className="text-center border-t border-black pt-2 w-2/12">
-                    Prepared By:
-                </div>
+                
             </div>
         </div>
     );

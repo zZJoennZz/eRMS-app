@@ -184,7 +184,7 @@ export default function Report() {
                                     }
                                     className="block ml-2 text-green-700 hover:text-green-500"
                                 >
-                                    {">"} Warehouse Summary
+                                    {">"} Records Center Summary
                                 </button>
                             </div>
                             <div>

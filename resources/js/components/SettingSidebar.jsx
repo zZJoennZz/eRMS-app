@@ -62,7 +62,7 @@ export default function SettingSidebar({ isSidebarOpen, toggleSideBar }) {
                         Entities
                     </a>
                 )}
-                {["DEV", "ADMIN", "BRANCH_HEAD", "RECORDS_CUST"].includes(
+                {["DEV", "ADMIN", "BRANCH_HEAD", "WAREHOUSE_HEAD", "RECORDS_CUST"].includes(
                     userType
                 ) && (
                     <a
@@ -72,7 +72,7 @@ export default function SettingSidebar({ isSidebarOpen, toggleSideBar }) {
                         Users
                     </a>
                 )}
-                {["BRANCH_HEAD", "RECORDS_CUST"].includes(userType) && (
+                {["BRANCH_HEAD", "RECORDS_CUST","WAREHOUSE_HEAD"].includes(userType) && (
                     <a
                         href="/turnover"
                         className="block p-2 rounded hover:bg-green-700"

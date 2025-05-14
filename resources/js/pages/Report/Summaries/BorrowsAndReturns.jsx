@@ -26,7 +26,7 @@ export default function BorrowsAndReturns({ reportData }) {
                                 RDS Item Number
                             </th>
                             <th className="border-r border-black w-5/12 p-2">
-                               Records Series Title and Decsription
+                               Record Series Title and Description
                             </th>
                             <th className="border-r border-black w-2/12 p-2">
                                 Period Covered

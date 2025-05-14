@@ -24,7 +24,7 @@ export default function BranchHeadDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/transactions" className="hover:underline">
-                                Records for Storage
+                                Records for Storage to Record Center
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>

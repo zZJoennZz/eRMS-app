@@ -26,7 +26,7 @@ export default function CurrentBorrows({ reportData }) {
                                 RDS Item Number
                             </th>
                             <th className="border-r border-black w-4/12 p-2">
-                                Records Series Title and Description
+                                Record Series Title and Description
                             </th>
                             <th className="border-r border-black w-3/12 p-2">
                                 Period Covered

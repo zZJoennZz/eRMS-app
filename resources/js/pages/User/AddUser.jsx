@@ -360,16 +360,18 @@ export default function AddUser({ closeHandler }) {
                                     {branches &&
                                         branches.map((p) => {
                                             if (
-                                                userDetail.type !==
-                                                    "WAREHOUSE_CUST" &&
+                                                (userDetail.type !==
+                                                    "WAREHOUSE_CUST" && userDetail.type !==
+                                                    "WAREHOUSE_HEAD") &&
                                                 p.name === "Warehouse"
                                             ) {
                                                 return null;
                                             }
 
                                             if (
-                                                userDetail.type ===
-                                                    "WAREHOUSE_CUST" &&
+                                                (userDetail.type ===
+                                                    "WAREHOUSE_CUST" || userDetail.type ===
+                                                    "WAREHOUSE_HEAD") &&
                                                 p.name !== "Warehouse"
                                             ) {
                                                 return null;

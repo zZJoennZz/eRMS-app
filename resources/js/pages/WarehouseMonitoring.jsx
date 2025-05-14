@@ -50,7 +50,7 @@ export default function WarehouseMonitoring() {
             }),
         retry: 2,
         networkMode: "always",
-    });
+    }); 
 
     function prepareFilters() {
         const reportFilters = {
@@ -68,7 +68,7 @@ export default function WarehouseMonitoring() {
     }
     return (
         <DashboardLayout>
-            <h1 className="text-xl font-semibold mb-2">Records in warehouse</h1>
+            <h1 className="text-xl font-semibold mb-2">Records in Records Center</h1>
             <div className="mb-1 text-xs text-slate-500">Filter</div>
             <div className="mb-3 flex gap-2">
                 <select

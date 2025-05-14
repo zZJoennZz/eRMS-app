@@ -12,47 +12,49 @@ export default function WarehouseSummary({ reportData }) {
                 </div>
                 eRMS Report
                 <div className="text-xl font-bold text-center mt-10">
-                    DUE FOR DISPOSAL
+                    RECORDS DUE FOR DISPOSAL
                 </div>
             </div>
             <div>
                 <table className="w-full border border-black text-left">
-                    <thead>
-                        <tr className="border-b border-black">
-                            <th className="border-r border-black w-5/12 p-2">
-                                Branch
-                            </th>
-                            <th className="border-r border-black w-4/12 p-2">
-                                # of Boxes at the Warehouse
-                            </th>
-                            <th className="border-r border-black w-3/12 p-2">
-                                Projected Date of Disposal
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reportData.overdue_disposals.map((d) => (
-                            <tr key={d.id} className="border-b border-black">
-                                <td className="border-r border-black p-2">
-                                    {d.branch.name}
-                                </td>
-                                <td className="border-r border-black p-2">
-                                    {d.box_number}
-                                </td>
-                                <td className="border-r border-black p-2">
-                                    {d.documents[0].projected_date_of_disposal}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+                <thead>
+    <tr className="border-b border-black">
+        <th className="border-r border-black w-3/12 p-2">BRANCH</th>
+        <th className="border-r border-black w-2/12 p-2">BOX NUMBER</th>
+        <th className="border-r border-black w-3/12 p-2">PROJECTED DATE OF DISPOSAL</th>
+        <th className="border-r border-black w-2/12 p-2">AGING</th>
+    </tr>
+</thead>
+<tbody>
+    {reportData.overdue_disposals.map((d) => {
+        const projectedDate = new Date(d.documents[0].projected_date_of_disposal);
+        const now = new Date();
+        const diffTime = now - projectedDate;
+        const agingDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+
+        return (
+            <tr key={d.id} className="border-b border-black">
+                <td className="border-r border-black p-2">{d.branch.name}</td>
+                <td className="border-r border-black p-2">{d.box_number}</td>
+                <td className="border-r border-black p-2">
+                    {d.documents[0].projected_date_of_disposal}
+                </td>
+                <td className="border-r border-black p-2">
+                    {agingDays} days
+                </td>
+            </tr>
+        );
+    })}
+</tbody>
                 </table>
-                <div className="mt-16 text-center w-2/12">
+                <div className="text-left mt-16 pt-2 w-2/12">
+                    Prepared By:
+                </div>
+                <div className="mt-10 border-t border-black text-center w-2/12">
                     {currProfile.first_name} {currProfile.middle_name}{" "}
                     {currProfile.last_name}
                 </div>
-                <div className="text-center border-t border-black pt-2 w-2/12">
-                    Prepared By:
-                </div>
+              
             </div>
         </div>
     );

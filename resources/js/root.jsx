@@ -153,6 +153,7 @@ export default function Root() {
                             "BRANCH_HEAD",
                             "DEV",
                             "ADMIN",
+                            "WAREHOUSE_HEAD",
                         ],
                         "/dashboard",
                         Dashboard
@@ -161,6 +162,7 @@ export default function Root() {
                         [
                             "EMPLOYEE",
                             "WAREHOUSE_CUST",
+                            "WAREHOUSE_HEAD",
                             "RECORDS_CUST",
                             "BRANCH_HEAD",
                             "DEV",
@@ -173,6 +175,7 @@ export default function Root() {
                         [
                             "EMPLOYEE",
                             "WAREHOUSE_CUST",
+                            "WAREHOUSE_HEAD",
                             "RECORDS_CUST",
                             "BRANCH_HEAD",
                             "DEV",
@@ -186,6 +189,7 @@ export default function Root() {
                         [
                             "EMPLOYEE",
                             "WAREHOUSE_CUST",
+                            "WAREHOUSE_HEAD",
                             "RECORDS_CUST",
                             "BRANCH_HEAD",
                             "DEV",
@@ -213,22 +217,22 @@ export default function Root() {
                         Borrow
                     )}
                     {renderPrivateRoute(
-                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN"],
+                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
                         "/disposals",
                         Disposal
                     )}
                     {renderPrivateRoute(
-                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN"],
+                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
                         "/report/disposed-records-form/:id",
                         DisposedRecordsForm
                     )}
                     {renderPrivateRoute(
-                        ["WAREHOUSE_CUST", "DEV", "ADMIN"],
+                        ["WAREHOUSE_CUST", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
                         "/warehouse-monitoring",
                         WarehouseMonitoring
                     )}
                     {renderPrivateRoute(
-                        ["WAREHOUSE_CUST", "DEV", "ADMIN"],
+                        ["WAREHOUSE_CUST", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
                         "/print-warehouse-documents/:filters",
                         ReportDocuments
                     )}
@@ -240,6 +244,7 @@ export default function Root() {
                             "RECORDS_CUST",
                             "EMPLOYEE",
                             "WAREHOUSE_CUST",
+                            "WAREHOUSE_HEAD",
                         ],
                         "/print-branch-summary/:filters",
                         ReportDocuments
@@ -252,6 +257,7 @@ export default function Root() {
                             "ADMIN",
                             "EMPLOYEE",
                             "WAREHOUSE_CUST",
+                            "WAREHOUSE_HEAD",
                         ],
                         "/reports",
                         Report
@@ -273,7 +279,7 @@ export default function Root() {
                         Turnover
                     )}
                     {renderPrivateRoute(
-                        ["ADMIN", "DEV", "WAREHOUSE_CUST"],
+                        ["ADMIN", "DEV", "WAREHOUSE_CUST","WAREHOUSE_HEAD",],
                         "/warehouse-turnover",
                         WarehouseTurnover
                     )}

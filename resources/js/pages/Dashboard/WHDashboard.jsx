@@ -3,14 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 
 import ComponentLoader from "../../components/ComponentLoader";
 
-import { whDashboard } from "../../utils/dashboardFn";
+import { whHeadDashboard } from "../../utils/dashboardFn";
 
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
 
-export default function WarehouseDashboard() {
+export default function WHDashboard() {
     const getAcctSummary = useQuery({
         queryKey: ["acctSummary"],
-        queryFn: whDashboard,
+        queryFn: whHeadDashboard,
         retry: 2,
         networkMode: "always",
     });
@@ -24,8 +24,8 @@ export default function WarehouseDashboard() {
                 <div className="mb-3 rounded-lg bg-gradient-to-r from-lime-700 to-lime-600 text-white p-5">
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
-                            <a href="/transactions" className="hover:underline">
-                                Box for Storage
+                            <a href="/disposals" className="hover:underline">
+                                Disposal for Confirmation
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
@@ -33,7 +33,7 @@ export default function WarehouseDashboard() {
                             {getAcctSummary.isLoading ? (
                                 <div className="animate-bounce">...</div>
                             ) : (
-                                getAcctSummary.data.for_receiving
+                                getAcctSummary.data.disposal_confirmation
                             )}
                         </div>
                     </div>
@@ -67,7 +67,7 @@ export default function WarehouseDashboard() {
                                 href="/warehouse-monitoring"
                                 className="hover:underline"
                             >
-                                Total Boxes in Records Center
+                                Total Boxes in Warehouse
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>

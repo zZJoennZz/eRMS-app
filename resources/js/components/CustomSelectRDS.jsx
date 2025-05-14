@@ -54,7 +54,7 @@ const SearchableDropdown = ({ record, rds, index, handleInputChange }) => {
                                 className="p-2 cursor-pointer hover:bg-gray-200"
                             >
                                 {rdsItem.item_number} -{" "}
-                                {rdsItem.record_series_title_and_description}
+                                {rdsItem.record_series_title_and_description} {rdsItem.record_series_title_and_description_1 === "" || rdsItem.record_series_title_and_description_1 === null  ? <></> : "- " + rdsItem.record_series_title_and_description_1}
                             </li>
                         ))
                     ) : (

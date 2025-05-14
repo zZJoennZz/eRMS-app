@@ -225,25 +225,31 @@ export default function Disposal() {
                 </button>
             )}
             <h1 className="text-xl font-semibold mb-1">Disposals</h1>
-            <div className="mb-3 flex gap-3">
-                <label className="font-semibold">Filter by Location:</label>
-                <select
-                    value={filterLocation}
-                    onChange={(e) => {
-                        setCart([]);
-                        setFilterLocation(e.target.value);
-                        setSelectAll(false);
-                    }}
-                    className="border border-gray-300 p-1 rounded"
-                >
-                    <option value="All">All</option>
-                    <option value="Branch">Branch</option>
-                    <option value="Warehouse">Records Center</option>
-                </select>
-            </div>
-            <div className="text-xs mb-5">
-                You can process the upcoming and overdue boxes at the same time.
-            </div>
+            {
+                userType !== "DEV" && userType !== "ADMIN" && userType !== "WAREHOUSE_HEAD" && (
+                    <>
+                        <div className="mb-3 flex gap-3">
+                            <label className="font-semibold">Filter by Location:</label>
+                            <select
+                                value={filterLocation}
+                                onChange={(e) => {
+                                    setCart([]);
+                                    setFilterLocation(e.target.value);
+                                    setSelectAll(false);
+                                }}
+                                className="border border-gray-300 p-1 rounded"
+                            >
+                                <option value="All">All</option>
+                                <option value="Branch">Branch</option>
+                                <option value="Warehouse">Records Center</option>
+                            </select>
+                        </div>
+                        <div className="text-xs mb-5">
+                            You can process the upcoming and overdue boxes at the same time.
+                        </div>
+                    </>
+                )
+            }
             {filterLocation !== "All" && userType === "RECORDS_CUST" && (
                 <div className="mb-4">
                     <button
@@ -254,7 +260,7 @@ export default function Disposal() {
                     </button>
                 </div>
             )}
-            {userType !== "DEV" && userType !== "ADMIN" && (
+            {userType !== "DEV" && userType !== "ADMIN" && userType !== "WAREHOUSE_HEAD" && (
                 <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2 mb-5">
                     <div className="overflow-x-auto bg-gradient-to-r from-lime-100 to-green-50 shadow-md shadow-blue-200 rounded-lg p-4">
                         <h2 className="font-semibold mb-2">
@@ -589,21 +595,24 @@ export default function Disposal() {
                                                         <XCircleIcon className="w-5 h-5 inline" />
                                                     </button>
                                                 )}
-                                            {userType === "BRANCH_HEAD" &&
-                                                data.status === "APPROVED" && (
-                                                    <button
-                                                        type="button"
-                                                        className={`mx-1 float-right px-2 py-1 text-xs duration-300 rounded bg-green-700 text-white`}
-                                                        onClick={() =>
-                                                            confirmBoxDisposal(
-                                                                data.id
-                                                            )
-                                                        }
+                                            {
+                                                userType === "BRANCH_HEAD" && data.items[0].record.latest_history.location !== "Warehouse" && <button
+                                                    type="button"
+                                                    className="mx-1 float-right px-2 py-1 text-xs duration-300 rounded bg-green-700 text-white"
+                                                    onClick={() => confirmBoxDisposal(data.id)}
                                                     >
-                                                        Confirm Disposal{" "}
-                                                        <CheckCircleIcon className="w-5 h-5 inline" />
-                                                    </button>
-                                                )}
+                                                    Confirm Disposal <CheckCircleIcon className="w-5 h-5 inline" />
+                                                </button>
+                                            }
+                                            {
+                                                userType === "WAREHOUSE_HEAD" && data.items[0].record.latest_history.location === "Warehouse" && <button
+                                                    type="button"
+                                                    className="mx-1 float-right px-2 py-1 text-xs duration-300 rounded bg-green-700 text-white"
+                                                    onClick={() => confirmBoxDisposal(data.id)}
+                                                    >
+                                                    Confirm Disposal <CheckCircleIcon className="w-5 h-5 inline" />
+                                                </button>
+                                            }
                                         </td>
                                     </tr>
                                 );

@@ -348,11 +348,12 @@ class UserController extends Controller
             $user = Auth::user();
             $get_user = User::find($id);
 
-            if ($user->branches_id !== $get_user->branches_id) {
+            if ($user->branches_id !== $get_user->branches_id && $user->type !== "ADMIN" && $user->type !== "DEV") {
                 return send401Response();
             }
 
-            $get_user->password = bcrypt($user->branch->code . $get_user->profile->last_name);
+            $branch_code = $get_user->branch->name === "Warehouse" ? "WH" : $get_user->branch->code;
+            $get_user->password = bcrypt($branch_code . $get_user->profile->last_name);
             $get_user->save();
 
             DB::commit();
