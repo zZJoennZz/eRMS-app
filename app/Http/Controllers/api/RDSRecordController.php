@@ -65,14 +65,13 @@ class RDSRecordController extends Controller
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->get();
 
-            $open_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+            $open_records = RDSRecord::with(['documents.history', 'documents.rds', 'history' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             }])
                 ->whereHas('documents', function ($query) {
                     $query->where('source_of_documents', '=', Auth::user()->profile->position->name);
                 })
                 ->where('submitted_by', Auth::user()->id)
-                ->where('status', '=', 'PENDING')
                 ->where('box_number', '=', 'OPEN')
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->get();
@@ -96,16 +95,31 @@ class RDSRecordController extends Controller
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->orderBy('box_number', 'asc')
                 ->get();
+            $pending_disposal = RDSRecord::with(['documents.history', 'documents.rds', 'history' => function ($query) {
+                    return $query->orderBy('created_at', 'desc');
+                }])
+                    ->where('branches_id', '=', Auth::user()->branches_id)
+                    ->where('status', '=', 'PENDING_DISPOSAL')
+                    ->orderBy('box_number', 'asc')
+                    ->get();
             $declined_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
             }])
                 ->where('status', '=', 'DECLINED')
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->get();
+                $disposed_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                    return $query->orderBy('created_at', 'desc');
+                }])
+                    ->where('status', '=', 'DISPOSED')
+                    ->where('branches_id', '=', value: Auth::user()->branches_id)
+                    ->get();
             $rds_record = new \Illuminate\Database\Eloquent\Collection();
             $rds_record = $rds_record->merge($pending_records);
             $rds_record = $rds_record->merge($main_records);
+            $rds_record = $rds_record->merge($pending_disposal);
             $rds_record = $rds_record->merge($declined_records);
+            $rds_record = $rds_record->merge($disposed_record);
         } else {
             $rds_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
@@ -363,7 +377,7 @@ class RDSRecordController extends Controller
         try {
             $user = Auth::user();
             $wh_sup = [];
-            if ($user->type === "WAREHOUSE_CUST") {
+            if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
                 $wh_sup = DB::table('r_d_s_records')
                     ->join('branches', 'r_d_s_records.branches_id', '=', 'branches.id') // Join to get clusters_id
                     ->join('r_d_s_record_histories as latest_h', function ($join) {
@@ -371,14 +385,15 @@ class RDSRecordController extends Controller
                             ->whereRaw('latest_h.id = (
                             SELECT h2.id
                             FROM r_d_s_record_histories AS h2
-                            WHERE h2.r_d_s_records_id = latest_h.r_d_s_records_id
+                        WHERE h2.r_d_s_records_id = latest_h.r_d_s_records_id
                             ORDER BY h2.updated_at DESC
                             LIMIT 1
                         )');
                     })
                     ->where('latest_h.location', 'Warehouse')
                     ->where('branches.clusters_id', $user->branch->clusters_id) // Filter by clusters_id
-                    ->where('r_d_s_records.status', 'APPROVED')
+                    ->where('r_d_s_records.status', '<>','PENDING')
+                    ->where('r_d_s_records.status', '<>','DISPOSED')
                     ->select('r_d_s_records.*', 'latest_h.created_at as history_created_at', 'branches.name', 'r_d_s_records.status') // Select created_at from latest history
                     ->get();
             } else {
@@ -709,6 +724,7 @@ class RDSRecordController extends Controller
             foreach ($request->all() as $rds) {
                 $sel_rds = RDSRecordDocument::find($rds["id"]);
                 $sel_rds->r_d_s_records_id = $new_rds_record->id;
+                $sel_rds->source_of_documents = Auth::user()->profile->position->name;
                 // DB::rollBack();
                 // return send400Response(date('Y-m-d', strtotime($request->rdsRecords[0]["period_covered_to"] . ' +' . $sel_rds->active + $sel_rds->storage . 'years')));
                 $sel_rds->save();

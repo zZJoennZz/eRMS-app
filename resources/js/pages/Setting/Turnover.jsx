@@ -263,7 +263,7 @@ export default function Turnover() {
                 >
                     <h1 className="text-2xl text-gray-800 mb-4 text-center leading-10">
                         Currently have existing turnover request. Please wait
-                        for the decision of the branch head.
+                        for the approval of the Business Unit Head.
                         <div className="font-bold text-green-700">
                             Please don't forget to print the documents below.
                         </div>
@@ -338,9 +338,8 @@ export default function Turnover() {
                                             Step 1: Select Employee
                                         </h2>
                                         <p className="text-sm text-gray-500 mt-1">
-                                            If you cannot find the employee,
-                                            please ask the branch head to enroll
-                                            them into the system.
+                                            If you cannot locate the employee in the system,
+                                            kindly request the Business Unit Head to initiate their enrollment.
                                         </p>
                                         <select
                                             className="mt-3 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
@@ -534,8 +533,8 @@ export default function Turnover() {
                                             Step 4: Approval
                                         </h2>
                                         <p className="text-sm text-gray-500 mt-1">
-                                            The turnover request will need to be
-                                            approved by the branch head.
+                                          The turnover request is subject to 
+                                            approval by the Business Unit Head.
                                         </p>
                                     </div>
 

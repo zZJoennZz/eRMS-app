@@ -59,8 +59,20 @@ class UserController extends Controller
     {
         //
         $user = Auth::user();
+
+        $typeToUsernameNumber = [
+            'EMPLOYEE' => 1,
+            'RECORDS_CUST' => 2,
+            'WAREHOUSE_CUST' => 3,
+            'BRANCH_HEAD' => 4,
+            'WAREHOUSE_HEAD' => 5,
+        ];
+
         try {
             DB::beginTransaction();
+            if (!array_key_exists($request->type, $typeToUsernameNumber)) {
+                return send422Response("Invalid submissions. Please refresh the page.");
+            }
             if ($user->type === "ADMIN" || $user->type === "DEV") {
 
                 $request->validate([
@@ -70,7 +82,7 @@ class UserController extends Controller
                 ]);
 
                 $new_user = new User();
-                $new_user->username = $request->username;
+                $new_user->username = $typeToUsernameNumber[$request->type] . $request->username;
                 $new_user->email = $request->email_address;
                 $new_user->password = bcrypt($request->password);
                 $new_user->type = $request->type;
@@ -100,7 +112,7 @@ class UserController extends Controller
                     ]);
 
                     $new_user = new User();
-                    $new_user->username = $request->username;
+                    $new_user->username = $typeToUsernameNumber[$request->type] . $request->username;
                     $new_user->email = $request->email_address;
                     $new_user->password = bcrypt($request->password);
                     $new_user->type = "EMPLOYEE";
@@ -128,7 +140,7 @@ class UserController extends Controller
                     ]);
 
                     $new_user = new User();
-                    $new_user->username = $request->username;
+                    $new_user->username = $typeToUsernameNumber[$request->type] . $request->username;
                     $new_user->email = $request->email_address;
                     $new_user->password = bcrypt($request->password);
                     $new_user->type = $request->type;
@@ -189,11 +201,20 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        $typeToUsernameNumber = [
+            'EMPLOYEE' => 1,
+            'RECORDS_CUST' => 2,
+            'WAREHOUSE_CUST' => 3,
+            'BRANCH_HEAD' => 4,
+            'WAREHOUSE_HEAD' => 5,
+        ];
         try {
             DB::beginTransaction();
             $user = Auth::user();
             $get_user = User::find($id);
-
+            if (!array_key_exists($request->type, $typeToUsernameNumber)) {
+                return send422Response("Invalid submissions. Please refresh the page.");
+            }
             if (($user->type !== "DEV" && $user->type !== "ADMIN") && ($user->branches_id !== $get_user->branches_id)) {
                 return send401Response();
             }
@@ -228,13 +249,16 @@ class UserController extends Controller
                 return send401Response();
             }
 
-            if ($request->username === $get_user->username) {
-                $usernameRules = 'required';
-            } else {
-                $usernameRules = 'required|unique:users,username';
+            $new_username = $typeToUsernameNumber[$request->type] . substr($request->username, 1);
+            if ($get_user->username !== $new_username) {
+                $sameUsernameCtr = User::where('username', $new_username)->count();
+
+                if ($sameUsernameCtr > 0) {
+                    return send422Response("Please enter unique username.");
+                }
             }
             $rules = [
-                'username' => $usernameRules,
+                'username' => 'required',
                 'email_address' => $emailRules,
                 'first_name' => $nameRules,
                 'middle_name' => 'max:200',
@@ -254,7 +278,7 @@ class UserController extends Controller
             }
 
             if ($user->type === "ADMIN" || $user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD" || $user->type === "DEV") {
-                $get_user->username = $request->username;
+                $get_user->username = $new_username;
                 $get_user->email = $request->email_address;
                 $get_user->type = $request->type;
                 $get_user->save();
@@ -324,11 +348,12 @@ class UserController extends Controller
             $user = Auth::user();
             $get_user = User::find($id);
 
-            if ($user->branches_id !== $get_user->branches_id) {
+            if ($user->branches_id !== $get_user->branches_id && $user->type !== "ADMIN" && $user->type !== "DEV") {
                 return send401Response();
             }
 
-            $get_user->password = bcrypt($user->branch->code . $get_user->profile->last_name);
+            $branch_code = $get_user->branch->name === "Warehouse" ? "WH" : $get_user->branch->code;
+            $get_user->password = bcrypt($branch_code . $get_user->profile->last_name);
             $get_user->save();
 
             DB::commit();

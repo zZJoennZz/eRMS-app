@@ -38,12 +38,12 @@ class DisposalController extends Controller
                 ->where('status', 'APPROVED')
                 ->where('box_number', '<>', value: 'OPEN')
                 ->get();
-            $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile'])
+            $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'items.record.latest_history', 'history', 'user.profile'])
                 ->where('branches_id', $user->branches_id)
                 ->where('status', '<>', 'DISPOSED')
                 ->orderBy('created_at', 'DESC')
                 ->get();
-            $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile'])
+            $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'items.record.latest_history', 'history', 'user.profile'])
                 ->where('branches_id', $user->branches_id)
                 ->where('status', 'DISPOSED')
                 ->get();
@@ -69,17 +69,44 @@ class DisposalController extends Controller
                 ->with(['documents.rds', 'latest_history'])
                 ->where('status', 'APPROVED')
                 ->get();
-            $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile', 'branch'])
+            $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'items.record.latest_history', 'history', 'user.profile', 'branch'])
                 ->where('status', '<>', 'DISPOSED')
                 ->orderBy('created_at', 'DESC')
                 ->get();
-            $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'history', 'user.profile', 'branch'])
+            $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'items.record.latest_history', 'history', 'user.profile', 'branch'])
                 ->where('status', 'DISPOSED')
                 ->get();
 
             $data = [
                 'overdue' => $overdueRecords,
                 'upcoming' => $upcomingRecords,
+                'pending' => $pendingDisposal,
+                'disposal_archive' => $disposal_archive,
+            ];
+
+            return send200Response($data);
+        } else if ($user->type === "WAREHOUSE_HEAD") {
+            $pendingDisposal = RecordDisposal::with(['items.record.documents.rds', 'items.record.latest_history', 'history', 'user.profile', 'branch'])
+                ->whereHas('branch', function ($query) use ($user) {
+                    $query->where('clusters_id', $user->branch->clusters_id);
+                })
+                ->whereHas('items.record.latest_history', function ($query) {
+                    $query->where("location", 'Warehouse');
+                })
+                ->where('status', '<>', 'DISPOSED')
+                ->orderBy('created_at', 'DESC')
+                ->get();
+            $disposal_archive = RecordDisposal::with(['items.record.documents.rds', 'items.record.latest_history', 'history', 'user.profile', 'branch'])
+                ->whereHas('branch', function ($query) use ($user) {
+                    $query->where('clusters_id', $user->branch->clusters_id);
+                })
+                ->whereHas('items.record.latest_history', function ($query) {
+                    $query->where("location", 'Warehouse');
+                })
+                ->where('status', 'DISPOSED')
+                ->get();
+
+            $data = [
                 'pending' => $pendingDisposal,
                 'disposal_archive' => $disposal_archive,
             ];
@@ -279,12 +306,23 @@ class DisposalController extends Controller
     {
         $user = Auth::user();
         try {
-            if ($user->type !== "BRANCH_HEAD") {
+            if ($user->type !== "BRANCH_HEAD" && $user->type !== "WAREHOUSE_HEAD") {
                 return send401Response();
             }
+
             DB::beginTransaction();
             $record_disposal = RecordDisposal::find($id);
+            $current_location = $record_disposal->items[0]->record->latest_history->location;
 
+            if ($user->type === "BRANCH_HEAD" && $current_location === "Warehouse") {
+                DB::rollBack();
+                return send400Response("Only the Record Center Head can confirm this.");
+            }
+
+            if ($user->type === "WAREHOUSE_HEAD" && $current_location !== "Warehouse") {
+                DB::rollBack();
+                return send400Response("Only the Business Unit Head can confirm this.");
+            }
             if ($record_disposal->status === "DISPOSED") {
                 DB::rollBack();
                 return send422Response("You are not allowed to proceed with this action. The record is already $record_disposal->status");

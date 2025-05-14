@@ -302,6 +302,11 @@ export default function Transaction() {
                                                         {data.status}
                                                     </div>
                                                 )}
+                                                {data.status === "FOR WH APPROVAL" && (
+                                                    <div className="bg-pink-700 text-white rounded-full inline-block px-2 py-1 text-xs">
+                                                        FOR AUTHORIZATION
+                                                    </div>
+                                                )}
                                                 {(userType === "BRANCH_HEAD" ||
                                                     userType === "DEV") &&
                                                     (data.type === "TRANSFER" ||
@@ -446,6 +451,23 @@ export default function Transaction() {
                                                         </button>
                                                     )}
 
+                                                {userType === "WAREHOUSE_HEAD" &&
+                                                    data.type === "WITHDRAW" &&
+                                                    data.status ===
+                                                        "FOR WH APPROVAL" && (
+                                                        <button
+                                                            type="button"
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                            onClick={() =>
+                                                                startProcessTransaction(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Authorize
+                                                        </button>
+                                                    )}
+
                                                 {userType === "RECORDS_CUST" &&
                                                     data.type === "RETURN" &&
                                                     data.status ===
@@ -533,8 +555,9 @@ export default function Transaction() {
                                                     className="py-2 text-left border-b border-slate-300"
                                                     colSpan={3}
                                                 >
-                                                    {userType !==
-                                                    "WAREHOUSE_CUST" ? (
+                                                    {(userType !==
+                                                    "WAREHOUSE_CUST" && userType !==
+                                                    "WAREHOUSE_HEAD") ? (
                                                         <a
                                                             href={`/rds-record-history/${rds.record.id}`}
                                                             target="_blank"

@@ -358,12 +358,72 @@ class MiscController extends Controller
             })
             ->count();
 
-        $pending_withdraw = RDSTransaction::where('status', 'PENDING')
+        $pending_withdraw = RDSTransaction::where('status', 'PROCESSING')
             ->where('type', 'WITHDRAW')
             ->whereHas('submitted_by_user.branch', function ($query) use ($user) {
                 $query->where('clusters_id', $user->branch->clusters_id);
             })
             ->count();
+        $boxes_in_warehouse = DB::table('r_d_s_records')
+            ->join('branches', 'r_d_s_records.branches_id', '=', 'branches.id') // Join to get clusters_id
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('r_d_s_record_histories as h')
+                    ->whereRaw('r_d_s_records.id = h.r_d_s_records_id')
+                    ->where('location', 'Warehouse')
+                    ->whereRaw('h.id = (
+                    SELECT h2.id
+                    FROM r_d_s_record_histories AS h2
+                    WHERE h2.r_d_s_records_id = h.r_d_s_records_id
+                    ORDER BY h2.updated_at DESC
+                    LIMIT 1
+                )');
+            })
+            ->where('branches.clusters_id', $user->branch->clusters_id) // Replace 5 with your desired cluster ID
+            ->where('status', '<>','PENDING')
+            ->where('status', '<>','DISPOSED')
+            ->count();
+
+        $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
+            $query->where('projected_date_of_disposal', '<', now()->toDateString());
+        })
+            ->whereHas('branch', function ($query) use ($user) {
+                $query->where('clusters_id', $user->branch->clusters_id);
+            })
+            ->whereHas('latest_history', function ($query1) {
+                $query1
+                    ->where('location', 'Warehouse');
+            })
+            ->where('status', '<>','PENDING')
+            ->where('status', '<>','DISPOSED')
+            ->count();
+
+        $res = [
+            "for_receiving" => $for_receiving,
+            "pending_withdraw" => $pending_withdraw,
+            "boxes_in_warehouse" => $boxes_in_warehouse,
+            // "upcoming_disposals" => $upcoming_disposals,
+            "overdue_disposals" => $overdue_disposals,
+        ];
+
+        return send200Response($res);
+    }
+
+    public function wh_head_dashboard()
+    {
+        $user = Auth::user();
+
+        if ($user->type !== "WAREHOUSE_HEAD") {
+            return send401Response();
+        }
+
+        $pending_withdraw = RDSTransaction::where('status', 'FOR WH APPROVAL')
+            ->where('type', 'WITHDRAW')
+            ->whereHas('submitted_by_user.branch', function ($query) use ($user) {
+                $query->where('clusters_id', $user->branch->clusters_id);
+            })
+            ->count();
+            
         $boxes_in_warehouse = DB::table('r_d_s_records')
             ->join('branches', 'r_d_s_records.branches_id', '=', 'branches.id') // Join to get clusters_id
             ->whereExists(function ($query) {
@@ -396,8 +456,18 @@ class MiscController extends Controller
             ->where('status', 'APPROVED')
             ->count();
 
+        $disposal_confirmation = RecordDisposal::whereHas('branch', function ($query) use ($user) {
+                $query->where('clusters_id', $user->branch->clusters_id);
+            })
+            ->whereHas('items.record.latest_history', function ($query) {
+                $query->where("location", 'Warehouse');
+            })
+            ->where('status', '<>', 'DISPOSED')
+            ->orderBy('created_at', 'DESC')
+            ->count();
+
         $res = [
-            "for_receiving" => $for_receiving,
+            "disposal_confirmation" => $disposal_confirmation,
             "pending_withdraw" => $pending_withdraw,
             "boxes_in_warehouse" => $boxes_in_warehouse,
             // "upcoming_disposals" => $upcoming_disposals,
@@ -405,6 +475,9 @@ class MiscController extends Controller
         ];
 
         return send200Response($res);
+    
+    
+    
     }
 
     public function admin_dashboard()
@@ -540,7 +613,8 @@ class MiscController extends Controller
                                 ->where('location', 'Warehouse');
                         })
                         ->with(['documents', 'branch'])
-                        ->where('status', 'APPROVED')
+                        ->where('status', '<>', 'PENDING')
+                        ->where('status', '<>', 'DISPOSED')
                         ->get();
                     $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
                         $query->where('projected_date_of_disposal', '<', now()->toDateString());
@@ -553,7 +627,8 @@ class MiscController extends Controller
                                 ->where('location', 'Warehouse');
                         })
                         ->with(['documents', 'branch'])
-                        ->where('status', 'APPROVED')
+                        ->where('status', '<>', 'PENDING')
+                        ->where('status', '<>', 'DISPOSED')
                         ->get();
 
                     $resData = [

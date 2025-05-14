@@ -279,7 +279,7 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                             />
                         </div>
                     </div>
-                    {userType === "BRANCH_HEAD" && (
+                    {(userType === "BRANCH_HEAD" || userType === "ADMIN" || userType === "DEV") && (
                         <div className="mb-4">
                             <div className="mb-2">
                                 Reset Password{" "}

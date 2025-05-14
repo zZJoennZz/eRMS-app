@@ -138,6 +138,7 @@ class BorrowTransferController extends Controller
                     ->whereHas('document.record', function ($query) use ($user) {
                         $query->where('branches_id', $user->branches_id);
                     })
+                    ->orderBy('created_at','desc')
                     ->get();
             } else {
                 return send401Response();

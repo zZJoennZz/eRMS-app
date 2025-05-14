@@ -7,6 +7,7 @@ import RCDashboard from "./Dashboard/RCDashboard";
 import BranchHeadDashboard from "./Dashboard/BranchHeadDashboard";
 import WarehouseDashboard from "./Dashboard/WarehouseDashboard";
 import AdminDashboard from "./Dashboard/AdminDashboard";
+import WHDashboard from "./Dashboard/WHDashboard";
 
 import { AuthContext } from "../contexts/AuthContext";
 
@@ -21,7 +22,7 @@ export default function Dashboard() {
             <div className="text-md mb-4 text-slate-600">
                 (🏦{" "}
                 {userType === "ADMIN" || userType === "DEV"
-                    ? "Developer"
+                    ? "Administrator"
                     : branchDetails.name}
                 )
             </div>
@@ -35,6 +36,7 @@ export default function Dashboard() {
             {userType === "RECORDS_CUST" && <RCDashboard />}
             {userType === "BRANCH_HEAD" && <BranchHeadDashboard />}
             {userType === "WAREHOUSE_CUST" && <WarehouseDashboard />}
+            {userType === "WAREHOUSE_HEAD" && <WHDashboard />}
             {(userType === "ADMIN" || userType === "DEV") && <AdminDashboard />}
         </DashboardLayout>
     );

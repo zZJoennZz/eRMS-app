@@ -116,7 +116,7 @@ export default function AddTransaction({ closeHandler }) {
                                 className="w-full"
                                 required
                             >
-                                <option>Select type of transaction!</option>
+                                <option>Select type of transaction</option>
 
                                 <option value="TRANSFER">Transfer</option>
                                 <option value="WITHDRAW">Withdraw</option>

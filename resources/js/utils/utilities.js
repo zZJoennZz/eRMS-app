@@ -29,11 +29,7 @@ export function formatDate(getDate) {
     let date = new Date(getDate);
     return `${date.getFullYear()}/${(date.getMonth() + 1)
         .toString()
-        .padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")} ${
-        date.getHours() % 12 || 12
-    }:${date.getMinutes().toString().padStart(2, "0")}${
-        date.getHours() < 12 ? "AM" : "PM"
-    }`;
+        .padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}`;
 }
 
 export function formatToPhp(number) {

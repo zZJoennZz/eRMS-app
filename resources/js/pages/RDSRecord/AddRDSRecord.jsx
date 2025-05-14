@@ -200,7 +200,7 @@ export default function AddRDSRecord({ closeHandler }) {
                             className="mb-6 p-4 border rounded bg-gray-100 flex items-center space-x-1"
                         >
                             <div className="mb-4">
-                                <label>RDS - Description of Document</label>
+                                <label>RDS Item Number - Records Series Title and Description</label>
                                 {/* <select
                                     name="records_disposition_schedules_id"
                                     value={

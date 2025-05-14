@@ -276,7 +276,7 @@ const TurnoverForms = () => {
                             {turnoverDetails.added_by_user.profile.last_name}
                         </div>
                         <div className="text-center font-bold italic">
-                            Printed Name and Signature of Current Record
+                            Printed Name and Signature of Outgoing Record
                             Custodian
                         </div>
                     </div>
@@ -299,10 +299,10 @@ const TurnoverForms = () => {
                         <div className="border-b border-black text-center">
                             {branchHead.profile.first_name}{" "}
                             {branchHead.profile.middle_name}{" "}
-                            {branchHead.profile.last_name}
+                            {branchHead.profile.last_name} 
                         </div>
                         <div className="text-center font-bold italic">
-                            Printed Name and Signature of Department Head or
+                            Printed Name and Signature of Busines Unit Head or
                             next level higher
                         </div>
                     </div>

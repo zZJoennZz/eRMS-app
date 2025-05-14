@@ -1,4 +1,4 @@
-import axios from "axios";
+    import axios from "axios";
 import { API_URL } from "../configs/config";
 
 export async function all() {
@@ -39,6 +39,15 @@ export async function confirmDispose(id) {
 
 export async function declineDispose(id) {
     let res = await axios.put(`${API_URL}disposals/decline/${id}`, null, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+    return res.data.data;
+}
+
+export async function authDispose(id) {
+    let res = await axios.put(`${API_URL}disposals/authorize/${id}`, null, {
         headers: {
             Authorization: localStorage.getItem("token"),
         },
