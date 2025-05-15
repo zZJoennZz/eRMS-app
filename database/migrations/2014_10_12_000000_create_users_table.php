@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('branches_id');
-            $table->enum('type', ['EMPLOYEE', 'WAREHOUSE_CUST', 'RECORDS_CUST', 'BRANCH_HEAD', 'DEV', 'ADMIN']);
+            $table->enum('type', ['EMPLOYEE', 'WAREHOUSE_CUST', 'RECORDS_CUST', 'BRANCH_HEAD', 'DEV', 'ADMIN', 'WAREHOUSE_HEAD']);
             $table->string('username')->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();

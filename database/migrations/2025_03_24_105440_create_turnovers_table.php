@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('turnovers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('selected_employee');
+            $table->unsignedBigInteger('selected_employee')->default(0);
             $table->string('designation_status');
             $table->date('assumption_date')->nullable();
             $table->date('from_date')->nullable();
@@ -21,8 +21,6 @@ return new class extends Migration
             $table->unsignedBigInteger('added_by');
             $table->unsignedBigInteger('branches_id');
             $table->timestamps();
-
-            $table->foreign('selected_employee')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

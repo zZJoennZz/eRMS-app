@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,7 +16,7 @@ class UserSeeder extends Seeder
     {
         //
         User::create([
-            'branches_id' => 1,
+            'branches_id' => Branch::where('code', 'ADMIN')->first()->id,
             'type' => 'DEV',
             'username' => "webdev",
             'email' => "zzjoennzz@gmail.com",

@@ -8,8 +8,11 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { approveTurnover, declineTurnover } from "../../utils/turnoverFn";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { useContext } from "react";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function TurnoverForm({ turnoverData }) {
+    const { userType } = useContext(AuthContext);
     const designation = turnoverData.designation_status || "";
 
     const queryClient = useQueryClient();
@@ -135,11 +138,17 @@ export default function TurnoverForm({ turnoverData }) {
 
                 {[
                     {
-                        label: "Current Record Custodian ID",
+                        label:
+                            "Current " + userType === "RECORDS_CUST"
+                                ? "Record Custodian ID"
+                                : "Record Center Custodian ID",
                         value: turnoverData.current_job_holder_id,
                     },
                     {
-                        label: "Incoming Record Custodian ID",
+                        label:
+                            "Incoming " + userType === "RECORDS_CUST"
+                                ? "Record Custodian ID"
+                                : "Record Center Custodian ID",
                         value: turnoverData.incoming_job_holder_id,
                     },
                     {
