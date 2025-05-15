@@ -93,7 +93,7 @@ export default function SubmissionSummaryModal({
                             <thead className="bg-gray-100">
                                 <tr>
                                     <th className="border border-gray-300 px-4 py-2 text-left text-sm font-medium text-gray-700">
-                                        Document
+                                        Record
                                     </th>
                                     {/* <th className="border border-gray-300 px-4 py-2 text-left text-sm font-medium text-gray-700">
                                         Form
@@ -109,7 +109,7 @@ export default function SubmissionSummaryModal({
                             <tbody>
                                 {records &&
                                     records.map((record) =>
-                                        record.documents.map((doc) => (
+                                        record.document ? record.documents.map((doc) => (
                                             <tr key={doc.id}>
                                                 <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">
                                                     {doc.description_of_document ||
@@ -119,7 +119,16 @@ export default function SubmissionSummaryModal({
                                                 <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700"></td>
                                                 <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700"></td> */}
                                             </tr>
-                                        ))
+                                        )) : 
+                                        <tr key={record.id}>
+                                            <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700">
+                                                {record.box_number ||
+                                                    "N/A"}
+                                            </td>
+                                            {/* <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700"></td>
+                                            <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700"></td>
+                                            <td className="border border-gray-300 px-4 py-2 text-sm text-gray-700"></td> */}
+                                        </tr>
                                     )}
                             </tbody>
                         </table>

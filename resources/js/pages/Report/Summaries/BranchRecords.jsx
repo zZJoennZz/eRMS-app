@@ -32,11 +32,11 @@ export default function BranchRecords({ reportData, filters }) {
                 <div className="text-xl font-bold text-center mt-10">
                     SUMMARY OF RECORDS{" "}
                     <div  className="text-l text-center">
-                    {JSON.parse(filters).scope === "branch_only" && "BRANCH"}
+                    {JSON.parse(filters).scope === "branch_only" && "BUSINESS UNIT"}
                     {JSON.parse(filters).scope === "warehouse_only" &&
                         "RECORDS CENTER"}
                     {JSON.parse(filters).scope === "both" &&
-                        "BRANCH AND RECORDS CENTER"}{" "}
+                        "BUSINESS UNIT AND RECORDS CENTER"}{" "}
                     </div>
                 </div>
                 <div className="text-lg font-bold text-center mt-1 mb-5">

@@ -99,7 +99,7 @@ export default function RCDashboard() {
                                     href="/rds-records"
                                     className="hover:underline"
                                 >
-                                    Total Boxes in Branch
+                                    Total Boxes<br />in BU
                                     <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                                 </a>
                             </div>

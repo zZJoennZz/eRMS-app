@@ -539,16 +539,30 @@ class RDSRecordController extends Controller
     public function get_branch_records()
     {
         $user = Auth::user();
-        if ($user->type === "WAREHOUSE_CUST") {
+        if ($user->type === "EMPLOYEE") {
             return send401Response();
         }
-        $rds_record = RDSRecord::with(['documents.rds', 'submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile', 'documents.history.action_by.profile'])
-            ->where('branches_id', $user->branches_id)
-            ->whereHas('latest_history', function ($query) {
-                $query->where('location', '<>', 'Warehouse');
-            })
-            ->where('status', '<>', 'DISPOSED')
-            ->get();
+        $rds_record = [];
+
+        if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
+            $rds_record = RDSRecord::with(['submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile', 'documents.history.action_by.profile'])
+                ->whereHas('branch', function ($query) use ($user) {{
+                    $query->where('clusters_id', $user->branch->clusters_id);
+                }})
+                ->whereHas('latest_history', function ($query) {
+                    $query->where('location', 'Warehouse');
+                })
+                ->where('status', '<>', 'DISPOSED')
+                ->get();
+        } else {
+            $rds_record = RDSRecord::with(['documents.rds', 'submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile', 'documents.history.action_by.profile'])
+                ->where('branches_id', $user->branches_id)
+                ->whereHas('latest_history', function ($query) {
+                    $query->where('location', '<>', 'Warehouse');
+                })
+                ->where('status', '<>', 'DISPOSED')
+                ->get();
+        }
 
         return send200Response($rds_record);
     }

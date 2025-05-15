@@ -171,7 +171,7 @@ export default function Report() {
                         </div>
                     </>
                 )}
-                {["WAREHOUSE_CUST"].includes(userType) && (
+                {["WAREHOUSE_CUST" , "WAREHOUSE_HEAD"].includes(userType) && (
                     <>
                         <div className="mb-3">
                             <div className="text-uppercase text-sm text-slate-500">

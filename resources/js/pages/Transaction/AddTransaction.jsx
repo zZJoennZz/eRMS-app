@@ -7,8 +7,12 @@ import { API_URL } from "../../configs/config";
 import { post } from "../../utils/transactionFn";
 import { AuthContext } from "../../contexts/AuthContext";
 
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+
 export default function AddTransaction({ closeHandler }) {
     const { userType } = useContext(AuthContext);
+    const [searchTerm, setSearchTerm] = useState("");
+
     const [transaction, setTransaction] = useState({
         type: "",
         remarks: "",
@@ -156,121 +160,157 @@ export default function AddTransaction({ closeHandler }) {
                             <div>Records Custodian</div>
                         </div>
                     )}
+                    {
+                        transaction.type !== "" && 
+                            <div className="mb-4">
+                                <input
+                                    type="text"
+                                    placeholder="Search box number..."
+                                    className="w-full px-3 py-2 border rounded"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                    }
                     <div className="mb-1">
                         <label>Box Numbers:</label>
                     </div>
-                    {transaction.type === "TRANSFER" &&
-                        records.map(
-                            (record) =>
-                                record.status === "APPROVED" &&
-                                record.history[0].location !== "Warehouse" &&
-                                record.documents.filter(
-                                    (doc) => doc.current_status === "AVAILABLE"
-                                ).length === record.documents.length && (
-                                    <div className="mb-4" key={record.id}>
-                                        <li className="flex justify-between py-1">
-                                            {record.box_number}
+                    
+                    <div className="my-2 overflow-scroll rounded-md border border-slate-300 p-4" style={{ height: "50vh" }}>
 
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    toggleCart(record)
-                                                }
-                                                className={`ml-2 px-2 py-1 transition-all duration-500 rounded ${
-                                                    cart.some(
-                                                        (item) =>
-                                                            item.id ===
-                                                            record.id
-                                                    )
-                                                        ? "bg-red-500 text-white"
-                                                        : "bg-blue-500 text-white"
-                                                }`}
-                                            >
-                                                {cart.some(
-                                                    (item) =>
-                                                        item.id === record.id
-                                                )
-                                                    ? "Remove"
-                                                    : "Add to List"}
-                                            </button>
-                                        </li>
-                                    </div>
+                        {transaction.type === "TRANSFER" &&
+                            records
+                                .filter((record) =>
+                                    record.box_number
+                                        .toLowerCase()
+                                        .includes(searchTerm.toLowerCase())
                                 )
-                        )}
+                                .map(
+                                (record) =>
+                                    record.status === "APPROVED" &&
+                                    record.history[0].location !== "Warehouse" &&
+                                    record.documents.filter(
+                                        (doc) => doc.current_status === "AVAILABLE"
+                                    ).length === record.documents.length && (
+                                        <div className="mb-4" key={record.id}>
+                                            <li className="flex justify-between py-1 border-b border-slate-300">
+                                                <a className="text-lime-600 hover:text-lime-500 hover:underline" href={`/rds-record-history/${record.id}`} target="_blank">{record.box_number}<ArrowTopRightOnSquareIcon className="w-3 h-3 inline ml-1" /></a>
+                                                
+                                                <span className="text-slate-600 text-sm italic">{record.documents.length} {record.documents.length === 1 ? "Record" : "Records"}</span>
 
-                    {transaction.type === "WITHDRAW" &&
-                        records.map(
-                            (record) =>
-                                record.status === "APPROVED" &&
-                                record.history[0].location === "Warehouse" && (
-                                    <div className="mb-4" key={record.id}>
-                                        <li className="flex justify-between py-1">
-                                            {record.box_number}
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    toggleCart(record)
-                                                }
-                                                className={`ml-2 px-2 py-1 transition-all duration-500 rounded ${
-                                                    cart.some(
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        toggleCart(record)
+                                                    }
+                                                    className={`ml-2 px-2 py-1 transition-all duration-500 rounded ${
+                                                        cart.some(
+                                                            (item) =>
+                                                                item.id ===
+                                                                record.id
+                                                        )
+                                                            ? "bg-red-500 text-white"
+                                                            : "bg-blue-500 text-white"
+                                                    }`}
+                                                >
+                                                    {cart.some(
                                                         (item) =>
-                                                            item.id ===
-                                                            record.id
+                                                            item.id === record.id
                                                     )
-                                                        ? "bg-red-500 text-white"
-                                                        : "bg-blue-500 text-white"
-                                                }`}
-                                            >
-                                                {cart.some(
-                                                    (item) =>
-                                                        item.id === record.id
-                                                )
-                                                    ? "Remove"
-                                                    : "Add to List"}
-                                            </button>
-                                        </li>
-                                    </div>
-                                )
-                        )}
+                                                        ? "Remove"
+                                                        : "Add to List"}
+                                                </button>
+                                            </li>
+                                        </div>
+                                    )
+                            )}
 
-                    {transaction.type === "RELEASE" &&
-                        records.map(
-                            (record) =>
-                                record.status === "APPROVED" &&
-                                record.history[0].location !== "Warehouse" &&
-                                record.documents.filter(
-                                    (doc) => doc.current_status === "AVAILABLE"
-                                ).length === record.documents.length && (
-                                    <div className="mb-4" key={record.id}>
-                                        <li className="flex justify-between py-1">
-                                            {record.box_number}
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    toggleCart(record)
-                                                }
-                                                className={`ml-2 px-2 py-1 transition-all duration-500 rounded ${
-                                                    cart.some(
+                        {transaction.type === "WITHDRAW" &&
+                            records
+                                .filter((record) =>
+                                    record.box_number
+                                        .toLowerCase()
+                                        .includes(searchTerm.toLowerCase())
+                                )                            
+                                .map(
+                                (record) =>
+                                    record.status === "APPROVED" &&
+                                    record.history[0].location === "Warehouse" && (
+                                        <div className="mb-4" key={record.id}>
+                                            <li className="flex justify-between py-1">
+                                                {record.box_number}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        toggleCart(record)
+                                                    }
+                                                    className={`ml-2 px-2 py-1 transition-all duration-500 rounded ${
+                                                        cart.some(
+                                                            (item) =>
+                                                                item.id ===
+                                                                record.id
+                                                        )
+                                                            ? "bg-red-500 text-white"
+                                                            : "bg-blue-500 text-white"
+                                                    }`}
+                                                >
+                                                    {cart.some(
                                                         (item) =>
-                                                            item.id ===
-                                                            record.id
+                                                            item.id === record.id
                                                     )
-                                                        ? "bg-red-500 text-white"
-                                                        : "bg-blue-500 text-white"
-                                                }`}
-                                            >
-                                                {cart.some(
-                                                    (item) =>
-                                                        item.id === record.id
-                                                )
-                                                    ? "Remove"
-                                                    : "Add to List"}
-                                            </button>
-                                        </li>
-                                    </div>
-                                )
-                        )}
+                                                        ? "Remove"
+                                                        : "Add to List"}
+                                                </button>
+                                            </li>
+                                        </div>
+                                    )
+                            )}
+
+                        {transaction.type === "RELEASE" &&
+                            records
+                                .filter((record) =>
+                                    record.box_number
+                                        .toLowerCase()
+                                        .includes(searchTerm.toLowerCase())
+                                )   
+                                .map(
+                                (record) =>
+                                    record.status === "APPROVED" &&
+                                    record.history[0].location !== "Warehouse" &&
+                                    record.documents.filter(
+                                        (doc) => doc.current_status === "AVAILABLE"
+                                    ).length === record.documents.length && (
+                                        <div className="mb-4" key={record.id}>
+                                            <li className="flex justify-between py-1">
+                                                {record.box_number}
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        toggleCart(record)
+                                                    }
+                                                    className={`ml-2 px-2 py-1 transition-all duration-500 rounded ${
+                                                        cart.some(
+                                                            (item) =>
+                                                                item.id ===
+                                                                record.id
+                                                        )
+                                                            ? "bg-red-500 text-white"
+                                                            : "bg-blue-500 text-white"
+                                                    }`}
+                                                >
+                                                    {cart.some(
+                                                        (item) =>
+                                                            item.id === record.id
+                                                    )
+                                                        ? "Remove"
+                                                        : "Add to List"}
+                                                </button>
+                                            </li>
+                                        </div>
+                                    )
+                            )}
+                    </div>
 
                     <div className="mb-4">
                         <div className="mb-1">

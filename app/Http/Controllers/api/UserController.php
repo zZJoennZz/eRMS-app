@@ -23,19 +23,31 @@ class UserController extends Controller
         $user = Auth::user();
         $users = [];
         if ($user->type === "DEV" || $user->type === "ADMIN") {
-            $users = User::with(['profile', 'branch', 'profile.position', 'profile.positions.position'])
+            $users = User::with(['profile', 'branch.cluster', 'profile.position', 'profile.positions.position'])
                 ->where('is_inactive', 0)
                 ->get();
         } elseif ($user->type === "BRANCH_HEAD") {
-            $users = User::with(['profile.positions.position', 'branch', 'profile.position', 'profile.positions.position'])
+            $users = User::with(['profile.positions.position', 'branch.cluster', 'profile.position', 'profile.positions.position'])
                 ->where('branches_id', $user->branches_id)
                 ->where('is_inactive', 0)
+                ->where('type', '<>', 'DEV')
+                ->where('type', '<>', 'ADMIN')
                 ->get();
         } elseif ($user->type === "RECORDS_CUST") {
-            $users = User::with(['profile.positions.position', 'branch', 'profile.position', 'profile.positions.position'])
+            $users = User::with(['profile.positions.position', 'branch.cluster', 'profile.position', 'profile.positions.position'])
                 ->where('branches_id', $user->branches_id)
                 ->where('is_inactive', 0)
                 ->where('type', '<>', 'BRANCH_HEAD')
+                ->where('type', '<>', 'DEV')
+                ->where('type', '<>', 'ADMIN')
+                ->get();
+        } elseif ($user->type = "WAREHOUSE_HEAD") {
+            $users = User::with(['profile.positions.position', 'branch.cluster', 'profile.position', 'profile.positions.position'])
+                ->where('branches_id', $user->branches_id)
+                ->where('is_inactive', 0)
+                ->where('type', '<>', 'BRANCH_HEAD')
+                ->where('type', '<>', 'DEV')
+                ->where('type', '<>', 'ADMIN')
                 ->get();
         } else {
             return send401Response();
@@ -164,6 +176,34 @@ class UserController extends Controller
                     DB::rollBack();
                     return send401Response();
                 }
+            } elseif ($user->type === "WAREHOUSE_HEAD") {
+                $request->validate([
+                    'username' => 'required|unique:users',
+                    'email_address' => 'required|email|unique:users,email',
+                    'password' => 'required:min:6',
+                ]);
+
+                $new_user = new User();
+                $new_user->username = $typeToUsernameNumber[$request->type] . $request->username;
+                $new_user->email = $request->email_address;
+                $new_user->password = bcrypt($request->password);
+                $new_user->type = $request->type;
+                $new_user->branches_id = $user->branches_id;
+                $new_user->save();
+
+                $new_user_profile = new UserProfile();
+                $new_user_profile->users_id = $new_user->id;
+                $new_user_profile->first_name = $request->first_name;
+                $new_user_profile->middle_name = $request->middle_name ?? "";
+                $new_user_profile->last_name = $request->last_name;
+                $new_user_profile->positions_id = $request->positions_id;
+                $new_user_profile->save();
+
+                $new_user_position = new UserPosition();
+                $new_user_position->user_profiles_id = $new_user_profile->id;
+                $new_user_position->positions_id = $request->positions_id;
+                $new_user_position->type = "MAIN";
+                $new_user_position->save();
             } else {
                 return send401Response();
             }
@@ -171,7 +211,7 @@ class UserController extends Controller
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
-            return send400Response($e);
+            return send400Response($e->getMessage());
         }
     }
 
@@ -244,6 +284,8 @@ class UserController extends Controller
                 $typeRules = 'required|in:EMPLOYEE,RECORDS_CUST';
             } elseif ($user->type === "ADMIN" || $user->type === "DEV") {
                 $typeRules = 'required|in:EMPLOYEE,RECORDS_CUST,BRANCH_HEAD,WAREHOUSE_CUST';
+            } elseif ($user->type === "WAREHOUSE_HEAD") {
+                $typeRules = "required";
             } else {
                 DB::rollBack();
                 return send401Response();
@@ -278,6 +320,15 @@ class UserController extends Controller
             }
 
             if ($user->type === "ADMIN" || $user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD" || $user->type === "DEV") {
+                if($user->id === $get_user->id) {
+                    return send401Response();
+                }
+
+                if ($get_user->borrows->filter(fn($borrow) => $borrow->status !== 'RETURNED')->isNotEmpty()) {
+                    DB::rollBack();
+                    return send422Response("Please ensure that the user has no pending transactions.");
+                }
+                
                 $get_user->username = $new_username;
                 $get_user->email = $request->email_address;
                 $get_user->type = $request->type;
@@ -308,7 +359,24 @@ class UserController extends Controller
 
                 DB::commit();
                 return send200Response();
-            } else {
+            } elseif ($user->type === "WAREHOUSE_HEAD") {
+                if ($get_user->branch->clusters_id !== $user->branch->clusters_id && $get_user->type !== "WAREHOUSE_CUST") {
+                    return send401Response();
+                }
+
+                $get_user->username = $new_username;
+                $get_user->email = $request->email_address;
+                $get_user->save();
+
+                $user_profile = UserProfile::find($get_user->profile->id);
+                $user_profile->first_name = $request->first_name;
+                $user_profile->middle_name = $request->middle_name ?? "";
+                $user_profile->last_name = $request->last_name;
+                $user_profile->save();
+
+                DB::commit();
+                return send200Response();
+            }else {
                 DB::rollBack();
                 return send401Response();
             }

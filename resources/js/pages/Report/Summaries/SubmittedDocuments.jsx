@@ -26,57 +26,40 @@ export default function SubmittedDocuments({ reportData }) {
                 <table className="w-full border border-black text-left">
                     <thead>
                         <tr className="border-b border-black">
-                            <th className="border-r border-black w-1/5 p-2">
+                            <th className="border-r border-black w-1/7 p-2">
                                 RDS Item Number
                             </th>
-                            <th className="border-r border-black w-2/5 p-2">
-                                Records Series Title and Description
+                            <th className="border-r border-black w-1/7 p-2">
+                                RDS Item Number
                             </th>
-                            <th className="border-r border-black w-1/5 p-2">
+                            <th className="border-r border-black w-2/7 p-2">
+                                Record Series Title and Description
+                            </th>
+                            <th className="border-r border-black w-1/7 p-2">
                                 Period
                             </th>
-                            <th className="border-black w-2/5 p-2">
+                            <th className="border-black border-r w-1/7 p-2">
                                 Record Date
+                            </th>
+                            <th className="border-black w-1/6 p-2">
+                                Status
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {reportData.map((d) => (
                             <>
-                                <tr key={"d" + d.id}>
-                                    <td
-                                        colSpan={4}
-                                        className="border-b border-black p-2"
-                                    >
-                                        {d.status === "PENDING" && (
-                                            <div className="bg-gray-300 text-xs inline text-white py-0.5 px-2 rounded-full ml-1">
-                                                Pending
-                                            </div>
-                                        )}
-                                        {d.status === "PENDING_DISPOSAL" && (
-                                            <div className="inline ml-2 rounded-full bg-slate-400 text-white px-1.5 py-0.5 text-xs">
-                                                Submitted for Disposal
-                                            </div>
-                                        )}
-                                        {d.status === "DISPOSED" && (
-                                            <div className="inline ml-2 rounded-full bg-slate-800 text-white px-1.5 py-0.5 text-xs">
-                                                Disposed
-                                            </div>
-                                        )}
-                                        {d.status === "APPROVED" && (
-                                            <div className="inline ml-2 rounded-full bg-slate-500 text-white px-1.5 py-0.5 text-xs">
-                                                Approved
-                                            </div>
-                                        )}{" "}
-                                        - {d.box_number}
-                                    </td>
-                                </tr>
                                 {d.documents.map((doc) => (
                                     <>
                                         <tr
                                             key={"doc" + doc.id}
                                             className="border-b border-black"
                                         >
+                                            <td
+                                                className="border-r border-black p-2"
+                                            >
+                                                {d.box_number}
+                                            </td>
                                             <td className="border-r border-black p-2">
                                                 {doc.rds.item_number}
                                             </td>
@@ -87,8 +70,30 @@ export default function SubmittedDocuments({ reportData }) {
                                                 {doc.period_covered_from} to{" "}
                                                 {doc.period_covered_to}
                                             </td>
-                                            <td className="p-2">
+                                            <td className="border-r border-black p-2">
                                                 {formatDate(d.created_at)}
+                                            </td>
+                                            <td className="p-2">
+                                                {d.status === "PENDING" && (
+                                                    <div className="bg-gray-300 text-xs inline text-white py-0.5 px-2 rounded-full ml-1">
+                                                        Pending
+                                                    </div>
+                                                )}
+                                                {d.status === "PENDING_DISPOSAL" && (
+                                                    <div className="inline ml-2 rounded-full bg-slate-400 text-white px-1.5 py-0.5 text-xs">
+                                                        Submitted for Disposal
+                                                    </div>
+                                                )}
+                                                {d.status === "DISPOSED" && (
+                                                    <div className="inline ml-2 rounded-full bg-slate-800 text-white px-1.5 py-0.5 text-xs">
+                                                        Disposed
+                                                    </div>
+                                                )}
+                                                {d.status === "APPROVED" && (
+                                                    <div className="inline ml-2 rounded-full bg-slate-500 text-white px-1.5 py-0.5 text-xs">
+                                                        Approved
+                                                    </div>
+                                                )}{" "}
                                             </td>
                                         </tr>
                                     </>

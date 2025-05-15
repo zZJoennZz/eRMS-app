@@ -10,7 +10,10 @@ export async function all() {
     return res.data.data;
 }
 
-export async function borrow(data) {
+export async function borrow(cart, borrowReason) {
+    const data = {
+        cart, borrowReason
+    }
     let res = await axios.post(`${API_URL}borrow`, data, {
         headers: {
             Authorization: localStorage.getItem("token"),

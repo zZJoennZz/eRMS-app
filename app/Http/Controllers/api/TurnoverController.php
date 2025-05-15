@@ -59,13 +59,28 @@ class TurnoverController extends Controller
             ->first();
 
         $branch = Branch::find($user->branches_id);
+        $branch_head = null;
+        
+        if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
+            $branch_head = User::where('branches_id', $user->branches_id)
+                ->where('type', 'WAREHOUSE_HEAD')
+                ->with(['profile'])
+                ->first();
+        } elseif ($user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD") {
+            $branch_head = User::where(column: 'branches_id', $user->branches_id)
+                ->where('type', 'BRANCH_HEAD')
+                ->with(['profile'])
+                ->first();
+        } else {
+            return send401Response();
+        }
 
-        $branch_head = User::where('branches_id', $user->branches_id)
-            ->where('type', 'BRANCH_HEAD')
-            ->with(['profile'])
-            ->first();
-
-        return send200Response(["turnover" => $turnover, 'branch' => $branch, 'branch_head' => $branch_head]);
+        return send200Response([
+                "turnover" => $turnover, 
+                'branch' => $branch, 
+                'branch_head' => $branch_head
+            ]
+        );
     }
 
 
@@ -76,8 +91,8 @@ class TurnoverController extends Controller
             $user = Auth::user();
 
             // Check if the user is of type RECORDS_CUST
-            if ($user->type !== 'RECORDS_CUST') {
-                return send422Response('Only records custodian can create turnover records.');
+            if ($user->type !== 'RECORDS_CUST' && $user->type !== "WAREHOUSE_CUST") {
+                return send422Response('Only records custodian and record center custodian can create turnover records.');
             }
 
             // Check if the selected employee is in the same branch

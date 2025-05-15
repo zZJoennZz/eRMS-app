@@ -37,7 +37,6 @@ export default function Login() {
         axios
             .post(`${API_URL}login`, loginCredentials)
             .then((res) => {
-                console.log(res);
                 localStorage.setItem("token", "Bearer " + res.data.data.token);
 
                 changeAuth(

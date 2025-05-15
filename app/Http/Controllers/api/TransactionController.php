@@ -60,14 +60,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -76,7 +68,16 @@ class TransactionController extends Controller
 
         try {
             DB::beginTransaction();
-
+            $warehouse_custodian = User::whereHas('branch', function ($query) {
+                $query->where('clusters_id', Auth::user()->branch->clusters_id);
+            })
+                ->where('is_inactive', '0')
+                ->where('type', 'WAREHOUSE_CUST')
+                ->first();
+            if ($warehouse_custodian === null || $warehouse_custodian === "" || $warehouse_custodian === 0) {
+                DB::rollBack();
+                return send422Response("There's currently no active Record Center Custodian. Please reach out to your group's Record Center Head.");
+            }
             if ($request->transaction['type'] === 'TRANSFER') {
                 if (Auth::user()->type !== "RECORDS_CUST") {
                     return send401Response();
@@ -99,11 +100,7 @@ class TransactionController extends Controller
                 $new_transaction->issuer = Auth::user()->id;
                 $new_transaction->submitted_by = Auth::user()->id;
                 $new_transaction->remarks = $request->transaction['remarks'];
-                $new_transaction->receiver = User::whereHas('branch', function ($query) {
-                    $query->where('clusters_id', Auth::user()->branch->clusters_id);
-                })
-                    ->where('type', 'WAREHOUSE_CUST')
-                    ->first()->id;
+                $new_transaction->receiver = $warehouse_custodian->id;
                 $new_transaction->save();
 
                 //validate the cart
@@ -207,12 +204,7 @@ class TransactionController extends Controller
                 $new_transaction->status = "PENDING";
                 $new_transaction->type = "RELEASE";
                 $new_transaction->transaction_date = \Carbon\Carbon::now();
-                $new_transaction->receiver = User::whereHas('branch', function ($query) {
-                    $query->where('clusters_id', Auth::user()->branch->clusters_id);
-                })
-                    ->where('is_inactive', false)
-                    ->where('type', 'WAREHOUSE_CUST')
-                    ->first()->id;
+                $new_transaction->receiver = Auth::user()->id;
                 $new_transaction->submitted_by = Auth::user()->id;
                 $new_transaction->remarks = $request->transaction['remarks'];
                 $new_transaction->issuer = Auth::user()->id;

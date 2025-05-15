@@ -16,7 +16,7 @@ export default function AdminDashboard() {
     });
 
     return (
-        <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2">
+        <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-10">
             <div className="p-3 border border-slate-400 rounded-lg ">
                 <div className="text-sm uppercase mb-3 text-slate-500">
                     Needs your attention
@@ -25,7 +25,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center">
                         <div className="text-2xl flex-grow">
                             <a href="/disposals" className="hover:underline">
-                                Disposal Request
+                            For Review of Records Disposal
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
