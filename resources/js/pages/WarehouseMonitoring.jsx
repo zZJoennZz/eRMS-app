@@ -18,7 +18,7 @@ function filterWarehouseData(
         if (searchField === "history_created_at") {
             const recordDate = new Date(i.history_created_at);
             if (dateFilterType === "as_of") {
-                return recordDate.toISOString().split("T")[0] <= startDate;
+                return recordDate.toISOString().split("T")[0] < startDate;
             } else {
                 return (
                     recordDate >= new Date(startDate) &&

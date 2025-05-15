@@ -93,15 +93,18 @@ export default function RDSRecordHistory() {
         ...(record?.documents || []).flatMap((dc) => [
             ...(dc.history || []).map((dochis) => ({
                 action:
-                    dochis.action === "DECLINE"
-                        ? "Borrow Declined: " + dc.description_of_document
-                        : actionText[dochis.action] +
-                              ": " +
-                              dc.description_of_document ||
-                          dochis.action + ": " + dc.description_of_document,
-                user: `${dochis?.action_by?.profile?.first_name || "Unknown"} ${
-                    dochis?.action_by?.profile?.last_name || ""
-                }`,
+                    dochis.action === "INIT_BORROW" ? actionText[dochis.action] +
+                    ": " +
+                    dc.description_of_document + ", Reason: " + dochis.remarks : dochis.action === "DECLINE"
+            ? "Borrow Declined: " + dc.description_of_document
+            : actionText[dochis.action] +
+                  ": " +
+                  dc.description_of_document ||
+              dochis.action + ": " + dc.description_of_document,
+    user: `${dochis?.action_by?.profile?.first_name || "Unknown"} ${
+        dochis?.action_by?.profile?.last_name || ""
+    }`
+                ,
                 date: dochis.created_at,
             })),
         ]),

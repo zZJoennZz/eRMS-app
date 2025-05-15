@@ -330,9 +330,10 @@ class MiscController extends Controller
             ->whereHas('document.record', function ($query) use ($user) {
                 $query->where('branches_id', $user->branches_id);
             })
-            ->where('status', 'PENDING')
+            ->where('status', '<>',value: 'RETURNED')
+            ->where('status', '<>',value: 'BORROWED')
+            ->where('status', '<>',value: 'FOR_RECEIVING')
             ->count();
-
 
         $res = [
             "for_receiving" => $for_receiving,
@@ -503,7 +504,7 @@ class MiscController extends Controller
         try {
             $user = Auth::user();
             $resData = [];
-            if ($user->type === "WAREHOUSE_CUST") {
+            if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
                 $startDate = Carbon::parse($request->startDate)->startOfDay();
                 $endDate = Carbon::parse($request->endDate)->endOfDay();
                 if ($request->reportType === "warehouseRecords") {
@@ -732,5 +733,38 @@ class MiscController extends Controller
         } catch (\Exception $e) {
             return send400Response($e->getMessage());
         }
+    }
+
+    public function disposal_reports()
+    {
+        $user = Auth::user();
+
+        if($user->type!=="RECORDS_CUST" && $user->type!=="BRANCH_HEAD"){
+            return send401Response();
+        }
+
+        $upcoming_disposals = RDSRecord::with('latest_history', 'documents')->whereHas('documents', function ($query) {
+            $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
+        })
+            ->where('branches_id', $user->branches_id)
+            ->where('status','<>', 'PENDING')
+            ->where('status','<>', 'DISPOSED')
+            ->where('box_number','<>', 'OPEN')
+            ->get();
+
+        $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
+            $query->where('projected_date_of_disposal', '<', now()->toDateString());
+        })
+            ->with(['latest_history', 'documents'])
+            ->where('branches_id', $user->branches_id)
+            ->where('status','<>', 'PENDING')
+            ->where('status','<>', 'DISPOSED')
+            ->where('box_number', '<>', 'OPEN')
+            ->get();
+
+        return send200Response([
+            'upcoming_disposals'=>$upcoming_disposals,
+            'overdue_disposals'=>$overdue_disposals,
+        ]);
     }
 }

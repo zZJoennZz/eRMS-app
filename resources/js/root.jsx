@@ -34,6 +34,7 @@ const WarehouseTurnover = lazy(() =>
 );
 const TurnoverForms = lazy(() => import("./pages/Report/TurnoverForms"));
 const OpenBox = lazy(() => import("./pages/OpenBox"));
+const DisposalReport = lazy(() => import("./pages/Report/DisposalReport"));
 
 export default function Root() {
     const [isAuth, setIsAuth] = useState(false);
@@ -199,7 +200,7 @@ export default function Root() {
                         Setting
                     )}
                     {renderPrivateRoute(
-                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN"],
+                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN", "WAREHOUSE_HEAD"],
                         "/users",
                         User
                     )}
@@ -274,16 +275,16 @@ export default function Root() {
                         RDSRecordHistory
                     )}
                     {renderPrivateRoute(
-                        ["BRANCH_HEAD", "RECORDS_CUST"],
+                        ["BRANCH_HEAD", "RECORDS_CUST", "WAREHOUSE_HEAD", "WAREHOUSE_CUST"],
                         "/turnover",
                         Turnover
                     )}
                     {renderPrivateRoute(
-                        ["ADMIN", "DEV", "WAREHOUSE_CUST","WAREHOUSE_HEAD",],
+                        ["ADMIN", "DEV", "WAREHOUSE_CUST","WAREHOUSE_HEAD"],
                         "/warehouse-turnover",
                         WarehouseTurnover
                     )}
-                    {renderPrivateRoute(
+                    {/* {renderPrivateRoute(
                         [
                             "RECORDS_CUST",
                             "BRANCH_HEAD",
@@ -293,11 +294,17 @@ export default function Root() {
                         ],
                         "/rds-record-history/:id",
                         RDSRecordHistory
-                    )}
+                    )} */}
                     {renderPrivateRoute(
-                        ["BRANCH_HEAD", "RECORDS_CUST"],
+                        ["BRANCH_HEAD", "RECORDS_CUST", "WAREHOUSE_CUST", "WAREHOUSE_HEAD"],
                         "/print-turnover",
                         TurnoverForms
+                    )}
+
+                    {renderPrivateRoute(
+                        ["BRANCH_HEAD", "RECORDS_CUST"],
+                        "/disposal-reports/:type",
+                        DisposalReport
                     )}
 
                     {renderPrivateRoute(["RECORDS_CUST"], "/open-box", OpenBox)}

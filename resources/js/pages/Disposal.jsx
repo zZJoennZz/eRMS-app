@@ -263,6 +263,9 @@ export default function Disposal() {
             {userType !== "DEV" && userType !== "ADMIN" && userType !== "WAREHOUSE_HEAD" && (
                 <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-2 mb-5">
                     <div className="overflow-x-auto bg-gradient-to-r from-lime-100 to-green-50 shadow-md shadow-blue-200 rounded-lg p-4">
+                        <a href="/disposal-reports/upcoming" target="_blank" className="float-right bg-lime-600 text-white px-3 py-0.5 rounded-lg">
+                            Print
+                        </a>
                         <h2 className="font-semibold mb-2">
                             Upcoming Disposal/s
                         </h2>
@@ -362,6 +365,9 @@ export default function Disposal() {
                     </div>
 
                     <div className="overflow-x-auto bg-gradient-to-r from-pink-200 to-red-100 shadow-md shadow-blue-200 rounded-lg p-4">
+                        <a href="/disposal-reports/overdue" target="_blank" className="float-right bg-lime-600 text-white px-3 py-0.5 rounded-lg">
+                            Print
+                        </a>
                         <h2 className="font-semibold mb-2">
                             Overdue Disposal/s
                         </h2>

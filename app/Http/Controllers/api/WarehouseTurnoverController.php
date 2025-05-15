@@ -15,12 +15,13 @@ class WarehouseTurnoverController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "ADMIN" && $user->type !== "WAREHOUSE_CUST") {
+        if ($user->type !== "ADMIN" && $user->type !== "WAREHOUSE_CUST"  && $user->type !== "BRANCH_HEAD") {
             return send401Response();
         }
 
         $turnover = Turnover::has('add_data')
             ->where('status', '<>', 'PENDING')
+            ->where('branches_id', $user->branches_id)
             ->with(['user.profile.positions', 'items.rds_record.documents.rds', 'added_by_user.profile.positions'])
             ->get();
 

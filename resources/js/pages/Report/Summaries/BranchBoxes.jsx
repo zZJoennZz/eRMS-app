@@ -13,11 +13,11 @@ export default function BranchRecords({ reportData, filters }) {
                 eRMS Report
                 <div className="text-xl font-bold text-center mt-10">
                     SUMMARY OF{" "}
-                    {JSON.parse(filters).scope === "branch_only" && "BRANCH"}
+                    {JSON.parse(filters).scope === "branch_only" && "BUSINESS UNIT"}
                     {JSON.parse(filters).scope === "warehouse_only" &&
-                        "WAREHOUSE"}
+                        "RECORD CENTER"}
                     {JSON.parse(filters).scope === "both" &&
-                        "BRANCH AND WAREHOUSE"}{" "}
+                        "BUSINESS UNIT AND RECORDS CENTER"}{" "}
                     BOXES
                 </div>
                 <div className="text-lg font-bold text-center mt-1 mb-5">

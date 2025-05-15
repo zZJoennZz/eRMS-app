@@ -54,4 +54,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Branch::class, 'id', 'branches_id');
     }
+
+    public function borrows()
+    {
+        return $this->hasMany(RDSRecordDocumentHistory::class, 'users_id', 'id')->where('action', 'INIT_BORROW');
+    }
 }

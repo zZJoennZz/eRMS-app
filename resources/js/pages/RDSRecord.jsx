@@ -47,6 +47,7 @@ export default function RDSRecord() {
     const [selectedForm, setSelectedForm] = useState(<></>);
     const [selectedRdsRecord, setSelectedRdsRecord] = useState(0);
     const [cart, setCart] = useState([]);
+    const [borrowReason, setBorrowReason] = useState("");
 
     const sideDrawerClose = useCallback(() => {
         setShowDrawer(false);
@@ -66,7 +67,7 @@ export default function RDSRecord() {
     });
 
     const borrowDocs = useMutation({
-        mutationFn: () => borrow(cart),
+        mutationFn: () => borrow(cart, borrowReason),
         onSuccess: () => {
             setCart([]);
             queryClient.invalidateQueries({ queryKey: ["allRdsRecords"] });
@@ -117,6 +118,12 @@ export default function RDSRecord() {
 
     function submitBorrow() {
         if (confirm("Are you sure to borrow these item/s?")) {
+            let reasonForBorrowing = prompt("Please enter your reason for borrowing this document/s.");
+            if (reasonForBorrowing.trim() === "" || reasonForBorrowing.trim() === null || reasonForBorrowing.trim() === 0) {
+                alert("Please enter your reason.");
+                return;
+            }
+            setBorrowReason(reasonForBorrowing);
             borrowDocs.mutate();
         }
     }
@@ -163,7 +170,7 @@ export default function RDSRecord() {
             >
                 Borrow Record/s
             </button>
-            <h1 className="text-xl font-semibold mb-2"> Records</h1>
+            <h1 className="text-xl font-semibold mb-2">Records</h1>
             {/* <div className="mb-3">
                 <input
                     type="text"

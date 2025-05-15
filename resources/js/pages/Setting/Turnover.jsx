@@ -254,7 +254,7 @@ export default function Turnover() {
         return <AdminTurnoverPage />;
     }
 
-    if (!isLoading && hasTurnover && userType === "RECORDS_CUST") {
+    if (!isLoading && hasTurnover && (userType === "RECORDS_CUST" || userType === "WAREHOUSE_CUST")) {
         return (
             <DashboardLayout>
                 <div
@@ -337,48 +337,55 @@ export default function Turnover() {
                                         <h2 className="text-lg font-semibold text-gray-800">
                                             Step 1: Select Employee
                                         </h2>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            If you cannot locate the employee in the system,
-                                            kindly request the Business Unit Head to initiate their enrollment.
-                                        </p>
-                                        <select
-                                            className="mt-3 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                                            value={formData.selectedEmployee}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    selectedEmployee:
-                                                        e.target.value,
-                                                })
-                                            }
-                                        >
-                                            <option value="">
-                                                Select an employee
-                                            </option>
-                                            {users &&
-                                                users.map(
-                                                    (user) =>
-                                                        user.id !== currId && (
-                                                            <option
-                                                                key={user.id}
-                                                                value={user.id}
-                                                            >
-                                                                {
-                                                                    user.profile
-                                                                        .first_name
-                                                                }{" "}
-                                                                {
-                                                                    user.profile
-                                                                        .middle_name
-                                                                }{" "}
-                                                                {
-                                                                    user.profile
-                                                                        .last_name
-                                                                }
-                                                            </option>
-                                                        )
-                                                )}
-                                        </select>
+                                        {
+                                            userType === "WAREHOUSE_CUST" ? 
+                                            "Please proceed to step 2."
+                                            :
+                                            <>
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    If you cannot locate the employee in the system,
+                                                    kindly request the Business Unit Head to initiate their enrollment.
+                                                </p>
+                                                <select
+                                                    className="mt-3 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                                    value={formData.selectedEmployee}
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            selectedEmployee:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                >
+                                                    <option value="">
+                                                        Select an employee
+                                                    </option>
+                                                    {users &&
+                                                        users.map(
+                                                            (user) =>
+                                                                user.id !== currId && (
+                                                                    <option
+                                                                        key={user.id}
+                                                                        value={user.id}
+                                                                    >
+                                                                        {
+                                                                            user.profile
+                                                                                .first_name
+                                                                        }{" "}
+                                                                        {
+                                                                            user.profile
+                                                                                .middle_name
+                                                                        }{" "}
+                                                                        {
+                                                                            user.profile
+                                                                                .last_name
+                                                                        }
+                                                                    </option>
+                                                                )
+                                                        )}
+                                                </select>
+                                            </>
+                                        }
                                     </div>
 
                                     {/* Step 2 */}

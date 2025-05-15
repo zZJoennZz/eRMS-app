@@ -88,6 +88,7 @@ Route::prefix('v1')->group(function () {
         Route::get('wh-dashboard', [MiscController::class, 'wh_dashboard']);
         Route::get('wh-head-dashboard', [MiscController::class, 'wh_head_dashboard']);
         Route::get('admin-dashboard', [MiscController::class, 'admin_dashboard']);
+        Route::get('disposal-reports', [MiscController::class, 'disposal_reports']);
 
         Route::get('employee-pending-transactions', [MiscController::class, 'get_employee_pending_transactions']);
         Route::get('pending-rds', [MiscController::class, 'get_pending_rds']);

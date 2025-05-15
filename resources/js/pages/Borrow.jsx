@@ -294,9 +294,10 @@ export default function Borrow() {
                     <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
                         <tr>
                             <th></th>
-                            <th className="text-left w-1/3 py-2">RDS Item Number - Record Series Title and Description</th>
-                            <th className="text-left w-1/3 py-2">Borrower</th>
-                            <th className="text-left w-1/3 py-2">Date</th>
+                            <th className="text-left w-1/4 py-2">RDS Item Number - Record Series Title and Description</th>
+                            <th className="text-left w-1/4 py-2">Borrower</th>
+                            <th className="text-left w-1/4 py-2">Reason</th>
+                            <th className="text-left w-1/4 py-2">Date</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -398,6 +399,9 @@ export default function Borrow() {
                                             data.action_by.profile.middle_name +
                                             " " +
                                             data.action_by.profile.last_name}
+                                    </td>
+                                    <td className="py-2 text-left border-b border-slate-300">
+                                        {data.remarks}
                                     </td>
                                     <td className="py-2 text-left border-b border-slate-300">
                                         {formatDate(data.created_at)}

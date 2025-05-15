@@ -31,7 +31,7 @@ class DisposalController extends Controller
                 ->where('box_number', '<>', value: 'OPEN')
                 ->get();
             $upcomingRecords = RDSRecord::whereHas('documents', function ($query) {
-                $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(5)->toDateString()]);
+                $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
             })
                 ->where('branches_id', $user->branches_id)
                 ->with(['documents.rds', 'latest_history'])

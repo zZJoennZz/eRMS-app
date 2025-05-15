@@ -21,7 +21,7 @@ class BorrowTransferController extends Controller
         if (Auth::user()->type !== "EMPLOYEE") {
             return send401Response();
         }
-        $req_data = $request->all();
+        $req_data = $request->cart;
         $data_ids = array_column($req_data, 'id');
         try {
             //VALIDATION
@@ -31,9 +31,9 @@ class BorrowTransferController extends Controller
                 send422Response('Selected document/s are not available.');
             }
             if (
-                $rds_records->filter(function ($record) {
-                    return optional($record->record->submitted_by_user->profile)->positions_id !== Auth::user()->profile->positions_id;
-                })->count() > 0
+                $rds_records->contains(function ($record) {
+                    return $record->source_of_documents !== Auth::user()->profile->position->name;
+                })
             ) {
                 return send422Response('You are not allowed to borrow the selected document/s.');
             }
@@ -52,7 +52,7 @@ class BorrowTransferController extends Controller
                 $new_rds_documents_history = new RDSRecordDocumentHistory();
                 $new_rds_documents_history->action = "INIT_BORROW";
                 $new_rds_documents_history->status = "PENDING";
-                $new_rds_documents_history->remarks = "Begin the borrowing of this document.";
+                $new_rds_documents_history->remarks = $request->borrowReason;
                 $new_rds_documents_history->record_documents_id = $rec->id;
                 $new_rds_documents_history->users_id = Auth::user()->id;
                 $new_rds_documents_history->save();

@@ -207,7 +207,7 @@ export default function Transaction() {
                 closeHandler={sideDrawerClose}
                 title={drawerTitle}
                 content={selectedForm}
-                twcssWidthClass="w-96"
+                twcssWidthClass="w-1/2"
             />
             <h1 className="text-xl font-semibold mb-2">Transactions</h1>
             <div className="mb-3">

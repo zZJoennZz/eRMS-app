@@ -10,7 +10,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 
 export default function EditUser({ closeHandler, selUserId, rerender }) {
     const { userType } = useContext(AuthContext);
-
+ 
     const [userDetail, setUserDetail] = useState({
         username: "",
         email_address: "",
@@ -79,6 +79,10 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                     const mainPosition = userData.profile.positions.filter(
                         (d) => d.type === "MAIN"
                     );
+
+                    const currIntervening = allPositions.filter((d) =>
+                        posIds.includes(d.id)
+                    );
                     setUserDetail({
                         username: userData.username,
                         email_address: userData.email,
@@ -88,9 +92,7 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                         positions_id: mainPosition[0].positions_id,
                         type: userData.type,
                         branches_id: userData.branches_id,
-                        intervening_positions: allPositions.filter((d) =>
-                            posIds.includes(d.id)
-                        ),
+                        intervening_positions: currIntervening,
                     });
                     if (userData.type === "EMPLOYEE") {
                         // Compute filtered positions first
@@ -103,9 +105,11 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                         // Use functional update to ensure latest state
                         setAvailableForIntrvnng(() =>
                             filteredPositions.filter(
-                                (d) => d.id !== userData.profile.positions_id
+                                (d) => d.id !== userData.profile.positions_id && !currIntervening.some((intervene) => intervene.id === d.id)
                             )
                         );
+
+                        console.log(currIntervening);
                     }
                 })
                 .catch((err) => {
@@ -353,7 +357,10 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                             />
                         </div>
                     </div>
-                    <div className="mb-4">
+                    {
+                        userType !== "WAREHOUSE_HEAD" && 
+                        <>
+                            <div className="mb-4">
                         <div className="mb-1">
                             <label htmlFor="type">
                                 Account Role{" "}
@@ -435,6 +442,8 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                             </select>
                         </div>
                     </div>
+                        </>
+                    }
                     {userDetail.type === "EMPLOYEE" && (
                         <>
                             <label className="block">
