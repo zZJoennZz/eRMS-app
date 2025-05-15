@@ -39,5 +39,10 @@ class BranchSeeder extends Seeder
             'name' => 'Test 13 Branch',
             'clusters_id' => 1,
         ]);
+        Branch::create([
+            'code' => 'ADMIN',
+            'name' => 'ADMIN',
+            'clusters_id' => 1,
+        ]);
     }
 }

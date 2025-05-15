@@ -64,11 +64,21 @@ const TurnoverForms = () => {
                 </div>
                 <div className="my-2">
                     <p className="float-end">
-                        <strong>Unit:</strong> <u>{branchDetails.name}</u>
+                        <strong>Unit:</strong>{" "}
+                        <u>
+                            {branchDetails.name === "Warehouse"
+                                ? branchDetails.cluster.name + " Record Center"
+                                : branchDetails.name}
+                        </u>
                     </p>
                     <p>
                         <strong>Position Title:</strong>{" "}
-                        <u>Records Custodian</u>
+                        <u>
+                            {turnoverDetails.added_by_user.type ===
+                            "RECORDS_CUST"
+                                ? "Record Custodian"
+                                : "Record Center Custodian"}
+                        </u>
                     </p>
                 </div>
                 <div className="my-2">
@@ -177,9 +187,9 @@ const TurnoverForms = () => {
                             Incoming Record Custodian:
                         </div>
                         <div className="flex-grow border-b border-black">
-                            {turnoverDetails.user.profile.first_name}{" "}
+                            {/* {turnoverDetails.user.profile.first_name}{" "}
                             {turnoverDetails.user.profile.middle_name}{" "}
-                            {turnoverDetails.user.profile.last_name}
+                            {turnoverDetails.user.profile.last_name} */}
                         </div>
                     </div>
                     <div className="flex w-4/12 space-x-3">
@@ -198,11 +208,15 @@ const TurnoverForms = () => {
                                     Box Number
                                 </div>
                             </th>
-                            <th className="border border-black w-5/12 p-1">
-                                <div className="text-lg font-bold">
-                                    Record Series Title and Description
-                                </div>
-                            </th>
+                            {turnoverDetails.added_by_user.type ===
+                                "RECORDS_CUST" && (
+                                <th className="border border-black w-5/12 p-1">
+                                    <div className="text-lg font-bold">
+                                        Record Series Title and Description
+                                    </div>
+                                </th>
+                            )}
+
                             <th className="border border-black w-2/12">
                                 <div className="text-lg font-bold">
                                     Location
@@ -225,26 +239,46 @@ const TurnoverForms = () => {
                         <td className="border-r border-black p-1">1</td>
                         <td className="p-1">1</td>
                     </tr> */}
-                        {turnoverDetails.items.map((item) =>
-                            item.rds_record.documents.map((doc) => (
-                                <tr key={item.id + "id" + doc.id}>
-                                    <td className="border-r border-b border-black p-1">
-                                        {item.rds_record.box_number}
-                                    </td>
-                                    <td className="border-r border-b border-black p-1">
-                                        {doc.description_of_document}
-                                    </td>
-                                    <td className="border-r border-b border-black p-1">
-                                        {item.rds_record.latest_history
-                                            .location === "Warehouse"
-                                            ? "Record Center"
-                                            : item.rds_record.latest_history
-                                                  .location}
-                                    </td>
-                                    <td className="border-b border-black p-1"></td>
-                                </tr>
-                            ))
-                        )}
+                        {turnoverDetails.items.map((item) => {
+                            {
+                                return turnoverDetails.added_by_user.type ===
+                                    "RECORDS_CUST" ? (
+                                    item.rds_record.documents.map((doc) => (
+                                        <tr key={item.id + "id" + doc.id}>
+                                            <td className="border-r border-b border-black p-1">
+                                                {item.rds_record.box_number}
+                                            </td>
+                                            <td className="border-r border-b border-black p-1">
+                                                {doc.description_of_document}
+                                            </td>
+                                            <td className="border-r border-b border-black p-1">
+                                                {item.rds_record.latest_history
+                                                    .location === "Warehouse"
+                                                    ? "Record Center"
+                                                    : item.rds_record
+                                                          .latest_history
+                                                          .location}
+                                            </td>
+                                            <td className="border-b border-black p-1"></td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr key={item.id + "id"}>
+                                        <td className="border-r border-b border-black p-1">
+                                            {item.rds_record.box_number}
+                                        </td>
+                                        <td className="border-r border-b border-black p-1">
+                                            {item.rds_record.latest_history
+                                                .location === "Warehouse"
+                                                ? "Record Center"
+                                                : item.rds_record.latest_history
+                                                      .location}
+                                        </td>
+                                        <td className="border-b border-black p-1"></td>
+                                    </tr>
+                                );
+                            }
+                        })}
                     </tbody>
                 </table>
                 <div className="italic text-center mt-1">
@@ -257,9 +291,16 @@ const TurnoverForms = () => {
                     I hereby certify that I have delivered the following
                     documents to{" "}
                     <u>
-                        {turnoverDetails.user.profile.first_name}{" "}
-                        {turnoverDetails.user.profile.middle_name}{" "}
-                        {turnoverDetails.user.profile.last_name}
+                        {turnoverDetails.added_by_user.type !==
+                        "RECORDS_CUST" ? (
+                            "TBD"
+                        ) : (
+                            <>
+                                {turnoverDetails.user.profile.first_name}{" "}
+                                {turnoverDetails.user.profile.middle_name}{" "}
+                                {turnoverDetails.user.profile.last_name}
+                            </>
+                        )}
                     </u>
                     , as the officially assigned personnel who will continue the
                     transaciton/operations.
@@ -276,8 +317,11 @@ const TurnoverForms = () => {
                             {turnoverDetails.added_by_user.profile.last_name}
                         </div>
                         <div className="text-center font-bold italic">
-                            Printed Name and Signature of Outgoing Record
-                            Custodian
+                            Printed Name and Signature of Outgoing{" "}
+                            {turnoverDetails.added_by_user.type ===
+                            "RECORDS_CUST"
+                                ? "Record Custodian"
+                                : "Record Center Custodian"}
                         </div>
                     </div>
                     <div className="w-1/3">
@@ -285,13 +329,23 @@ const TurnoverForms = () => {
                             ACKNOWLEDGED BY:
                         </div>
                         <div className="border-b border-black text-center">
-                            {turnoverDetails.user.profile.first_name}{" "}
-                            {turnoverDetails.user.profile.middle_name}{" "}
-                            {turnoverDetails.user.profile.last_name}
+                            {turnoverDetails.added_by_user.type !==
+                            "RECORDS_CUST" ? (
+                                "TBD"
+                            ) : (
+                                <>
+                                    {turnoverDetails.user.profile.first_name}{" "}
+                                    {turnoverDetails.user.profile.middle_name}{" "}
+                                    {turnoverDetails.user.profile.last_name}
+                                </>
+                            )}
                         </div>
                         <div className="text-center font-bold italic">
-                            Printed Name and Signature of Incoming Record
-                            Custodian
+                            Printed Name and Signature of Incoming{" "}
+                            {turnoverDetails.added_by_user.type ===
+                            "RECORDS_CUST"
+                                ? "Record Custodian"
+                                : "Record Center Custodian"}
                         </div>
                     </div>
                     <div className="w-1/3">
@@ -299,7 +353,7 @@ const TurnoverForms = () => {
                         <div className="border-b border-black text-center">
                             {branchHead.profile.first_name}{" "}
                             {branchHead.profile.middle_name}{" "}
-                            {branchHead.profile.last_name} 
+                            {branchHead.profile.last_name}
                         </div>
                         <div className="text-center font-bold italic">
                             Printed Name and Signature of Busines Unit Head or

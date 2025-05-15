@@ -58,16 +58,18 @@ class TurnoverController extends Controller
             ->with(['user.profile.positions', 'items.rds_record.documents.rds', 'added_by_user.profile.positions', 'items.rds_record.latest_history'])
             ->first();
 
-        $branch = Branch::find($user->branches_id);
+        $branch = Branch::where('id', $user->branches_id)
+            ->with(['cluster'])
+            ->first();
         $branch_head = null;
-        
+
         if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
             $branch_head = User::where('branches_id', $user->branches_id)
                 ->where('type', 'WAREHOUSE_HEAD')
                 ->with(['profile'])
                 ->first();
         } elseif ($user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD") {
-            $branch_head = User::where(column: 'branches_id', $user->branches_id)
+            $branch_head = User::where('branches_id', $user->branches_id)
                 ->where('type', 'BRANCH_HEAD')
                 ->with(['profile'])
                 ->first();
@@ -75,9 +77,10 @@ class TurnoverController extends Controller
             return send401Response();
         }
 
-        return send200Response([
-                "turnover" => $turnover, 
-                'branch' => $branch, 
+        return send200Response(
+            [
+                "turnover" => $turnover,
+                'branch' => $branch,
                 'branch_head' => $branch_head
             ]
         );
@@ -101,7 +104,7 @@ class TurnoverController extends Controller
                 ->where('type', '<>', 'RECORDS_CUST')
                 ->get()
                 ->count() > 0;
-            if (!$in_branch) {
+            if (!$in_branch && $user->type !== "WAREHOUSE_CUST") {
                 return send422Response('Selected employee must be in the same branch and not a records custodian already.');
             }
 
@@ -118,7 +121,9 @@ class TurnoverController extends Controller
             // Create a new turnover record
 
             $turnover = new Turnover();
-            $turnover->selected_employee = $request->selectedEmployee;
+            if ($user->type !== "WAREHOUSE_CUST") {
+                $turnover->selected_employee = $request->selectedEmployee;
+            }
             $turnover->designation_status = $request->designationStatus;
             $turnover->assumption_date = $request->assumptionDate;
             $turnover->from_date = $request->fromDate;
@@ -130,13 +135,28 @@ class TurnoverController extends Controller
             $turnover->branches_id = $user->branches_id;
             $turnover->save();
 
-            $rds_record = RDSRecord::where('branches_id', $user->branches_id)
-                ->where('status', '<>', 'DISPOSED')
-                // ->whereHas('latest_history', function ($query) {
-                //     $query->where('location', '<>', 'WAREHOUSE');
-                // })
-                ->where('status', '<>', 'PENDING')
-                ->get();
+            $rds_record = [];
+
+            if ($user->type !== "RECORDS_CUST") {
+                $rds_record = RDSRecord::whereHas('branch', function ($query) use ($user) {
+                    $query->where('clusters_id', $user->branch->clusters_id);
+                })
+                    ->whereHas('latest_history', function ($query) {
+                        $query->where('location', 'Warehouse');
+                    })
+                    ->where('status', '<>', 'DISPOSED')
+
+                    ->where('status', '<>', 'PENDING')
+                    ->get();
+            } else {
+                $rds_record = RDSRecord::where('branches_id', $user->branches_id)
+                    ->where('status', '<>', 'DISPOSED')
+                    // ->whereHas('latest_history', function ($query) {
+                    //     $query->where('location', '<>', 'WAREHOUSE');
+                    // })
+                    ->where('status', '<>', 'PENDING')
+                    ->get();
+            }
 
             foreach ($rds_record as $record) {
                 $new_turnover_item = new TurnoverItem();

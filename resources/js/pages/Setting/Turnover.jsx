@@ -254,7 +254,11 @@ export default function Turnover() {
         return <AdminTurnoverPage />;
     }
 
-    if (!isLoading && hasTurnover && (userType === "RECORDS_CUST" || userType === "WAREHOUSE_CUST")) {
+    if (
+        !isLoading &&
+        hasTurnover &&
+        (userType === "RECORDS_CUST" || userType === "WAREHOUSE_CUST")
+    ) {
         return (
             <DashboardLayout>
                 <div
@@ -337,18 +341,22 @@ export default function Turnover() {
                                         <h2 className="text-lg font-semibold text-gray-800">
                                             Step 1: Select Employee
                                         </h2>
-                                        {
-                                            userType === "WAREHOUSE_CUST" ? 
+                                        {userType === "WAREHOUSE_CUST" ? (
                                             "Please proceed to step 2."
-                                            :
+                                        ) : (
                                             <>
                                                 <p className="text-sm text-gray-500 mt-1">
-                                                    If you cannot locate the employee in the system,
-                                                    kindly request the Business Unit Head to initiate their enrollment.
+                                                    If you cannot locate the
+                                                    employee in the system,
+                                                    kindly request the Business
+                                                    Unit Head to initiate their
+                                                    enrollment.
                                                 </p>
                                                 <select
                                                     className="mt-3 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-                                                    value={formData.selectedEmployee}
+                                                    value={
+                                                        formData.selectedEmployee
+                                                    }
                                                     onChange={(e) =>
                                                         setFormData({
                                                             ...formData,
@@ -363,21 +371,29 @@ export default function Turnover() {
                                                     {users &&
                                                         users.map(
                                                             (user) =>
-                                                                user.id !== currId && (
+                                                                user.id !==
+                                                                    currId && (
                                                                     <option
-                                                                        key={user.id}
-                                                                        value={user.id}
+                                                                        key={
+                                                                            user.id
+                                                                        }
+                                                                        value={
+                                                                            user.id
+                                                                        }
                                                                     >
                                                                         {
-                                                                            user.profile
+                                                                            user
+                                                                                .profile
                                                                                 .first_name
                                                                         }{" "}
                                                                         {
-                                                                            user.profile
+                                                                            user
+                                                                                .profile
                                                                                 .middle_name
                                                                         }{" "}
                                                                         {
-                                                                            user.profile
+                                                                            user
+                                                                                .profile
                                                                                 .last_name
                                                                         }
                                                                     </option>
@@ -385,7 +401,7 @@ export default function Turnover() {
                                                         )}
                                                 </select>
                                             </>
-                                        }
+                                        )}
                                     </div>
 
                                     {/* Step 2 */}
@@ -501,11 +517,18 @@ export default function Turnover() {
                                             Step 3: Enter ID Numbers
                                         </h2>
                                         <label className="block text-sm font-medium text-gray-700">
-                                            Currenct Record Custodian ID
+                                            Current{" "}
+                                            {userType === "RECORDS_CUST"
+                                                ? "Record Custodian ID"
+                                                : "Record Center Custodian ID"}
                                         </label>
                                         <input
                                             type="text"
-                                            placeholder="Enter current record custodian ID"
+                                            placeholder={`Enter current ${
+                                                userType === "RECORDS_CUST"
+                                                    ? "Record Custodian"
+                                                    : "Record Center Custodian"
+                                            } ID`}
                                             className="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
                                             value={formData.currentJobHolderId}
                                             onChange={(e) =>
@@ -517,11 +540,18 @@ export default function Turnover() {
                                             }
                                         />
                                         <label className="block text-sm font-medium text-gray-700 mt-4">
-                                            Incoming Record Custodian ID
+                                            Incoming{" "}
+                                            {userType === "RECORDS_CUST"
+                                                ? "Record Custodian ID"
+                                                : "Record Center Custodian ID"}
                                         </label>
                                         <input
                                             type="text"
-                                            placeholder="Enter incoming record custodian ID"
+                                            placeholder={`Enter incoming ${
+                                                userType === "RECORDS_CUST"
+                                                    ? "Record Custodian"
+                                                    : "Record Center Custodian"
+                                            } ID`}
                                             className="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
                                             value={formData.incomingJobHolderId}
                                             onChange={(e) =>
@@ -540,8 +570,12 @@ export default function Turnover() {
                                             Step 4: Approval
                                         </h2>
                                         <p className="text-sm text-gray-500 mt-1">
-                                          The turnover request is subject to 
-                                            approval by the Business Unit Head.
+                                            The turnover request is subject to
+                                            approval by the{" "}
+                                            {userType === "RECORDS_CUST"
+                                                ? "Business Unit Head"
+                                                : "Record Center Head"}
+                                            .
                                         </p>
                                     </div>
 

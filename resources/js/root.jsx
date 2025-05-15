@@ -29,9 +29,6 @@ const DisposedRecordsForm = lazy(() =>
     import("./pages/Report/DisposedRecordsForm")
 );
 const Turnover = lazy(() => import("./pages/Setting/Turnover"));
-const WarehouseTurnover = lazy(() =>
-    import("./pages/Setting/WarehouseTurnover")
-);
 const TurnoverForms = lazy(() => import("./pages/Report/TurnoverForms"));
 const OpenBox = lazy(() => import("./pages/OpenBox"));
 const DisposalReport = lazy(() => import("./pages/Report/DisposalReport"));
@@ -200,7 +197,13 @@ export default function Root() {
                         Setting
                     )}
                     {renderPrivateRoute(
-                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN", "WAREHOUSE_HEAD"],
+                        [
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "WAREHOUSE_HEAD",
+                        ],
                         "/users",
                         User
                     )}
@@ -218,22 +221,34 @@ export default function Root() {
                         Borrow
                     )}
                     {renderPrivateRoute(
-                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
+                        [
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "WAREHOUSE_HEAD",
+                        ],
                         "/disposals",
                         Disposal
                     )}
                     {renderPrivateRoute(
-                        ["RECORDS_CUST", "BRANCH_HEAD", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
+                        [
+                            "RECORDS_CUST",
+                            "BRANCH_HEAD",
+                            "DEV",
+                            "ADMIN",
+                            "WAREHOUSE_HEAD",
+                        ],
                         "/report/disposed-records-form/:id",
                         DisposedRecordsForm
                     )}
                     {renderPrivateRoute(
-                        ["WAREHOUSE_CUST", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
+                        ["WAREHOUSE_CUST", "DEV", "ADMIN", "WAREHOUSE_HEAD"],
                         "/warehouse-monitoring",
                         WarehouseMonitoring
                     )}
                     {renderPrivateRoute(
-                        ["WAREHOUSE_CUST", "DEV", "ADMIN", "WAREHOUSE_HEAD",],
+                        ["WAREHOUSE_CUST", "DEV", "ADMIN", "WAREHOUSE_HEAD"],
                         "/print-warehouse-documents/:filters",
                         ReportDocuments
                     )}
@@ -275,14 +290,14 @@ export default function Root() {
                         RDSRecordHistory
                     )}
                     {renderPrivateRoute(
-                        ["BRANCH_HEAD", "RECORDS_CUST", "WAREHOUSE_HEAD", "WAREHOUSE_CUST"],
+                        [
+                            "BRANCH_HEAD",
+                            "RECORDS_CUST",
+                            "WAREHOUSE_HEAD",
+                            "WAREHOUSE_CUST",
+                        ],
                         "/turnover",
                         Turnover
-                    )}
-                    {renderPrivateRoute(
-                        ["ADMIN", "DEV", "WAREHOUSE_CUST","WAREHOUSE_HEAD"],
-                        "/warehouse-turnover",
-                        WarehouseTurnover
                     )}
                     {/* {renderPrivateRoute(
                         [
@@ -296,7 +311,12 @@ export default function Root() {
                         RDSRecordHistory
                     )} */}
                     {renderPrivateRoute(
-                        ["BRANCH_HEAD", "RECORDS_CUST", "WAREHOUSE_CUST", "WAREHOUSE_HEAD"],
+                        [
+                            "BRANCH_HEAD",
+                            "RECORDS_CUST",
+                            "WAREHOUSE_CUST",
+                            "WAREHOUSE_HEAD",
+                        ],
                         "/print-turnover",
                         TurnoverForms
                     )}
