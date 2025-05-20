@@ -65,6 +65,13 @@ class PositionSeeder extends Seeder
                 "type" => "ADMIN"
             ]
         );
+
+        Position::create(
+            [
+                "name" => "Inactive",
+                "type" => "INACTIVE"
+            ]
+        );
         foreach ($names as $n) {
             Position::create(
                 [

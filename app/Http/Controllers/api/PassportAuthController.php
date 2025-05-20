@@ -12,25 +12,25 @@ use Illuminate\Support\Facades\Validator;
 
 class PassportAuthController extends Controller
 {
-    public function first_account()
-    {
-        try {
-            DB::beginTransaction();
-            User::create([
-                'branches_id' => 1,
-                'type' => 'DEV',
-                'username' => "webdev",
-                'email' => "zzjoennzz@gmail.com",
-                'password' => bcrypt("pokemon14"),
-            ]);
-            DB::commit();
+    // public function first_account()
+    // {
+    //     try {
+    //         DB::beginTransaction();
+    //         User::create([
+    //             'branches_id' => 1,
+    //             'type' => 'DEV',
+    //             'username' => "webdev",
+    //             'email' => "zzjoennzz@gmail.com",
+    //             'password' => bcrypt("pokemon14"),
+    //         ]);
+    //         DB::commit();
 
-            return send200Response([], 'User successfully registered.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return send400Response();
-        }
-    }
+    //         return send200Response([], 'User successfully registered.');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return send400Response();
+    //     }
+    // }
     //
     public function register(Request $request)
     {
@@ -132,7 +132,7 @@ class PassportAuthController extends Controller
     public function is_valid()
     {
         try {
-            if (Auth::guard('api')->check()) {
+            if (Auth::guard('api')->check() && Auth::user()->is_inactive === 0) {
                 return send200Response([
                     "id" => Auth::user()->id,
                     "type" => Auth::user()->type,

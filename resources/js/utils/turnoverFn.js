@@ -39,6 +39,16 @@ export async function approveTurnover(id) {
     return res.data.data;
 }
 
+export async function approveWhTurnover(data) {
+    let res = await axios.put(`${API_URL}turnover-wh`, data, {
+        headers: {
+            Authorization: localStorage.getItem("token"),
+        },
+    });
+
+    return res.data.data;
+}
+
 export async function declineTurnover(id) {
     let res = await axios.post(`${API_URL}decline-turnover/${id}`, null, {
         headers: {

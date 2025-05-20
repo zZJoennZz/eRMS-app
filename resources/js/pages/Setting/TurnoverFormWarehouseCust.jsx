@@ -5,14 +5,14 @@ import {
 } from "@heroicons/react/24/solid";
 
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { approveTurnover, declineTurnover } from "../../utils/turnoverFn";
+import { approveWhTurnover, declineTurnover } from "../../utils/turnoverFn";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import axios from "axios";
 
-export default function TurnoverForm({ turnoverData }) {
+export default function TurnoverFormWarehouseCust({ turnoverData }) {
     const { userType } = useContext(AuthContext);
     const designation = turnoverData.designation_status || "";
 
@@ -36,7 +36,7 @@ export default function TurnoverForm({ turnoverData }) {
     }
 
     const approveTurnoverRequest = useMutation({
-        mutationFn: approveTurnover(turnoverData.id),
+        mutationFn: (data) => approveWhTurnover(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["checkTurnover"] });
             toast.success("Turnover request has been approved!");
@@ -65,7 +65,10 @@ export default function TurnoverForm({ turnoverData }) {
         e.preventDefault();
         if (turnoverData.user) {
             if (confirm("Are you sure you want to approve this turnover?")) {
-                approveTurnoverRequest.mutate();
+                approveTurnoverRequest.mutate({
+                    id: turnoverData.id,
+                    newUser,
+                });
             }
         } else {
             if (
@@ -73,7 +76,7 @@ export default function TurnoverForm({ turnoverData }) {
                     "Are you sure you want to approve this turnover and create a new Record Center Custodian?"
                 )
             ) {
-                approveTurnoverRequest.mutate({ newUser });
+                approveTurnoverRequest.mutate({ id: turnoverData.id, newUser });
             }
         }
     }
@@ -103,14 +106,63 @@ export default function TurnoverForm({ turnoverData }) {
             >
                 <div>
                     <label className="block text-sm font-medium text-lime-700">
-                        Selected Employee
+                        Create user's account
                     </label>
-                    <input
-                        type="text"
-                        value={turnoverData.user?.username || ""}
-                        readOnly
-                        className="mt-2 w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
-                    />
+                    <div className="space-y-3">
+                        <input
+                            type="text"
+                            name="username"
+                            placeholder="Username"
+                            value={newUser.username}
+                            onChange={handleNewUserChange}
+                            className="mt-2 w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            required
+                        />
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Email"
+                            value={newUser.email}
+                            onChange={handleNewUserChange}
+                            className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            required
+                        />
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            value={newUser.password}
+                            onChange={handleNewUserChange}
+                            className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="first_name"
+                            placeholder="First Name"
+                            value={newUser.first_name}
+                            onChange={handleNewUserChange}
+                            className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="middle_name"
+                            placeholder="Middle Name"
+                            value={newUser.middle_name}
+                            onChange={handleNewUserChange}
+                            className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                        />
+                        <input
+                            type="text"
+                            name="last_name"
+                            placeholder="Last Name"
+                            value={newUser.last_name}
+                            onChange={handleNewUserChange}
+                            className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            required
+                        />
+                    </div>
                 </div>
 
                 <div>
@@ -223,22 +275,8 @@ export default function TurnoverForm({ turnoverData }) {
                                         ).toLocaleString()}
                                     </p>
                                     <p>
-                                        <strong>Location:</strong> Branch
+                                        <strong>Location:</strong> Record Center
                                     </p>
-                                    <p className="text-xs uppercase mt-3">
-                                        Documents:
-                                    </p>
-                                    <ul className="pl-6 space-y-1 list-disc">
-                                        {item.rds_record.documents.map(
-                                            (doc) => (
-                                                <li key={doc.id}>
-                                                    {
-                                                        doc.description_of_document
-                                                    }
-                                                </li>
-                                            )
-                                        )}
-                                    </ul>
                                 </li>
                             ))}
                         </ul>
@@ -250,9 +288,9 @@ export default function TurnoverForm({ turnoverData }) {
                 </div>
 
                 <div className="my-4 text-sm italic">
-                    By approving, the old records custodian's account will be
-                    deactivated immediately, and the role will automatically be
-                    transferred to the new records custodian.
+                    By approving, the old record center custodian's account will
+                    be deactivated immediately, and the role will automatically
+                    be transferred to the new records custodian.
                 </div>
                 <button
                     type="submit"

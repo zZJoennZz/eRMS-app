@@ -112,6 +112,7 @@ Route::prefix('v1')->group(function () {
         Route::post('turnover', [TurnoverController::class, 'create_turnover']);
         Route::post('decline-turnover/{id?}', [TurnoverController::class, 'decline_turnover']);
         Route::put('turnover/{id?}', [TurnoverController::class, 'approve_turnover']);
+        Route::put('turnover-wh/{id?}', [TurnoverController::class, 'approve_wh_turnover']);
         Route::get('check-turnover', [TurnoverController::class, 'check_for_existing_turnover_request']);
     });
 

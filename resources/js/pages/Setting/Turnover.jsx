@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, lazy } from "react";
 import SettingSidebar from "../../components/SettingSidebar";
 import DashboardLayout from "../../components/DashboardLayout";
 import SubmissionSummaryModal from "../../components/SubmissionSummaryModal";
@@ -14,6 +14,9 @@ import {
 } from "../../utils/turnoverFn";
 import { toast } from "react-toastify";
 import TurnoverForm from "./TurnoverForm";
+const TurnoverFormWarehouseCust = lazy(() =>
+    import("./TurnoverFormWarehouseCust")
+);
 import { PrinterIcon } from "@heroicons/react/24/outline";
 import { formatDate } from "../../utils/utilities";
 
@@ -381,7 +384,7 @@ export default function Turnover() {
                 >
                     <h1 className="text-2xl text-gray-800 mb-4 text-center leading-10">
                         Currently have existing turnover request. Please wait
-                        for the approval of the Business Unit Head.
+                        for the approval of the entity head.
                         <div className="font-bold text-green-700">
                             Please don't forget to print the documents below.
                         </div>
@@ -778,15 +781,6 @@ function AdminTurnoverPage() {
 function RecordCenterCustodianTurnover() {
     const [isSidebarOpen, setIsOpenSidebarOpen] = useState(false);
     const [turnoverData, setTurnoverData] = useState({});
-    const [formData, setFormData] = useState({
-        firstName: "",
-        middleName: "",
-        lastName: "",
-        email: "",
-        employeeId: "",
-        contactNumber: "",
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     function toggleSideBar() {
         setIsOpenSidebarOpen(!isSidebarOpen);
@@ -835,7 +829,9 @@ function RecordCenterCustodianTurnover() {
                             Turnover Request
                         </h1>
                         <div>
-                            <TurnoverForm turnoverData={turnoverData} />
+                            <TurnoverFormWarehouseCust
+                                turnoverData={turnoverData}
+                            />
                         </div>
                     </div>
                 </div>

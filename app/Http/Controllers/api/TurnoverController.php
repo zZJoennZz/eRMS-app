@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TurnoverController extends Controller
 {
@@ -177,27 +178,50 @@ class TurnoverController extends Controller
     public function get_turnover_request()
     {
         $user = Auth::user();
-        if ($user->type !== "BRANCH_HEAD" && $user->type !== "RECORDS_CUST") {
-            return send422Response('Only branch head can view turnover requests.');
+        if ($user->type !== "BRANCH_HEAD" && $user->type !== "RECORDS_CUST" && $user->type !== "WAREHOUSE_HEAD" && $user->type !== "WAREHOUSE_CUST") {
+            return send422Response('Only authorized users can view turnover requests.');
         }
-        $turnover = Turnover::where('branches_id', $user->branches_id)
-            ->where('status', '=', 'PENDING')
-            ->with(['user', 'items' => function ($query) {
-                $query->whereHas('rds_record', function ($query) {
+        $turnover = [];
+
+        if ($user->type === "BRANCH_HEAD" || $user->type === "RECORDS_CUST") {
+            $turnover = Turnover::where('branches_id', $user->branches_id)
+                ->where('status', '=', 'PENDING')
+                ->with(['user', 'items' => function ($query) {
+                    $query->whereHas('rds_record', function ($query) {
+                        $query->where('status', '<>', 'DISPOSED')
+                            ->where('status', '<>', 'PENDING')
+                            ->whereHas('latest_history', function ($query) {
+                                $query->where('location', '<>', 'WAREHOUSE');
+                            });
+                    });
+                }, 'items.rds_record' => function ($query) {
                     $query->where('status', '<>', 'DISPOSED')
                         ->where('status', '<>', 'PENDING')
                         ->whereHas('latest_history', function ($query) {
                             $query->where('location', '<>', 'WAREHOUSE');
                         });
-                });
-            }, 'items.rds_record' => function ($query) {
-                $query->where('status', '<>', 'DISPOSED')
-                    ->where('status', '<>', 'PENDING')
-                    ->whereHas('latest_history', function ($query) {
-                        $query->where('location', '<>', 'WAREHOUSE');
+                }, 'items.rds_record.documents', 'items.rds_record.latest_history'])
+                ->first();
+        } elseif ($user->type === "WAREHOUSE_HEAD" || $user->type === "WAREHOUSE_CUST") {
+            $turnover = Turnover::where('branches_id', $user->branches_id)
+                ->where('status', '=', 'PENDING')
+                ->with(['user', 'items' => function ($query) {
+                    $query->whereHas('rds_record', function ($query) {
+                        $query->where('status', '<>', 'DISPOSED')
+                            ->where('status', '<>', 'PENDING')
+                            ->whereHas('latest_history', function ($query) {
+                                $query->where('location', 'WAREHOUSE');
+                            });
                     });
-            }, 'items.rds_record.documents', 'items.rds_record.latest_history'])
-            ->first();
+                }, 'items.rds_record' => function ($query) {
+                    $query->where('status', '<>', 'DISPOSED')
+                        ->where('status', '<>', 'PENDING')
+                        ->whereHas('latest_history', function ($query) {
+                            $query->where('location', 'WAREHOUSE');
+                        });
+                }, 'items.rds_record.documents', 'items.rds_record.latest_history'])
+                ->first();
+        }
 
         return send200Response($turnover);
     }
@@ -222,7 +246,7 @@ class TurnoverController extends Controller
 
             $new_user = new User();
             $new_user->username = $get_new_rc->username . 'rc' . Carbon::now()->format('ymd');
-            $new_user->email = $new_user->username . '@rds.com';
+            $new_user->email = $new_user->username . $get_new_rc->email;
             $new_user->password = bcrypt($user->branch->code . $get_new_rc->profile->last_name);
             $new_user->type = "RECORDS_CUST";
             $new_user->branches_id = $user->branches_id;
@@ -269,6 +293,92 @@ class TurnoverController extends Controller
 
             return send200Response(
                 ['username' => $new_user->username,]
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return send400Response($e->getMessage());
+        }
+    }
+
+    public function approve_wh_turnover(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'newUser.username' => 'required|unique:users,username',
+            'newUser.email' => 'required|email|unique:users,email',
+            'newUser.password' => 'required|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = implode(' ', $validator->errors()->all());
+            return send422Response($errors);
+        }
+
+        try {
+            $user = Auth::user();
+            if ($user->type !== "BRANCH_HEAD" && $user->type !== "WAREHOUSE_HEAD") {
+                return send422Response('Only authorized users can approve turnover requests.');
+            }
+            $id = $request->id;
+
+            $new_user = $request->newUser;
+            DB::beginTransaction();
+            $turnover = Turnover::where('id', $id)
+                ->where('branches_id', $user->branches_id)
+                ->where('status', '=', 'PENDING')
+                ->first();
+
+            $inactive_position = Position::where('name', 'Inactive')->first()->id;
+            $current_warehouse_cust = User::where('branches_id', $user->branches_id)
+                ->where('type', 'WAREHOUSE_CUST')
+                ->first();
+            $current_warehouse_cust->is_inactive = 1;
+
+            $current_warehouse_cust_profile = UserProfile::where('users_id', $current_warehouse_cust->id)->first();
+            $current_warehouse_cust_profile->positions_id = $inactive_position;
+
+            $current_warehouse_cust_profile->save();
+
+            UserPosition::where('user_profiles_id', $current_warehouse_cust->profile->id)->delete();
+
+            $new_position = new UserPosition();
+            $new_position->user_profiles_id = $current_warehouse_cust->profile->id;
+            $new_position->positions_id = $inactive_position;
+            $new_position->type = "MAIN";
+            $new_position->save();
+
+            $current_warehouse_cust->save();
+
+            $create_new_user = new User();
+            $create_new_user->username = $new_user['username'];
+            $create_new_user->email = $new_user['email'];
+            $create_new_user->password = bcrypt($new_user['password']);
+            $create_new_user->type = "WAREHOUSE_CUST";
+            $create_new_user->branches_id = $user->branches_id;
+            $create_new_user->save();
+
+            $rc_position = Position::where('type', 'WAREHOUSE_CUST')->first();
+
+            $new_user_profile = new UserProfile();
+            $new_user_profile->users_id = $create_new_user->id;
+            $new_user_profile->first_name = $new_user['first_name'];
+            $new_user_profile->middle_name = $new_user['middle_name'] ?? "";
+            $new_user_profile->last_name = $new_user['last_name'];
+            $new_user_profile->positions_id = $rc_position->id;
+            $new_user_profile->save();
+
+            $new_user_position = new UserPosition();
+            $new_user_position->user_profiles_id = $new_user_profile->id;
+            $new_user_position->positions_id = $rc_position->id;
+            $new_user_position->type = "MAIN";
+            $new_user_position->save();
+
+            $turnover->selected_employee = $create_new_user->id;
+            $turnover->status = 'APPROVED';
+            $turnover->save();
+            DB::commit();
+
+            return send200Response(
+                ['username' => $create_new_user->username,]
             );
         } catch (\Exception $e) {
             DB::rollBack();
