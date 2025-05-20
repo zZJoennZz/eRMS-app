@@ -250,8 +250,122 @@ export default function Turnover() {
         );
     }
 
+    if (!isLoading && !hasTurnover && userType === "WAREHOUSE_HEAD") {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center">
+                    <h1 className="text-2xl text-gray-800 mb-4 text-center leading-10">
+                        No pending turnover requests.
+                    </h1>
+                    <div className="mb-10">
+                        <strong>Please note:</strong> Let the new record center
+                        custodian to use the default password!
+                    </div>
+                    <div>
+                        <a
+                            href="/settings"
+                            className="bg-yellow-600 text-white px-2 py-1 rounded-full"
+                        >
+                            {"<"} Go Back
+                        </a>
+                    </div>
+                </div>
+                <div className="w-100 h-px bg-gray-300 mt-5 mb-3"></div>
+                <div className="mt-4">
+                    <h2 className="text-lg font-bold">
+                        Turnover Request History
+                    </h2>
+                    <div className="overflow-x-auto">
+                        <table className="mb-3 w-full">
+                            <thead className="text-center text-xs font-semibold border-t border-b border-lime-600">
+                                <tr>
+                                    <th className="text-left py-2">Status</th>
+                                    <th className="text-left py-2">
+                                        Turnover To
+                                    </th>
+                                    <th className="py-2 text-left">
+                                        Turnover From
+                                    </th>
+                                    <th className="text-left py-2">
+                                        Date of Submission
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {getAllTurnovers.isLoading ? (
+                                    <tr>
+                                        <td colSpan={4}>
+                                            <ComponentLoader />
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    getAllTurnovers.data &&
+                                    getAllTurnovers.data.map((data) => (
+                                        <tr
+                                            key={"doc" + data.id}
+                                            id={"doc" + data.id}
+                                            className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
+                                        >
+                                            <td className="py-2 text-left border-b border-slate-300">
+                                                {data.status === "APPROVED" && (
+                                                    <span className="text-green-600">
+                                                        Approved
+                                                    </span>
+                                                )}
+                                                {data.status === "DECLINED" && (
+                                                    <span className="text-red-600">
+                                                        Declined
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="py-2 border-b border-slate-300">
+                                                {
+                                                    data.added_by_user.profile
+                                                        .first_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .middle_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .last_name
+                                                }
+                                            </td>
+                                            <td className="py-2 border-b border-slate-300">
+                                                {
+                                                    data.added_by_user.profile
+                                                        .first_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .middle_name
+                                                }{" "}
+                                                {
+                                                    data.added_by_user.profile
+                                                        .last_name
+                                                }
+                                            </td>
+                                            <td className="py-2 border-b border-slate-300">
+                                                {formatDate(data.created_at)}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
     if (!isLoading && hasTurnover && userType === "BRANCH_HEAD") {
         return <AdminTurnoverPage />;
+    }
+
+    if (!isLoading && hasTurnover && userType === "WAREHOUSE_HEAD") {
+        return <RecordCenterCustodianTurnover />;
     }
 
     if (
@@ -604,6 +718,75 @@ export default function Turnover() {
 function AdminTurnoverPage() {
     const [isSidebarOpen, setIsOpenSidebarOpen] = useState(false);
     const [turnoverData, setTurnoverData] = useState({});
+
+    function toggleSideBar() {
+        setIsOpenSidebarOpen(!isSidebarOpen);
+    }
+
+    useEffect(() => {
+        const source = axios.CancelToken.source();
+        async function getTurnoverRequest() {
+            await axios
+                .get(`${API_URL}turnover`, {
+                    headers: {
+                        Authorization: localStorage.getItem("token"),
+                    },
+                    cancelToken: source.token,
+                })
+                .then((res) => {
+                    let turnoverResData = res.data.data;
+                    setTurnoverData(turnoverResData);
+                    console.log(turnoverResData);
+                })
+                .catch((err) => {
+                    if (axios.isCancel(err)) {
+                        console.log("Request canceled");
+                    } else {
+                        console.log(err);
+                    }
+                });
+        }
+        getTurnoverRequest();
+
+        return () => {
+            source.cancel();
+        };
+    }, []);
+
+    return (
+        <DashboardLayout>
+            <div className="flex">
+                <SettingSidebar
+                    isSidebarOpen={isSidebarOpen}
+                    toggleSideBar={toggleSideBar}
+                />
+                <div className="flex-1 flex flex-col">
+                    <div className="p-5">
+                        <h1 className="text-lg font-bold text-slate-700">
+                            Turnover Request
+                        </h1>
+                        <div>
+                            <TurnoverForm turnoverData={turnoverData} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </DashboardLayout>
+    );
+}
+
+function RecordCenterCustodianTurnover() {
+    const [isSidebarOpen, setIsOpenSidebarOpen] = useState(false);
+    const [turnoverData, setTurnoverData] = useState({});
+    const [formData, setFormData] = useState({
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        email: "",
+        employeeId: "",
+        contactNumber: "",
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     function toggleSideBar() {
         setIsOpenSidebarOpen(!isSidebarOpen);

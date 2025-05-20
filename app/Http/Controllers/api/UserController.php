@@ -283,7 +283,7 @@ class UserController extends Controller
             } elseif ($user->type === "BRANCH_HEAD") {
                 $typeRules = 'required|in:EMPLOYEE,RECORDS_CUST';
             } elseif ($user->type === "ADMIN" || $user->type === "DEV") {
-                $typeRules = 'required|in:EMPLOYEE,RECORDS_CUST,BRANCH_HEAD,WAREHOUSE_CUST';
+                $typeRules = 'required|in:EMPLOYEE,RECORDS_CUST,BRANCH_HEAD,WAREHOUSE_CUST,WAREHOUSE_HEAD';
             } elseif ($user->type === "WAREHOUSE_HEAD") {
                 $typeRules = "required";
             } else {
@@ -320,7 +320,7 @@ class UserController extends Controller
             }
 
             if ($user->type === "ADMIN" || $user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD" || $user->type === "DEV") {
-                if($user->id === $get_user->id) {
+                if ($user->id === $get_user->id) {
                     return send401Response();
                 }
 
@@ -328,7 +328,7 @@ class UserController extends Controller
                     DB::rollBack();
                     return send422Response("Please ensure that the user has no pending transactions.");
                 }
-                
+
                 $get_user->username = $new_username;
                 $get_user->email = $request->email_address;
                 $get_user->type = $request->type;
@@ -376,7 +376,7 @@ class UserController extends Controller
 
                 DB::commit();
                 return send200Response();
-            }else {
+            } else {
                 DB::rollBack();
                 return send401Response();
             }

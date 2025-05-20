@@ -8,8 +8,9 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { approveTurnover, declineTurnover } from "../../utils/turnoverFn";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
+import axios from "axios";
 
 export default function TurnoverForm({ turnoverData }) {
     const { userType } = useContext(AuthContext);
@@ -17,14 +18,41 @@ export default function TurnoverForm({ turnoverData }) {
 
     const queryClient = useQueryClient();
 
+    const [newUser, setNewUser] = useState({
+        username: "",
+        email: "",
+        password: "",
+        first_name: "",
+        middle_name: "",
+        last_name: "",
+    });
+
+    function handleNewUserChange(e) {
+        const { name, value } = e.target;
+        setNewUser((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    }
+
     const approveTurnoverRequest = useMutation({
-        mutationFn: () => approveTurnover(turnoverData.id),
+        mutationFn: (payload) => {
+            if (payload && payload.newUser) {
+                return axios.post(`/api/turnover/approve/${turnoverData.id}`, {
+                    ...payload.newUser,
+                    isRecordCenterCustodian: true,
+                });
+            }
+            return approveTurnover(turnoverData.id);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["checkTurnover"] });
             toast.success("Turnover request has been approved!");
         },
         onError: (err) => {
-            toast.error(err.response.data.message);
+            toast.error(
+                err.response?.data?.message || "Error approving turnover."
+            );
         },
         networkMode: "always",
     });
@@ -43,8 +71,18 @@ export default function TurnoverForm({ turnoverData }) {
 
     function confirmApprove(e) {
         e.preventDefault();
-        if (confirm("Are you sure you want to approve this turnover?")) {
-            approveTurnoverRequest.mutate();
+        if (turnoverData.user) {
+            if (confirm("Are you sure you want to approve this turnover?")) {
+                approveTurnoverRequest.mutate();
+            }
+        } else {
+            if (
+                confirm(
+                    "Are you sure you want to approve this turnover and create a new Record Center Custodian?"
+                )
+            ) {
+                approveTurnoverRequest.mutate({ newUser });
+            }
         }
     }
 
@@ -75,12 +113,70 @@ export default function TurnoverForm({ turnoverData }) {
                     <label className="block text-sm font-medium text-lime-700">
                         Selected Employee
                     </label>
-                    <input
-                        type="text"
-                        value={turnoverData.user?.username || ""}
-                        readOnly
-                        className="mt-2 w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
-                    />
+                    {turnoverData.user ? (
+                        <input
+                            type="text"
+                            value={turnoverData.user?.username || ""}
+                            readOnly
+                            className="mt-2 w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                        />
+                    ) : (
+                        <div className="space-y-3">
+                            <input
+                                type="text"
+                                name="username"
+                                placeholder="Username"
+                                value={newUser.username}
+                                onChange={handleNewUserChange}
+                                className="mt-2 w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                                required
+                            />
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value={newUser.email}
+                                onChange={handleNewUserChange}
+                                className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                                required
+                            />
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Password"
+                                value={newUser.password}
+                                onChange={handleNewUserChange}
+                                className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="first_name"
+                                placeholder="First Name"
+                                value={newUser.first_name}
+                                onChange={handleNewUserChange}
+                                className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="middle_name"
+                                placeholder="Middle Name"
+                                value={newUser.middle_name}
+                                onChange={handleNewUserChange}
+                                className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                            />
+                            <input
+                                type="text"
+                                name="last_name"
+                                placeholder="Last Name"
+                                value={newUser.last_name}
+                                onChange={handleNewUserChange}
+                                className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                                required
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div>
