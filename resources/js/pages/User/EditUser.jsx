@@ -10,7 +10,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 
 export default function EditUser({ closeHandler, selUserId, rerender }) {
     const { userType } = useContext(AuthContext);
- 
+
     const [userDetail, setUserDetail] = useState({
         username: "",
         email_address: "",
@@ -105,7 +105,11 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                         // Use functional update to ensure latest state
                         setAvailableForIntrvnng(() =>
                             filteredPositions.filter(
-                                (d) => d.id !== userData.profile.positions_id && !currIntervening.some((intervene) => intervene.id === d.id)
+                                (d) =>
+                                    d.id !== userData.profile.positions_id &&
+                                    !currIntervening.some(
+                                        (intervene) => intervene.id === d.id
+                                    )
                             )
                         );
 
@@ -283,14 +287,17 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                             />
                         </div>
                     </div>
-                    {(userType === "BRANCH_HEAD" || userType === "ADMIN" || userType === "DEV") && (
+                    {(userType === "BRANCH_HEAD" ||
+                        userType === "ADMIN" ||
+                        userType === "DEV") && (
                         <div className="mb-4">
                             <div className="mb-2">
                                 Reset Password{" "}
                                 <div className="text-xs italic text-slate-600">
                                     If a user requested a reset password, click
                                     the button below to change it to the default
-                                    password! {"("}BranchCodeLastName{")"}
+                                    password! {"("}BranchCodeLastName{")"} (RCC
+                                    as branch code for Record Center Users.)
                                 </div>
                             </div>
                             <div>
@@ -357,93 +364,99 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                             />
                         </div>
                     </div>
-                    {
-                        userType !== "WAREHOUSE_HEAD" && 
+                    {userType !== "WAREHOUSE_HEAD" && (
                         <>
                             <div className="mb-4">
-                        <div className="mb-1">
-                            <label htmlFor="type">
-                                Account Role{" "}
-                                <span className="text-red-700">*</span>
-                            </label>
-                        </div>
-                        <div>
-                            <select
-                                name="type"
-                                id="type"
-                                value={userDetail.type}
-                                onChange={frmFieldHandler}
-                                className="w-full"
-                                required
-                            >
-                                <option value="0">
-                                    Select account role of this user
-                                </option>
-                                <option value="EMPLOYEE">
-                                    Level 1 (Employee)
-                                </option>
-                                {(userType === "ADMIN" ||
-                                    userType === "DEV") && (
-                                    <>
-                                        <option value="RECORDS_CUST">
-                                            Level 2 (BU Records Custodian)
+                                <div className="mb-1">
+                                    <label htmlFor="type">
+                                        Account Role{" "}
+                                        <span className="text-red-700">*</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <select
+                                        name="type"
+                                        id="type"
+                                        value={userDetail.type}
+                                        onChange={frmFieldHandler}
+                                        className="w-full"
+                                        required
+                                    >
+                                        <option value="0">
+                                            Select account role of this user
                                         </option>
-                                        <option value="WAREHOUSE_CUST">
-                                            Level 3 (Record Center Custodian)
+                                        <option value="EMPLOYEE">
+                                            Level 1 (Employee)
                                         </option>
-                                        <option value="BRANCH_HEAD">
-                                            Level 4 (Business Unit Head)
-                                        </option>
-                                        <option value="WAREHOUSE_HEAD">
-                                            Level 5 (Record Center Head)
-                                        </option>
-                                    </>
-                                )}
-                                {userType === "BRANCH_HEAD" && (
-                                    <>
-                                        <option value="RECORDS_CUST">
-                                            Level 2 (BU Records Custodian)
-                                        </option>
-                                    </>
-                                )}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="mb-4">
-                        <div className="mb-1">
-                            <label htmlFor="positions_id">
-                                Position <span className="text-red-700">*</span>
-                            </label>
-                        </div>
-                        <div>
-                            <select
-                                type="text"
-                                name="positions_id"
-                                id="positions_id"
-                                value={userDetail.positions_id}
-                                onChange={frmFieldHandler}
-                                className="w-full"
-                                required
-                            >
-                                {displayedPositions.length === 0 && (
-                                    <option>Select account role first.</option>
-                                )}
-                                {displayedPositions.length > 0 && (
-                                    <option>
-                                        Select position of this employee.
-                                    </option>
-                                )}
-                                {displayedPositions &&
-                                    displayedPositions.map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.name}
-                                        </option>
-                                    ))}
-                            </select>
-                        </div>
-                    </div>
+                                        {(userType === "ADMIN" ||
+                                            userType === "DEV") && (
+                                            <>
+                                                <option value="RECORDS_CUST">
+                                                    Level 2 (BU Records
+                                                    Custodian)
+                                                </option>
+                                                <option value="WAREHOUSE_CUST">
+                                                    Level 3 (Record Center
+                                                    Custodian)
+                                                </option>
+                                                <option value="BRANCH_HEAD">
+                                                    Level 4 (Business Unit Head)
+                                                </option>
+                                                <option value="WAREHOUSE_HEAD">
+                                                    Level 5 (Record Center Head)
+                                                </option>
+                                            </>
+                                        )}
+                                        {userType === "BRANCH_HEAD" && (
+                                            <>
+                                                <option value="RECORDS_CUST">
+                                                    Level 2 (BU Records
+                                                    Custodian)
+                                                </option>
+                                            </>
+                                        )}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="mb-4">
+                                <div className="mb-1">
+                                    <label htmlFor="positions_id">
+                                        Position{" "}
+                                        <span className="text-red-700">*</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <select
+                                        type="text"
+                                        name="positions_id"
+                                        id="positions_id"
+                                        value={userDetail.positions_id}
+                                        onChange={frmFieldHandler}
+                                        className="w-full"
+                                        required
+                                    >
+                                        {displayedPositions.length === 0 && (
+                                            <option>
+                                                Select account role first.
+                                            </option>
+                                        )}
+                                        {displayedPositions.length > 0 && (
+                                            <option>
+                                                Select position of this
+                                                employee.
+                                            </option>
+                                        )}
+                                        {displayedPositions &&
+                                            displayedPositions.map((p) => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name}
+                                                </option>
+                                            ))}
+                                    </select>
+                                </div>
+                            </div>
                         </>
-                    }
+                    )}
                     {userDetail.type === "EMPLOYEE" && (
                         <>
                             <label className="block">

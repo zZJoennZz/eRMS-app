@@ -420,7 +420,7 @@ class UserController extends Controller
                 return send401Response();
             }
 
-            $branch_code = $get_user->branch->name === "Warehouse" ? "WH" : $get_user->branch->code;
+            $branch_code = $get_user->branch->name === "Warehouse" ? "RCC" : $get_user->branch->code;
             $get_user->password = bcrypt($branch_code . $get_user->profile->last_name);
             $get_user->save();
 

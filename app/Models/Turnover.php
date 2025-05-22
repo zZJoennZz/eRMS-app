@@ -43,7 +43,8 @@ class Turnover extends Model
         return $this->hasOne(TurnoverData::class, 'turnovers_id', 'id');
     }
 
-    public function branch() {
+    public function branch()
+    {
         return $this->hasOne(Branch::class, 'id', 'branches_id');
     }
 }

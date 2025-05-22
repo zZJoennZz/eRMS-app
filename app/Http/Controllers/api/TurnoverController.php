@@ -183,45 +183,10 @@ class TurnoverController extends Controller
         }
         $turnover = [];
 
-        if ($user->type === "BRANCH_HEAD" || $user->type === "RECORDS_CUST") {
-            $turnover = Turnover::where('branches_id', $user->branches_id)
-                ->where('status', '=', 'PENDING')
-                ->with(['user', 'items' => function ($query) {
-                    $query->whereHas('rds_record', function ($query) {
-                        $query->where('status', '<>', 'DISPOSED')
-                            ->where('status', '<>', 'PENDING')
-                            ->whereHas('latest_history', function ($query) {
-                                $query->where('location', '<>', 'WAREHOUSE');
-                            });
-                    });
-                }, 'items.rds_record' => function ($query) {
-                    $query->where('status', '<>', 'DISPOSED')
-                        ->where('status', '<>', 'PENDING')
-                        ->whereHas('latest_history', function ($query) {
-                            $query->where('location', '<>', 'WAREHOUSE');
-                        });
-                }, 'items.rds_record.documents', 'items.rds_record.latest_history'])
-                ->first();
-        } elseif ($user->type === "WAREHOUSE_HEAD" || $user->type === "WAREHOUSE_CUST") {
-            $turnover = Turnover::where('branches_id', $user->branches_id)
-                ->where('status', '=', 'PENDING')
-                ->with(['user', 'items' => function ($query) {
-                    $query->whereHas('rds_record', function ($query) {
-                        $query->where('status', '<>', 'DISPOSED')
-                            ->where('status', '<>', 'PENDING')
-                            ->whereHas('latest_history', function ($query) {
-                                $query->where('location', 'WAREHOUSE');
-                            });
-                    });
-                }, 'items.rds_record' => function ($query) {
-                    $query->where('status', '<>', 'DISPOSED')
-                        ->where('status', '<>', 'PENDING')
-                        ->whereHas('latest_history', function ($query) {
-                            $query->where('location', 'WAREHOUSE');
-                        });
-                }, 'items.rds_record.documents', 'items.rds_record.latest_history'])
-                ->first();
-        }
+        $turnover = Turnover::where('branches_id', $user->branches_id)
+            ->where('status', '=', 'PENDING')
+            ->with(['user', 'items.rds_record', 'items.rds_record.documents', 'items.rds_record.latest_history'])
+            ->first();
 
         return send200Response($turnover);
     }
@@ -245,7 +210,7 @@ class TurnoverController extends Controller
 
 
             $new_user = new User();
-            $new_user->username = $get_new_rc->username . 'rc' . Carbon::now()->format('ymd');
+            $new_user->username = 3 . $get_new_rc->username . 'rc' . Carbon::now()->format('ymd');
             $new_user->email = $new_user->username . $get_new_rc->email;
             $new_user->password = bcrypt($user->branch->code . $get_new_rc->profile->last_name);
             $new_user->type = "RECORDS_CUST";
@@ -288,11 +253,12 @@ class TurnoverController extends Controller
             $current_rc->save();
 
             $turnover->status = 'APPROVED';
+            $turnover->selected_employee = $new_user->id;
             $turnover->save();
-            DB::commit();
+            DB::rollBack();
 
             return send200Response(
-                ['username' => $new_user->username,]
+                ['username' => $new_user->username]
             );
         } catch (\Exception $e) {
             DB::rollBack();
@@ -390,8 +356,8 @@ class TurnoverController extends Controller
     {
         try {
             $user = Auth::user();
-            if ($user->type !== "BRANCH_HEAD") {
-                return send422Response('Only branch head can approve turnover requests.');
+            if ($user->type !== "BRANCH_HEAD" && $user->type !== "WAREHOUSE_HEAD") {
+                return send422Response('Only authorized users can approve turnover requests.');
             }
             DB::beginTransaction();
 

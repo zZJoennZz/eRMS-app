@@ -96,24 +96,24 @@ class RDSRecordController extends Controller
                 ->orderBy('box_number', 'asc')
                 ->get();
             $pending_disposal = RDSRecord::with(['documents.history', 'documents.rds', 'history' => function ($query) {
-                    return $query->orderBy('created_at', 'desc');
-                }])
-                    ->where('branches_id', '=', Auth::user()->branches_id)
-                    ->where('status', '=', 'PENDING_DISPOSAL')
-                    ->orderBy('box_number', 'asc')
-                    ->get();
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->where('branches_id', '=', Auth::user()->branches_id)
+                ->where('status', '=', 'PENDING_DISPOSAL')
+                ->orderBy('box_number', 'asc')
+                ->get();
             $declined_records = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
                 return $query->orderBy('created_at', 'desc');
             }])
                 ->where('status', '=', 'DECLINED')
                 ->where('branches_id', '=', Auth::user()->branches_id)
                 ->get();
-                $disposed_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
-                    return $query->orderBy('created_at', 'desc');
-                }])
-                    ->where('status', '=', 'DISPOSED')
-                    ->where('branches_id', '=', value: Auth::user()->branches_id)
-                    ->get();
+            $disposed_record = RDSRecord::with(['documents', 'documents.rds', 'history' => function ($query) {
+                return $query->orderBy('created_at', 'desc');
+            }])
+                ->where('status', '=', 'DISPOSED')
+                ->where('branches_id', '=', value: Auth::user()->branches_id)
+                ->get();
             $rds_record = new \Illuminate\Database\Eloquent\Collection();
             $rds_record = $rds_record->merge($pending_records);
             $rds_record = $rds_record->merge($main_records);
@@ -392,8 +392,8 @@ class RDSRecordController extends Controller
                     })
                     ->where('latest_h.location', 'Warehouse')
                     ->where('branches.clusters_id', $user->branch->clusters_id) // Filter by clusters_id
-                    ->where('r_d_s_records.status', '<>','PENDING')
-                    ->where('r_d_s_records.status', '<>','DISPOSED')
+                    ->where('r_d_s_records.status', '<>', 'PENDING')
+                    ->where('r_d_s_records.status', '<>', 'DISPOSED')
                     ->select('r_d_s_records.*', 'latest_h.created_at as history_created_at', 'branches.name', 'r_d_s_records.status') // Select created_at from latest history
                     ->get();
             } else {
@@ -546,9 +546,10 @@ class RDSRecordController extends Controller
 
         if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
             $rds_record = RDSRecord::with(['submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile', 'documents.history.action_by.profile'])
-                ->whereHas('branch', function ($query) use ($user) {{
-                    $query->where('clusters_id', $user->branch->clusters_id);
-                }})
+                ->whereHas('branch', function ($query) use ($user) { {
+                        $query->where('clusters_id', $user->branch->clusters_id);
+                    }
+                })
                 ->whereHas('latest_history', function ($query) {
                     $query->where('location', 'Warehouse');
                 })
@@ -557,9 +558,9 @@ class RDSRecordController extends Controller
         } else {
             $rds_record = RDSRecord::with(['documents.rds', 'submitted_by_user.profile', 'transactions.transaction.history.user.profile', 'history.user.profile', 'documents.history.action_by.profile'])
                 ->where('branches_id', $user->branches_id)
-                ->whereHas('latest_history', function ($query) {
-                    $query->where('location', '<>', 'Warehouse');
-                })
+                // ->whereHas('latest_history', function ($query) {
+                //     $query->where('location', '<>', 'Warehouse');
+                // })
                 ->where('status', '<>', 'DISPOSED')
                 ->get();
         }

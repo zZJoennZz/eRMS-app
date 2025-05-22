@@ -18,23 +18,6 @@ export default function TurnoverForm({ turnoverData }) {
 
     const queryClient = useQueryClient();
 
-    const [newUser, setNewUser] = useState({
-        username: "",
-        email: "",
-        password: "",
-        first_name: "",
-        middle_name: "",
-        last_name: "",
-    });
-
-    function handleNewUserChange(e) {
-        const { name, value } = e.target;
-        setNewUser((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    }
-
     const approveTurnoverRequest = useMutation({
         mutationFn: approveTurnover(turnoverData.id),
         onSuccess: () => {
@@ -73,7 +56,7 @@ export default function TurnoverForm({ turnoverData }) {
                     "Are you sure you want to approve this turnover and create a new Record Center Custodian?"
                 )
             ) {
-                approveTurnoverRequest.mutate({ newUser });
+                approveTurnoverRequest.mutate();
             }
         }
     }

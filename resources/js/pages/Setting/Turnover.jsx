@@ -27,7 +27,7 @@ export default function Turnover() {
     const [users, setUsers] = useState([]);
     const [hasTurnover, setHasTurnover] = useState(false);
     const [formData, setFormData] = useState({
-        selectedEmployee: "",
+        selectedEmployee: 0,
         designationStatus: "",
         assumptionDate: "",
         fromDate: "",
@@ -212,18 +212,9 @@ export default function Turnover() {
                                                 )}
                                             </td>
                                             <td className="py-2 border-b border-slate-300">
-                                                {
-                                                    data.added_by_user.profile
-                                                        .first_name
-                                                }{" "}
-                                                {
-                                                    data.added_by_user.profile
-                                                        .middle_name
-                                                }{" "}
-                                                {
-                                                    data.added_by_user.profile
-                                                        .last_name
-                                                }
+                                                {data.user.profile.first_name}{" "}
+                                                {data.user.profile.middle_name}{" "}
+                                                {data.user.profile.last_name}
                                             </td>
                                             <td className="py-2 border-b border-slate-300">
                                                 {
@@ -322,18 +313,25 @@ export default function Turnover() {
                                                 )}
                                             </td>
                                             <td className="py-2 border-b border-slate-300">
-                                                {
-                                                    data.added_by_user.profile
-                                                        .first_name
-                                                }{" "}
-                                                {
-                                                    data.added_by_user.profile
-                                                        .middle_name
-                                                }{" "}
-                                                {
-                                                    data.added_by_user.profile
-                                                        .last_name
-                                                }
+                                                {data.selected_employee !==
+                                                0 ? (
+                                                    <>
+                                                        {
+                                                            data.user.profile
+                                                                .first_name
+                                                        }{" "}
+                                                        {
+                                                            data.user.profile
+                                                                .middle_name
+                                                        }{" "}
+                                                        {
+                                                            data.user.profile
+                                                                .last_name
+                                                        }
+                                                    </>
+                                                ) : (
+                                                    "No Employee Selected"
+                                                )}
                                             </td>
                                             <td className="py-2 border-b border-slate-300">
                                                 {

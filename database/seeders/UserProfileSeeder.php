@@ -39,7 +39,7 @@ class UserProfileSeeder extends Seeder
         ]);
         UserPosition::create([
             'user_profiles_id' => 2,
-            'positions_id' => 6,
+            'positions_id' => 9,
             'type' => "MAIN",
         ]);
 
