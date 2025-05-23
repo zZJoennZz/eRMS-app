@@ -50,7 +50,7 @@ const TurnoverForms = () => {
                 <div className="block">
                     <div className="text-2xl font-bold text-right">CLASS D</div>
                     <div className="italic text-lg font-bold text-right">
-                        Exhibit 2
+                        Exhibit 1
                     </div>
                 </div>
                 <div className="mt-5 text-center font-bold text-lg">
