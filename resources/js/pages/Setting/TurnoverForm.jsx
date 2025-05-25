@@ -19,10 +19,15 @@ export default function TurnoverForm({ turnoverData }) {
     const queryClient = useQueryClient();
 
     const approveTurnoverRequest = useMutation({
-        mutationFn: approveTurnover(turnoverData.id),
-        onSuccess: () => {
+        mutationFn: () => approveTurnover(turnoverData.id),
+        onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ["checkTurnover"] });
             toast.success("Turnover request has been approved!");
+            alert(
+                "Here is the new username for the new BU record custodian: " +
+                    res.username +
+                    ". Please inform them to log in with this username and the default password."
+            );
         },
         onError: (err) => {
             toast.error(

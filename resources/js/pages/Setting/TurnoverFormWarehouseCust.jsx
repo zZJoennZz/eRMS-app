@@ -40,6 +40,11 @@ export default function TurnoverFormWarehouseCust({ turnoverData }) {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["checkTurnover"] });
             toast.success("Turnover request has been approved!");
+            alert(
+                "Here is the new username for the new record center custodian: " +
+                    res.username +
+                    ". Please inform them to log in with this username and the default password."
+            );
         },
         onError: (err) => {
             toast.error(

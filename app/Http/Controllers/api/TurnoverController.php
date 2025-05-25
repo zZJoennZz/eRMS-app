@@ -208,9 +208,13 @@ class TurnoverController extends Controller
 
             $get_new_rc = User::find($turnover->selected_employee);
 
+            // Generate a unique username
+            do {
+                $username = 3 . $get_new_rc->username . 'RCacct' . rand(100, 999);
+            } while (User::where('username', $username)->exists());
 
             $new_user = new User();
-            $new_user->username = 3 . $get_new_rc->username . 'rc' . Carbon::now()->format('ymd');
+            $new_user->username = $username;
             $new_user->email = $new_user->username . $get_new_rc->email;
             $new_user->password = bcrypt($user->branch->code . $get_new_rc->profile->last_name);
             $new_user->type = "RECORDS_CUST";
@@ -255,7 +259,7 @@ class TurnoverController extends Controller
             $turnover->status = 'APPROVED';
             $turnover->selected_employee = $new_user->id;
             $turnover->save();
-            DB::rollBack();
+            DB::commit();
 
             return send200Response(
                 ['username' => $new_user->username]
@@ -348,7 +352,7 @@ class TurnoverController extends Controller
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return send400Response($e->getMessage());
+            return send400Response($e);
         }
     }
 

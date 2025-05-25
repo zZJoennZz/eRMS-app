@@ -302,7 +302,8 @@ export default function Transaction() {
                                                         {data.status}
                                                     </div>
                                                 )}
-                                                {data.status === "FOR WH APPROVAL" && (
+                                                {data.status ===
+                                                    "FOR WH APPROVAL" && (
                                                     <div className="bg-pink-700 text-white rounded-full inline-block px-2 py-1 text-xs">
                                                         FOR AUTHORIZATION
                                                     </div>
@@ -451,7 +452,8 @@ export default function Transaction() {
                                                         </button>
                                                     )}
 
-                                                {userType === "WAREHOUSE_HEAD" &&
+                                                {userType ===
+                                                    "WAREHOUSE_HEAD" &&
                                                     data.type === "WITHDRAW" &&
                                                     data.status ===
                                                         "FOR WH APPROVAL" && (
@@ -489,7 +491,9 @@ export default function Transaction() {
                                                     data.status === "PENDING" &&
                                                     (data.type === "WITHDRAW" ||
                                                         data.type ===
-                                                            "TRANSFER") && (
+                                                            "TRANSFER" ||
+                                                        data.type ===
+                                                            "RELEASE") && (
                                                         <button
                                                             type="button"
                                                             className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-red-700 border border-red-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
@@ -555,9 +559,10 @@ export default function Transaction() {
                                                     className="py-2 text-left border-b border-slate-300"
                                                     colSpan={3}
                                                 >
-                                                    {(userType !==
-                                                    "WAREHOUSE_CUST" && userType !==
-                                                    "WAREHOUSE_HEAD") ? (
+                                                    {userType !==
+                                                        "WAREHOUSE_CUST" &&
+                                                    userType !==
+                                                        "WAREHOUSE_HEAD" ? (
                                                         <a
                                                             href={`/rds-record-history/${rds.record.id}`}
                                                             target="_blank"
