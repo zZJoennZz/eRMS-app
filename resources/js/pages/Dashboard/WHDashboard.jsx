@@ -67,7 +67,7 @@ export default function WHDashboard() {
                                 href="/warehouse-monitoring"
                                 className="hover:underline"
                             >
-                                Total Boxes in Warehouse
+                                Total Boxes in Record Center
                                 <ArrowTopRightOnSquareIcon className="ml-1 w-4 h-4 inline" />
                             </a>
                         </div>
