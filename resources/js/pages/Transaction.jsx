@@ -360,7 +360,7 @@ export default function Transaction() {
                                                                 )
                                                             }
                                                         >
-                                                            Approve
+                                                            Received
                                                         </button>
                                                     )}
                                                 {userType === "RECORDS_CUST" &&
