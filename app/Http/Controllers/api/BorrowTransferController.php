@@ -112,6 +112,7 @@ class BorrowTransferController extends Controller
                     ->whereHas('document.record', function ($query) use ($user) {
                         $query->where('branches_id', $user->branches_id);
                     })
+                    ->orderBy('created_at', 'desc')
                     ->get();
 
                 // elseif ($user->type === "BRANCH_HEAD" || $user->type === "DEV" || $user->type === "ADMIN") {
@@ -138,7 +139,7 @@ class BorrowTransferController extends Controller
                     ->whereHas('document.record', function ($query) use ($user) {
                         $query->where('branches_id', $user->branches_id);
                     })
-                    ->orderBy('created_at','desc')
+                    ->orderBy('created_at', 'desc')
                     ->get();
             } else {
                 return send401Response();
@@ -253,7 +254,7 @@ class BorrowTransferController extends Controller
             }
 
             $rds_history->status = "RETURNING";
-            $rds_history->remarks = $request->remarks;
+            // $rds_history->remarks = $request->remarks;
             $rds_history->save();
 
             $new_rds_record_document_history = new RDSRecordDocumentHistory();
@@ -263,7 +264,7 @@ class BorrowTransferController extends Controller
             $new_rds_record_document_history->related_history_id = $id;
             $new_rds_record_document_history->users_id = $user->id;
             $new_rds_record_document_history->save();
-            $rds_history->save();
+            // $rds_history->save();
 
             DB::commit();
             return send200Response();
@@ -309,7 +310,6 @@ class BorrowTransferController extends Controller
             $new_rds_record_document_history->related_history_id = $id;
             $new_rds_record_document_history->users_id = $user->id;
             $new_rds_record_document_history->save();
-            $rds_history->save();
 
             $rds_record_doc = RDSRecordDocument::find($rds_history->record_documents_id);
             $rds_record_doc->current_status = "AVAILABLE";
