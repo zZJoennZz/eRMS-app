@@ -96,7 +96,7 @@ class TurnoverController extends Controller
 
             // Check if the user is of type RECORDS_CUST
             if ($user->type !== 'RECORDS_CUST' && $user->type !== "WAREHOUSE_CUST") {
-                return send422Response('Only records custodian and record center custodian can create turnover records.');
+                return send422Response('Only records custodian or record center custodian can create turnover records.');
             }
 
             // Check if the selected employee is in the same branch
@@ -130,7 +130,10 @@ class TurnoverController extends Controller
             $turnover->from_date = $request->fromDate;
             $turnover->to_date = $request->toDate;
             $turnover->current_job_holder_id = substr(User::find($user->id)->username, 1);
-            $turnover->incoming_job_holder_id = substr(User::find($request->selectedEmployee)->username, 1);
+            $selectedEmployeeUser = User::find($request->selectedEmployee);
+            $turnover->incoming_job_holder_id = $selectedEmployeeUser && !empty($selectedEmployeeUser->username)
+                ? substr($selectedEmployeeUser->username, 1)
+                : '';
             $turnover->status = 'PENDING';
             $turnover->added_by = $user->id;
             $turnover->branches_id = $user->branches_id;
