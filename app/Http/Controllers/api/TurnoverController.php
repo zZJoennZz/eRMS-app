@@ -299,6 +299,8 @@ class TurnoverController extends Controller
                 ->where('branches_id', $user->branches_id)
                 ->where('status', '=', 'PENDING')
                 ->first();
+            Turnover::where('branches_id', $user->branches_id)
+                ->where('status', '=', 'PENDING')->update(['incoming_job_holder_id' => $new_user['username']]);
 
             $inactive_position = Position::where('name', 'Inactive')->first()->id;
             $current_warehouse_cust = User::where('branches_id', $user->branches_id)

@@ -117,7 +117,7 @@ export default function TurnoverFormWarehouseCust({ turnoverData }) {
                         <input
                             type="text"
                             name="username"
-                            placeholder="Username"
+                            placeholder="Employee ID"
                             value={newUser.username}
                             onChange={handleNewUserChange}
                             className="mt-2 w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
@@ -224,20 +224,20 @@ export default function TurnoverFormWarehouseCust({ turnoverData }) {
                 )}
 
                 {[
-                    {
-                        label:
-                            "Current " + userType === "RECORDS_CUST"
-                                ? "Record Custodian ID"
-                                : "Record Center Custodian ID",
-                        value: turnoverData.current_job_holder_id,
-                    },
-                    {
-                        label:
-                            "Incoming " + userType === "RECORDS_CUST"
-                                ? "Record Custodian ID"
-                                : "Record Center Custodian ID",
-                        value: turnoverData.incoming_job_holder_id,
-                    },
+                    // {
+                    //     label:
+                    //         "Current " + userType === "RECORDS_CUST"
+                    //             ? "Record Custodian ID"
+                    //             : "Record Center Custodian ID",
+                    //     value: turnoverData.current_job_holder_id,
+                    // },
+                    // {
+                    //     label:
+                    //         "Incoming " + userType === "RECORDS_CUST"
+                    //             ? "Record Custodian ID"
+                    //             : "Record Center Custodian ID",
+                    //     value: turnoverData.incoming_job_holder_id,
+                    // },
                     {
                         label: "Date of Submission",
                         value: new Date(
