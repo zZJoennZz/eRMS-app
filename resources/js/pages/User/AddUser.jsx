@@ -336,9 +336,7 @@ export default function AddUser({ closeHandler }) {
                             </select>
                         </div>
                     </div>
-                    {(userType === "BRANCH_HEAD" ||
-                        userType === "DEV" ||
-                        userType === "ADMIN") && (
+                    {(userType === "DEV" || userType === "ADMIN") && (
                         <div className="mb-4">
                             <div className="mb-1">
                                 <label htmlFor="branches_id">
