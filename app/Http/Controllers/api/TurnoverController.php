@@ -307,17 +307,12 @@ class TurnoverController extends Controller
                 ->where('status', '=', 'PENDING')->update(['incoming_job_holder_id' => $new_user['username']]);
 
             $inactive_position = Position::where('name', 'Inactive')->first()->id;
-            $current_warehouse_cust = User::where('branches_id', $user->branches_id)
-                ->where('type', 'WAREHOUSE_CUST')
-                ->first();
-            if ($current_warehouse_cust) {
-                $current_warehouse_cust->update(['is_inactive' => 1]);
-            }
+            $current_warehouse_cust = User::find($turnover->added_by);
+            $current_warehouse_cust->is_inactive = 1;
+            $current_warehouse_cust->save();
 
-            $current_warehouse_cust_profile = UserProfile::where('users_id', $current_warehouse_cust->id)->first();
-            if ($current_warehouse_cust_profile) {
-                $current_warehouse_cust_profile->update(['positions_id' => $inactive_position]);
-            }
+            $current_warehouse_cust_profile = UserProfile::find($current_warehouse_cust->profile->id);
+            $current_warehouse_cust_profile->positions_id = $inactive_position;
 
             UserPosition::where('user_profiles_id', $current_warehouse_cust->profile->id)->delete();
 
