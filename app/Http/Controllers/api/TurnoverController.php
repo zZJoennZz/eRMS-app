@@ -99,6 +99,10 @@ class TurnoverController extends Controller
                 return send422Response('Only records custodian or record center custodian can create turnover records.');
             }
 
+            if ($request->assumptionDate < Carbon::now()->toDateString()) {
+                return send422Response('Assumption date cannot be in the past.');
+            }
+
             // Check if the selected employee is in the same branch
             $in_branch = User::where('id', $request->selectedEmployee)
                 ->where('branches_id', $user->branches_id)
@@ -306,12 +310,14 @@ class TurnoverController extends Controller
             $current_warehouse_cust = User::where('branches_id', $user->branches_id)
                 ->where('type', 'WAREHOUSE_CUST')
                 ->first();
-            $current_warehouse_cust->is_inactive = 1;
+            if ($current_warehouse_cust) {
+                $current_warehouse_cust->update(['is_inactive' => 1]);
+            }
 
             $current_warehouse_cust_profile = UserProfile::where('users_id', $current_warehouse_cust->id)->first();
-            $current_warehouse_cust_profile->positions_id = $inactive_position;
-
-            $current_warehouse_cust_profile->save();
+            if ($current_warehouse_cust_profile) {
+                $current_warehouse_cust_profile->update(['positions_id' => $inactive_position]);
+            }
 
             UserPosition::where('user_profiles_id', $current_warehouse_cust->profile->id)->delete();
 
@@ -321,7 +327,6 @@ class TurnoverController extends Controller
             $new_position->type = "MAIN";
             $new_position->save();
 
-            $current_warehouse_cust->save();
 
             $create_new_user = new User();
             $create_new_user->username = "4" . $new_user['username'];

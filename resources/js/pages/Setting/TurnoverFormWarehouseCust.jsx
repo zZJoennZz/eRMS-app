@@ -37,7 +37,7 @@ export default function TurnoverFormWarehouseCust({ turnoverData }) {
 
     const approveTurnoverRequest = useMutation({
         mutationFn: (data) => approveWhTurnover(data),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ["checkTurnover"] });
             toast.success("Turnover request has been approved!");
             alert(
