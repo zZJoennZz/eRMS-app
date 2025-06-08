@@ -75,8 +75,8 @@ class UserController extends Controller
         $typeToUsernameNumber = [
             'EMPLOYEE' => 1,
             'RECORDS_CUST' => 2,
-            'WAREHOUSE_CUST' => 3,
-            'BRANCH_HEAD' => 4,
+            'WAREHOUSE_CUST' => 4,
+            'BRANCH_HEAD' => 3,
             'WAREHOUSE_HEAD' => 5,
         ];
 
@@ -244,8 +244,8 @@ class UserController extends Controller
         $typeToUsernameNumber = [
             'EMPLOYEE' => 1,
             'RECORDS_CUST' => 2,
-            'WAREHOUSE_CUST' => 3,
-            'BRANCH_HEAD' => 4,
+            'WAREHOUSE_CUST' => 4,
+            'BRANCH_HEAD' => 3,
             'WAREHOUSE_HEAD' => 5,
         ];
         try {

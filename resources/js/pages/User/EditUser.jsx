@@ -395,12 +395,12 @@ export default function EditUser({ closeHandler, selUserId, rerender }) {
                                                     Level 2 (BU Records
                                                     Custodian)
                                                 </option>
-                                                <option value="WAREHOUSE_CUST">
-                                                    Level 3 (Record Center
-                                                    Custodian)
-                                                </option>
                                                 <option value="BRANCH_HEAD">
-                                                    Level 4 (Business Unit Head)
+                                                    Level 3 (Business Unit Head)
+                                                </option>
+                                                <option value="WAREHOUSE_CUST">
+                                                    Level 4 (Record Center
+                                                    Custodian)
                                                 </option>
                                                 <option value="WAREHOUSE_HEAD">
                                                     Level 5 (Record Center Head)

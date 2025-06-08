@@ -192,6 +192,7 @@ class MiscController extends Controller
         $upcoming_disposals = RDSRecord::with('latest_history')->whereHas('documents', function ($query) {
             $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
         })
+            ->where('branches_id', $user->branches_id)
             ->where('status', 'APPROVED')
             ->count();
         $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
@@ -280,6 +281,7 @@ class MiscController extends Controller
         $upcoming_disposals = RDSRecord::with('latest_history')->whereHas('documents', function ($query) {
             $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
         })
+            ->where('branches_id', $user->branches_id)
             ->where('status', 'APPROVED')
             ->count();
         $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
@@ -330,9 +332,9 @@ class MiscController extends Controller
             ->whereHas('document.record', function ($query) use ($user) {
                 $query->where('branches_id', $user->branches_id);
             })
-            ->where('status', '<>',value: 'RETURNED')
-            ->where('status', '<>',value: 'BORROWED')
-            ->where('status', '<>',value: 'FOR_RECEIVING')
+            ->where('status', '<>', value: 'RETURNED')
+            ->where('status', '<>', value: 'BORROWED')
+            ->where('status', '<>', value: 'FOR_RECEIVING')
             ->count();
 
         $res = [
@@ -381,8 +383,8 @@ class MiscController extends Controller
                 )');
             })
             ->where('branches.clusters_id', $user->branch->clusters_id) // Replace 5 with your desired cluster ID
-            ->where('status', '<>','PENDING')
-            ->where('status', '<>','DISPOSED')
+            ->where('status', '<>', 'PENDING')
+            ->where('status', '<>', 'DISPOSED')
             ->count();
 
         $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
@@ -395,8 +397,8 @@ class MiscController extends Controller
                 $query1
                     ->where('location', 'Warehouse');
             })
-            ->where('status', '<>','PENDING')
-            ->where('status', '<>','DISPOSED')
+            ->where('status', '<>', 'PENDING')
+            ->where('status', '<>', 'DISPOSED')
             ->count();
 
         $res = [
@@ -424,7 +426,7 @@ class MiscController extends Controller
                 $query->where('clusters_id', $user->branch->clusters_id);
             })
             ->count();
-            
+
         $boxes_in_warehouse = DB::table('r_d_s_records')
             ->join('branches', 'r_d_s_records.branches_id', '=', 'branches.id') // Join to get clusters_id
             ->whereExists(function ($query) {
@@ -458,8 +460,8 @@ class MiscController extends Controller
             ->count();
 
         $disposal_confirmation = RecordDisposal::whereHas('branch', function ($query) use ($user) {
-                $query->where('clusters_id', $user->branch->clusters_id);
-            })
+            $query->where('clusters_id', $user->branch->clusters_id);
+        })
             ->whereHas('items.record.latest_history', function ($query) {
                 $query->where("location", 'Warehouse');
             })
@@ -476,9 +478,6 @@ class MiscController extends Controller
         ];
 
         return send200Response($res);
-    
-    
-    
     }
 
     public function admin_dashboard()
@@ -739,7 +738,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if($user->type!=="RECORDS_CUST" && $user->type!=="BRANCH_HEAD"){
+        if ($user->type !== "RECORDS_CUST" && $user->type !== "BRANCH_HEAD") {
             return send401Response();
         }
 
@@ -747,9 +746,9 @@ class MiscController extends Controller
             $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
         })
             ->where('branches_id', $user->branches_id)
-            ->where('status','<>', 'PENDING')
-            ->where('status','<>', 'DISPOSED')
-            ->where('box_number','<>', 'OPEN')
+            ->where('status', '<>', 'PENDING')
+            ->where('status', '<>', 'DISPOSED')
+            ->where('box_number', '<>', 'OPEN')
             ->get();
 
         $overdue_disposals = RDSRecord::whereHas('documents', function ($query) {
@@ -757,14 +756,14 @@ class MiscController extends Controller
         })
             ->with(['latest_history', 'documents'])
             ->where('branches_id', $user->branches_id)
-            ->where('status','<>', 'PENDING')
-            ->where('status','<>', 'DISPOSED')
+            ->where('status', '<>', 'PENDING')
+            ->where('status', '<>', 'DISPOSED')
             ->where('box_number', '<>', 'OPEN')
             ->get();
 
         return send200Response([
-            'upcoming_disposals'=>$upcoming_disposals,
-            'overdue_disposals'=>$overdue_disposals,
+            'upcoming_disposals' => $upcoming_disposals,
+            'overdue_disposals' => $overdue_disposals,
         ]);
     }
 }

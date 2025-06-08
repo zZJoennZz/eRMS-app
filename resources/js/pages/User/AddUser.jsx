@@ -289,11 +289,11 @@ export default function AddUser({ closeHandler }) {
                                         <option value="RECORDS_CUST">
                                             Level 2 (BU Records Custodian)
                                         </option>
-                                        <option value="WAREHOUSE_CUST">
-                                            Level 3 (Record Center Custodian)
-                                        </option>
                                         <option value="BRANCH_HEAD">
-                                            Level 4 (Business Unit Head)
+                                            Level 3 (Business Unit Head)
+                                        </option>
+                                        <option value="WAREHOUSE_CUST">
+                                            Level 4 (Record Center Custodian)
                                         </option>
                                         <option value="WAREHOUSE_HEAD">
                                             Level 5 (Record Center Head)
@@ -360,9 +360,10 @@ export default function AddUser({ closeHandler }) {
                                     {branches &&
                                         branches.map((p) => {
                                             if (
-                                                (userDetail.type !==
-                                                    "WAREHOUSE_CUST" && userDetail.type !==
-                                                    "WAREHOUSE_HEAD") &&
+                                                userDetail.type !==
+                                                    "WAREHOUSE_CUST" &&
+                                                userDetail.type !==
+                                                    "WAREHOUSE_HEAD" &&
                                                 p.name === "Warehouse"
                                             ) {
                                                 return null;
@@ -370,8 +371,9 @@ export default function AddUser({ closeHandler }) {
 
                                             if (
                                                 (userDetail.type ===
-                                                    "WAREHOUSE_CUST" || userDetail.type ===
-                                                    "WAREHOUSE_HEAD") &&
+                                                    "WAREHOUSE_CUST" ||
+                                                    userDetail.type ===
+                                                        "WAREHOUSE_HEAD") &&
                                                 p.name !== "Warehouse"
                                             ) {
                                                 return null;

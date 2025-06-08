@@ -122,11 +122,15 @@ export default function User() {
     function filterUsers(users, searchTxt) {
         const keyword = searchTxt.toLowerCase();
         return users.filter((user) => {
-            const fullName = `${user.profile.first_name} ${user.profile.middle_name} ${user.profile.last_name}`.toLowerCase();
+            const fullName =
+                `${user.profile.first_name} ${user.profile.middle_name} ${user.profile.last_name}`.toLowerCase();
             const branchName = user.branch?.name?.toLowerCase() || "";
             const clusterName = user.branch?.cluster?.name?.toLowerCase() || "";
-            const position = user.profile.positions.find((p) => p.type === "MAIN")?.position.name.toLowerCase() || "";
-    
+            const position =
+                user.profile.positions
+                    .find((p) => p.type === "MAIN")
+                    ?.position.name.toLowerCase() || "";
+
             return (
                 fullName.includes(keyword) ||
                 branchName.includes(keyword) ||
@@ -136,7 +140,6 @@ export default function User() {
         });
     }
 
-    
     return (
         <DashboardLayout>
             <SideDrawer
@@ -180,9 +183,7 @@ export default function User() {
                                 Users List
                             </h1>
                         </header>
-                        {
-                            userType !== "WAREHOUSE_HEAD" &&
-
+                        {userType !== "WAREHOUSE_HEAD" && (
                             <>
                                 <div className="mb-3">
                                     <input
@@ -190,7 +191,9 @@ export default function User() {
                                         id="search"
                                         name="search"
                                         value={searchTxt}
-                                        onChange={(e) => setSearchTxt(e.target.value)}
+                                        onChange={(e) =>
+                                            setSearchTxt(e.target.value)
+                                        }
                                         className="w-full"
                                         placeholder="Search user here"
                                     />
@@ -200,12 +203,12 @@ export default function User() {
                                         className="px-4 py-2 rounded text-sm bg-lime-600 text-white hover:bg-lime-500 transition-all ease-in-out duration-300 flex items-center"
                                         onClick={() => openDrawer("new")}
                                     >
-                                        <PlusIcon className="w-4 h-4 inline mr-2" /> Add
-                                        User
+                                        <PlusIcon className="w-4 h-4 inline mr-2" />{" "}
+                                        Add User
                                     </button>
                                 </div>
                             </>
-                        }
+                        )}
                         <div className="overflow-x-auto">
                             <table className="mb-3 w-full">
                                 <thead className="text-left text-xs font-semibold border-t border-b border-lime-600">
@@ -223,25 +226,26 @@ export default function User() {
                                         </tr>
                                     ) : (
                                         getAllUsers.data &&
-                                            filterUsers(getAllUsers.data, searchTxt)
-                                            .map((data) => (
-                                                <tr
-                                                    key={data.id}
-                                                    id={data.id}
-                                                    className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
-                                                >
-                                                    <td className="py-2 text-left border-b border-slate-300">
-                                                        {data.profile
-                                                            .first_name +
-                                                            " " +
-                                                            data.profile
-                                                                .middle_name +
-                                                            " " +
-                                                            data.profile
-                                                                .last_name}
+                                        filterUsers(
+                                            getAllUsers.data,
+                                            searchTxt
+                                        ).map((data) => (
+                                            <tr
+                                                key={data.id}
+                                                id={data.id}
+                                                className="group cursor-pointer hover:bg-gray-300 transition-all ease-in-out duration-300"
+                                            >
+                                                <td className="py-2 text-left border-b border-slate-300">
+                                                    {data.profile.first_name +
+                                                        " " +
+                                                        data.profile
+                                                            .middle_name +
+                                                        " " +
+                                                        data.profile.last_name}
 
-                                                        {data.type !==
-                                                            "BRANCH_HEAD" && data.id !== currId && (
+                                                    {data.type !==
+                                                        "BRANCH_HEAD" &&
+                                                        data.id !== currId && (
                                                             <button
                                                                 type="button"
                                                                 className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-600 border border-green-600 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
@@ -256,50 +260,78 @@ export default function User() {
                                                             </button>
                                                         )}
 
-                                                        {data.type ===
-                                                            "BRANCH_HEAD" && (
+                                                    {data.type ===
+                                                        "BRANCH_HEAD" &&
+                                                        (userType === "ADMIN" ||
+                                                            userType ===
+                                                                "DEV") &&
+                                                        data.id !== currId && (
+                                                            <button
+                                                                type="button"
+                                                                className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-600 border border-green-600 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                                onClick={() =>
+                                                                    openDrawer(
+                                                                        "edit",
+                                                                        data.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        )}
+
+                                                    {data.type ===
+                                                        "BRANCH_HEAD" &&
+                                                        userType !== "ADMIN" &&
+                                                        userType !== "DEV" && (
                                                             <div className="inline opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-gray-400 border border-gray-400 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded">
                                                                 Cannot edit
                                                                 branch head
                                                             </div>
                                                         )}
 
-                                                        {data.id === currId && <div className="inline opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-gray-400 border border-gray-400 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded">
-                                                                Cannot edit
-                                                                your own account.
-                                                            </div>}
-
-                                                        {(userType ===
-                                                            "ADMIN" ||
-                                                            userType ===
-                                                                "DEV") && (
-                                                            <button
-                                                                type="button"
-                                                                className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-orange-600 border border-orange-600 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
-                                                                onClick={() =>
-                                                                    confirmDisableUser(
-                                                                        data.id
-                                                                    )
-                                                                }
-                                                            >
-                                                                Disable User
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                    <td className="py-2 text-left border-b border-slate-300">
-                                                        <div className="inline text-xs px-2 py-1 bg-slate-500 rounded-full text-white mr-2">
-                                                            {data.branch.name === "Warehouse" ? data.branch.cluster.name + " Records Center" : data.branch.name}
+                                                    {data.id === currId && (
+                                                        <div className="inline opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-gray-400 border border-gray-400 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded">
+                                                            Cannot edit your own
+                                                            account.
                                                         </div>
-                                                        {
-                                                            data.profile.positions.filter(
-                                                                (d) =>
-                                                                    d.type ===
-                                                                    "MAIN"
-                                                            )[0].position.name
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            ))
+                                                    )}
+
+                                                    {(userType === "ADMIN" ||
+                                                        userType === "DEV") && (
+                                                        <button
+                                                            type="button"
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-orange-600 border border-orange-600 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                            onClick={() =>
+                                                                confirmDisableUser(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Disable User
+                                                        </button>
+                                                    )}
+                                                </td>
+                                                <td className="py-2 text-left border-b border-slate-300">
+                                                    <div className="inline text-xs px-2 py-1 bg-slate-500 rounded-full text-white mr-2">
+                                                        {data.branch.name ===
+                                                        "Warehouse"
+                                                            ? data.branch
+                                                                  .cluster
+                                                                  .name +
+                                                              " Records Center"
+                                                            : data.branch.name}
+                                                    </div>
+                                                    {
+                                                        data.profile.positions.filter(
+                                                            (d) =>
+                                                                d.type ===
+                                                                "MAIN"
+                                                        )[0].position.name
+                                                    }
+                                                </td>
+                                            </tr>
+                                        ))
                                     )}
                                 </tbody>
                             </table>
