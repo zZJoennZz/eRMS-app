@@ -636,7 +636,7 @@ export default function Turnover() {
                                     </div>
 
                                     {/* Step 3 */}
-                                    <div>
+                                    {/* <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
                                             Step 3: Enter ID Numbers
                                         </h2>
@@ -686,12 +686,12 @@ export default function Turnover() {
                                                 })
                                             }
                                         />
-                                    </div>
+                                    </div> */}
 
                                     {/* Step 4 */}
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Step 4: Approval
+                                            Step 3: Approval
                                         </h2>
                                         <p className="text-sm text-gray-500 mt-1">
                                             The turnover request is subject to

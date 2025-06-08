@@ -129,8 +129,8 @@ class TurnoverController extends Controller
             $turnover->assumption_date = $request->assumptionDate;
             $turnover->from_date = $request->fromDate;
             $turnover->to_date = $request->toDate;
-            $turnover->current_job_holder_id = $request->currentJobHolderId;
-            $turnover->incoming_job_holder_id = $request->incomingJobHolderId;
+            $turnover->current_job_holder_id = substr(User::find($user->id)->username, 1);
+            $turnover->incoming_job_holder_id = substr(User::find($request->selectedEmployee)->username, 1);
             $turnover->status = 'PENDING';
             $turnover->added_by = $user->id;
             $turnover->branches_id = $user->branches_id;
