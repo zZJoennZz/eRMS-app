@@ -187,9 +187,14 @@ const TurnoverForms = () => {
                             Incoming Record Custodian:
                         </div>
                         <div className="flex-grow border-b border-black">
-                            {/* {turnoverDetails.user.profile.first_name}{" "}
-                            {turnoverDetails.user.profile.middle_name}{" "}
-                            {turnoverDetails.user.profile.last_name} */}
+                            {turnoverDetails.user &&
+                            turnoverDetails.user.profile ? (
+                                <>
+                                    {turnoverDetails.user.profile.first_name}{" "}
+                                    {turnoverDetails.user.profile.middle_name}{" "}
+                                    {turnoverDetails.user.profile.last_name}
+                                </>
+                            ) : null}
                         </div>
                     </div>
                     <div className="flex w-4/12 space-x-3">
