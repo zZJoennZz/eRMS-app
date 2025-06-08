@@ -52,6 +52,13 @@ const DisposedRecordsForm = () => {
                     </span>
                 </div>
             )}
+            {!isLoading && recordDisposal.status === "AUTHORIZED" && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+                    <span className="text-9xl font-bold text-gray-500 rotate-45">
+                        PENDING
+                    </span>
+                </div>
+            )}
             {!isLoading && recordDisposal.status === "DECLINED" && (
                 <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
                     <span className="text-9xl font-bold text-red-500 rotate-45">

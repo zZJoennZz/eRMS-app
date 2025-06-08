@@ -310,9 +310,7 @@ export default function Transaction() {
                                                 )}
                                                 {(userType === "BRANCH_HEAD" ||
                                                     userType === "DEV") &&
-                                                    (data.type === "TRANSFER" ||
-                                                        data.type ===
-                                                            "WITHDRAW") &&
+                                                    data.type === "WITHDRAW" &&
                                                     data.status ===
                                                         "PENDING" && (
                                                         <button
@@ -325,6 +323,24 @@ export default function Transaction() {
                                                             }
                                                         >
                                                             Approve
+                                                        </button>
+                                                    )}
+
+                                                {(userType === "BRANCH_HEAD" ||
+                                                    userType === "DEV") &&
+                                                    data.type === "TRANSFER" &&
+                                                    data.status ===
+                                                        "PENDING" && (
+                                                        <button
+                                                            type="button"
+                                                            className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
+                                                            onClick={() =>
+                                                                startProcessTransaction(
+                                                                    data.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Receive
                                                         </button>
                                                     )}
 

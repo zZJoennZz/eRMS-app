@@ -65,6 +65,12 @@ class BranchController extends Controller
                     $new_branches->clusters_id = $request->clusters_id;
                 }
             } else {
+                if (Branch::where('name', $request->name)->exists()) {
+                    return send422Response("Branch name already exists.");
+                }
+                if (Branch::where('code', $request->code)->exists()) {
+                    return send422Response("Branch code already exists.");
+                }
                 $new_branches->code = $request->code;
                 $new_branches->name = $request->name;
                 $new_branches->clusters_id = $request->clusters_id;
@@ -120,6 +126,12 @@ class BranchController extends Controller
             if ($request->is_warehouse) {
                 return send422Response("You cannot edit warehouse record.");
             } else {
+                if (Branch::where('name', $request->name)->where('id', '!=', $id)->exists()) {
+                    return send422Response("Branch name already exists.");
+                }
+                if (Branch::where('code', $request->code)->where('id', '!=', $id)->exists()) {
+                    return send422Response("Branch code already exists.");
+                }
                 $branch->code = $request->code;
                 $branch->name = $request->name;
             }
