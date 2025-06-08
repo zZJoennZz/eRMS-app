@@ -44,6 +44,10 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         //
+        $user = Auth::user();
+        if (!in_array($user->type, ["DEV", "ADMIN"])) {
+            return send401Response();
+        }
         try {
             if ($request->clusters_id === 0 || $request->clusters_id === "0") {
                 return send422Response('Please select a valid cluster!');
@@ -106,7 +110,10 @@ class BranchController extends Controller
     {
         //
         try {
-
+            $user = Auth::user();
+            if (!in_array($user->type, ["DEV", "ADMIN"])) {
+                return send401Response();
+            }
             DB::beginTransaction();
             $branch = Branch::find($id);
 

@@ -119,8 +119,11 @@ class DisposalController extends Controller
 
     public function submit_disposal(Request $request)
     {
-        $user = Auth::user();
         try {
+            $user = Auth::user();
+            if (!in_array($user->type, ["DEV", "ADMIN", "RECORDS_CUST"])) {
+                return send401Response();
+            }
             $cart = $request->cart;
 
             //VALIDATIONS
@@ -198,6 +201,10 @@ class DisposalController extends Controller
     public function get_report($id)
     {
         try {
+            $user = Auth::user();
+            if (!in_array($user->type, ["DEV", "ADMIN", "RECORDS_CUST", "BRANCH_HEAD"])) {
+                return send401Response();
+            }
             $disposal_form = RecordDisposal::with(['items.record.documents.rds', 'user.profile.position', 'user.branch', 'branch_head.profile'])->where('id', $id)->first();
 
             $res = [
