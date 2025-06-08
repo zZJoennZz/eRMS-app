@@ -493,7 +493,7 @@ export default function Turnover() {
                                                                     user.profile
                                                                         .middle_name +
                                                                     user.profile
-                                                                        .last_name ===
+                                                                        .last_name !==
                                                                     currProfile.first_name +
                                                                         currProfile.middle_name +
                                                                         currProfile.last_name && (
