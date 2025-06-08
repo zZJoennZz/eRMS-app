@@ -21,7 +21,7 @@ import { PrinterIcon } from "@heroicons/react/24/outline";
 import { formatDate } from "../../utils/utilities";
 
 export default function Turnover() {
-    const { currId, userType } = useContext(AuthContext);
+    const { currId, userType, currProfile } = useContext(AuthContext);
     const [isSidebarOpen, setIsOpenSidebarOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [users, setUsers] = useState([]);
@@ -487,7 +487,16 @@ export default function Turnover() {
                                                         users.map(
                                                             (user) =>
                                                                 user.id !==
-                                                                    currId && (
+                                                                    currId &&
+                                                                user.profile
+                                                                    .first_name +
+                                                                    user.profile
+                                                                        .middle_name +
+                                                                    user.profile
+                                                                        .last_name ===
+                                                                    currProfile.first_name +
+                                                                        currProfile.middle_name +
+                                                                        currProfile.last_name && (
                                                                     <option
                                                                         key={
                                                                             user.id
