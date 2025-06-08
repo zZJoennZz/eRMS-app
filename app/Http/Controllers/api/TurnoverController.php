@@ -210,7 +210,7 @@ class TurnoverController extends Controller
 
             // Generate a unique username
             do {
-                $username = 3 . $get_new_rc->username . 'RCacct' . rand(100, 999);
+                $username = 2 . $get_new_rc->username . 'RCacct' . rand(100, 999);
             } while (User::where('username', $username)->exists());
 
             $new_user = new User();
@@ -319,7 +319,7 @@ class TurnoverController extends Controller
             $current_warehouse_cust->save();
 
             $create_new_user = new User();
-            $create_new_user->username = $new_user['username'];
+            $create_new_user->username = "4" . $new_user['username'];
             $create_new_user->email = $new_user['email'];
             $create_new_user->password = bcrypt($new_user['password']);
             $create_new_user->type = "WAREHOUSE_CUST";
