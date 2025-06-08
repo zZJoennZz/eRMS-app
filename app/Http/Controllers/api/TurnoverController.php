@@ -209,12 +209,12 @@ class TurnoverController extends Controller
             $get_new_rc = User::find($turnover->selected_employee);
 
             // Generate a unique username
-            do {
-                $username = 2 . $get_new_rc->username . 'RCacct' . rand(100, 999);
-            } while (User::where('username', $username)->exists());
+            // do {
+            //     $username = 2 . $get_new_rc->username . 'RCacct' . rand(100, 999);
+            // } while (User::where('username', $username)->exists());
 
             $new_user = new User();
-            $new_user->username = $username;
+            $new_user->username = "2" . $turnover->incoming_job_holder_id;
             $new_user->email = $new_user->username . $get_new_rc->email;
             $new_user->password = bcrypt($user->branch->code . $get_new_rc->profile->last_name);
             $new_user->type = "RECORDS_CUST";
