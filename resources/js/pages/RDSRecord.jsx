@@ -197,7 +197,7 @@ export default function RDSRecord() {
                     className="w-full"
                 >
                     <option value="">All Record Types</option>
-                    <option value="APPROVED">Approved</option>
+                    <option value="APPROVED">Received</option>
                     <option value="PENDING">Pending</option>
                     <option value="DECLINED">Declined</option>
                     <option value="DISPOSED">Disposed</option>
