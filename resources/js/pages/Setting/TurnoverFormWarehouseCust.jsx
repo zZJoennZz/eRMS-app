@@ -132,7 +132,7 @@ export default function TurnoverFormWarehouseCust({ turnoverData }) {
                             className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
                             required
                         />
-                        <input
+                        {/* <input
                             type="password"
                             name="password"
                             placeholder="Password"
@@ -140,7 +140,7 @@ export default function TurnoverFormWarehouseCust({ turnoverData }) {
                             onChange={handleNewUserChange}
                             className="w-full p-3 border border-gray-400 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
                             required
-                        />
+                        /> */}
                         <input
                             type="text"
                             name="first_name"

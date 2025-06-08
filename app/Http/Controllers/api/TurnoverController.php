@@ -278,7 +278,7 @@ class TurnoverController extends Controller
         $validator = Validator::make($request->all(), [
             'newUser.username' => 'required|unique:users,username',
             'newUser.email' => 'required|email|unique:users,email',
-            'newUser.password' => 'required|min:6',
+            // 'newUser.password' => 'required|min:6',
         ]);
 
         if ($validator->fails()) {
@@ -326,7 +326,7 @@ class TurnoverController extends Controller
             $create_new_user = new User();
             $create_new_user->username = "4" . $new_user['username'];
             $create_new_user->email = $new_user['email'];
-            $create_new_user->password = bcrypt($new_user['password']);
+            $create_new_user->password = bcrypt("RCC" . $new_user['last_name']);
             $create_new_user->type = "WAREHOUSE_CUST";
             $create_new_user->branches_id = $user->branches_id;
             $create_new_user->save();
