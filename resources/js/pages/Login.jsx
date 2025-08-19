@@ -38,16 +38,20 @@ export default function Login() {
             .post(`${API_URL}login`, loginCredentials)
             .then((res) => {
                 localStorage.setItem("token", "Bearer " + res.data.data.token);
-
-                changeAuth(
-                    true,
-                    res.data.data.id,
-                    res.data.data.type,
-                    res.data.data.profile,
-                    res.data.data.branch,
-                    res.data.data.current_position
-                );
-                toast.success("Login success!");
+                if (res.data && res.data.data.is_password_expired) {
+                    changeAuth(true, 0, 0, 0, 0, 0, 0, true);
+                } else {
+                    changeAuth(
+                        true,
+                        res.data.data.id,
+                        res.data.data.type,
+                        res.data.data.profile,
+                        res.data.data.expires_in,
+                        res.data.data.branch,
+                        res.data.data.current_position
+                    );
+                    toast.success("Login success!");
+                }
             })
             .catch((err) => {
                 if (err.name && err.name === "AxiosError") {

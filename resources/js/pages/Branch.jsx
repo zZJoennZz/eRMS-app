@@ -171,10 +171,11 @@ export default function Branch() {
                                                 >
                                                     <td className="py-2 text-left border-b border-slate-300">
                                                         {data.name ===
-                                                            "Warehouse" &&
-                                                            data.cluster.name +
-                                                                " "}
-                                                        {data.name}
+                                                        "Warehouse"
+                                                            ? data.cluster
+                                                                  .name +
+                                                              " Record Center"
+                                                            : data.name}
                                                         {data.name !==
                                                             "Warehouse" && (
                                                             <button
@@ -190,7 +191,13 @@ export default function Branch() {
                                                                 Edit
                                                             </button>
                                                         )}
-                                                        {data.name === "Warehouse" && <div className="inline rounded ml-1 text-slate-500 p-0.5 text-xs border border-slate-300">You cannot edit Record Centers.</div>}
+                                                        {data.name ===
+                                                            "Warehouse" && (
+                                                            <div className="inline rounded ml-1 text-slate-500 p-0.5 text-xs border border-slate-300">
+                                                                You cannot edit
+                                                                Record Centers.
+                                                            </div>
+                                                        )}
                                                     </td>
                                                     <td className="py-2 text-left border-b border-slate-300">
                                                         {data.code === ""

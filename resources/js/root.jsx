@@ -32,6 +32,9 @@ const Turnover = lazy(() => import("./pages/Setting/Turnover"));
 const TurnoverForms = lazy(() => import("./pages/Report/TurnoverForms"));
 const OpenBox = lazy(() => import("./pages/OpenBox"));
 const DisposalReport = lazy(() => import("./pages/Report/DisposalReport"));
+const ForceChangePassword = lazy(() =>
+    import("./pages/User/ForceChangePassword")
+);
 
 export default function Root() {
     const [isAuth, setIsAuth] = useState(false);
@@ -39,21 +42,36 @@ export default function Root() {
     const [isLoading, setIsLoading] = useState(true);
     const [userType, setUserType] = useState("");
     const [currId, setCurrId] = useState(0);
+    const [expiresIn, setExpiresIn] = useState(0);
     const [currPosition, setCurrPosition] = useState({});
     const [branchDetails, setBranchDetails] = useState({});
+    const [isForceChangePassword, setIsForceChangePassword] = useState(false);
 
-    function changeAuth(value, id, userType, profile, branchDets, currPos) {
+    function changeAuth(
+        value,
+        id,
+        userType,
+        profile,
+        expiresIn,
+        branchDets,
+        currPos,
+        isForceChangePassword
+    ) {
         if (!value) {
             localStorage.removeItem("token");
             setCurrId(0);
             setUserType("");
+            setExpiresIn("");
             setCurrProfile({});
             setCurrPosition({});
+            setIsForceChangePassword(false);
         }
+        setIsForceChangePassword(isForceChangePassword);
         setUserType(userType);
         setIsAuth(value);
         setCurrId(id);
         setCurrProfile(profile);
+        setExpiresIn(expiresIn);
         setBranchDetails(branchDets);
         setCurrPosition(currPos);
     }
@@ -65,9 +83,9 @@ export default function Root() {
             setIsLoading(true);
             abortController = new AbortController();
             const signal = abortController.signal;
-
+            let res;
             try {
-                const res = await axios.post(
+                res = await axios.post(
                     `${API_URL}check_token`,
                     { signal },
                     {
@@ -76,21 +94,34 @@ export default function Root() {
                         },
                     }
                 );
-                const { type, id, profile, branch, current_position } =
-                    res.data.data;
+                const {
+                    type,
+                    id,
+                    profile,
+                    branch,
+                    current_position,
+                    expires_in,
+                } = res.data.data;
                 setUserType(type);
                 setCurrId(id);
+                setExpiresIn(expires_in);
                 setIsAuth(true);
                 setCurrProfile(profile);
                 setBranchDetails(branch);
                 setCurrPosition(current_position);
             } catch {
-                setUserType("");
-                setIsAuth(false);
-                setCurrId(0);
-                setCurrProfile({});
-                setCurrPosition({});
-                localStorage.removeItem("token");
+                if (res.data && res.data.password_expired) {
+                    setIsForceChangePassword(true);
+                } else {
+                    setUserType("");
+                    setIsAuth(false);
+                    setCurrId(0);
+                    setExpiresIn(0);
+                    setCurrProfile({});
+                    setCurrPosition({});
+                    setIsForceChangePassword(false);
+                    localStorage.removeItem("token");
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -108,8 +139,10 @@ export default function Root() {
             currId,
             userType,
             currProfile,
+            expiresIn,
             branchDetails,
             currPosition,
+            isForceChangePassword,
         }),
         [
             isAuth,
@@ -117,8 +150,10 @@ export default function Root() {
             isLoading,
             userType,
             currProfile,
+            expiresIn,
             branchDetails,
             currPosition,
+            isForceChangePassword,
         ]
     );
 
@@ -127,7 +162,9 @@ export default function Root() {
             <Route path={path} element={<Component />} />
         </Route>
     );
-
+    if (isForceChangePassword) {
+        return <ForceChangePassword />;
+    }
     return (
         <AuthContext.Provider value={contextValue}>
             <Suspense fallback={<PreLoader />}>

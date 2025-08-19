@@ -13,8 +13,6 @@ use App\Http\Controllers\api\TransactionController;
 use App\Http\Controllers\api\TurnoverController;
 use App\Http\Controllers\api\UserController;
 use App\Models\InterveningRole;
-use App\Models\RDSRecord;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,10 +27,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(['auth:api', 'token.expiration', 'password.reset'])->group(function () {
         Route::post('register', [PassportAuthController::class, 'register']);
         Route::post('logout', [PassportAuthController::class, 'logout']);
         Route::post('check_token', [PassportAuthController::class, 'is_valid']);
+        Route::post('force-reset-password', [PassportAuthController::class, 'force_reset_password']);
 
         Route::resource('rds', RDSController::class);
         Route::get('rds-records/approved-rds-records', [RDSRecordController::class, 'approved_rds_records']);

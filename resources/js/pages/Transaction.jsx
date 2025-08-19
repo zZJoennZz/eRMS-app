@@ -340,7 +340,7 @@ export default function Transaction() {
                                                                 )
                                                             }
                                                         >
-                                                            Receive
+                                                            Approve
                                                         </button>
                                                     )}
 

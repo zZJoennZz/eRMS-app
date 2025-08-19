@@ -91,6 +91,7 @@ class UserController extends Controller
                     'username' => 'required|unique:users',
                     'email_address' => 'required|email|unique:users,email',
                     'password' => 'required:min:6',
+                    'branches_id' => 'required|exists:branches,id',
                 ]);
 
                 $new_user = new User();

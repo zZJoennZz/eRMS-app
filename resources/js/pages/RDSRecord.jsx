@@ -118,8 +118,14 @@ export default function RDSRecord() {
 
     function submitBorrow() {
         if (confirm("Are you sure to borrow these item/s?")) {
-            let reasonForBorrowing = prompt("Please enter your reason for borrowing this document/s.");
-            if (reasonForBorrowing.trim() === "" || reasonForBorrowing.trim() === null || reasonForBorrowing.trim() === 0) {
+            let reasonForBorrowing = prompt(
+                "Please enter your reason for borrowing this document/s."
+            );
+            if (
+                reasonForBorrowing.trim() === "" ||
+                reasonForBorrowing.trim() === null ||
+                reasonForBorrowing.trim() === 0
+            ) {
                 alert("Please enter your reason.");
                 return;
             }
@@ -434,7 +440,7 @@ export default function RDSRecord() {
                                                             }
                                                             className="opacity-0 group-focus:opacity-100 group-hover:opacity-100 ml-2 bg-white text-green-700 border border-green-700 px-2 py-1 text-xs transition-all ease-in-out duration-300 rounded"
                                                         >
-                                                            Approve
+                                                            Receive
                                                         </button>
                                                     )}
                                                 {data.status === "PENDING" &&

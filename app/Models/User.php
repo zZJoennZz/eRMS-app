@@ -24,6 +24,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_inactive',
+        'password_changed_at',
+        'password_expiry_days',
     ];
 
     /**
@@ -58,5 +60,19 @@ class User extends Authenticatable
     public function borrows()
     {
         return $this->hasMany(RDSRecordDocumentHistory::class, 'users_id', 'id')->where('action', 'INIT_BORROW');
+    }
+
+    public function isPasswordExpired() {
+        if (!$this->password_changed_at) {
+            return true;
+        }
+
+        $passwordChangedAt = \Carbon\Carbon::parse($this->password_changed_at);
+        return $passwordChangedAt->addDays($this->password_expiry_days)->isPast();
+    }
+
+    public function recordPasswordChange() {
+        $this->password_changed_at = now();
+        $this->save();
     }
 }
