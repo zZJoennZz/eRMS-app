@@ -31,7 +31,7 @@ The Electronic Records Management System (eRMS) is a robust application designed
 
 ### Installation Steps
 
-1. **Clone the repository**
+1. **Clone the repository (if needed)**
 
     ```bash
     git clone <repository-url>
@@ -86,7 +86,7 @@ The Electronic Records Management System (eRMS) is a robust application designed
 9. **Access the application**
     - Open your browser and navigate to `http://localhost:8000`
 
-## Technologies & Acknowledgments
+## Thanks to these awesome technologies!
 
 We would like to extend our thanks to the following technologies and frameworks that power eRMS:
 
@@ -97,15 +97,3 @@ We would like to extend our thanks to the following technologies and frameworks 
 -   **[Composer](https://getcomposer.org)** - PHP package manager
 -   **[npm](https://www.npmjs.com)** - Node package manager for JavaScript dependencies
 -   **[Git](https://git-scm.com)** - Version control system
-
-## Contributing
-
-Thank you for considering contributing to eRMS! Please review our contribution guidelines before submitting pull requests.
-
-## Security
-
-If you discover a security vulnerability, please email security@erms-app.local. All security vulnerabilities will be promptly addressed.
-
-## License
-
-The eRMS application is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
