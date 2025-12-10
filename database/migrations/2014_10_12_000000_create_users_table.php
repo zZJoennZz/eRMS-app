@@ -20,8 +20,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('is_inactive')->default(false);
-            $table->dateTime('password_changed_at')->nullable()->after('password');
-            $table->integer('password_expiry_days')->default(90)->after('password_changed_at');
+            $table->dateTime('password_changed_at')->nullable();
+            $table->integer('password_expiry_days')->default(90);
             $table->rememberToken();
             $table->timestamps();
 
