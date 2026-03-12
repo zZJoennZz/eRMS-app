@@ -1,9 +1,8 @@
 <?php
-//responses
 
-
-if (!function_exists('send400Response')) {
-    function send400Response(string $custom_message = null)
+// responses
+if (! function_exists('send400Response')) {
+    function send400Response(?string $custom_message = null)
     {
         return response()->json([
             'success' => false,
@@ -11,8 +10,8 @@ if (!function_exists('send400Response')) {
         ], 400);
     }
 }
-if (!function_exists('send200Response')) {
-    function send200Response($arr = [], string $custom_message = null)
+if (! function_exists('send200Response')) {
+    function send200Response($arr = [], ?string $custom_message = null)
     {
         return response()->json([
             'success' => true,
@@ -21,30 +20,52 @@ if (!function_exists('send200Response')) {
         ], 200);
     }
 }
-if (!function_exists('send401Response')) {
+if (! function_exists('send401Response')) {
     function send401Response()
     {
         return response()->json([
             'success' => false,
-            'message' => 'Unauthorized access.'
+            'message' => 'Unauthorized access.',
         ], 401);
     }
 }
-if (!function_exists('send404Response')) {
+if (! function_exists('send404Response')) {
     function send404Response($resource = null)
     {
         return response()->json([
             'success' => false,
-            'message' => $resource ?? 'Resource not found.'
+            'message' => $resource ?? 'Resource not found.',
         ], 404);
     }
 }
-if (!function_exists('send422Response')) {
+if (! function_exists('send422Response')) {
     function send422Response($msg = null)
     {
         return response()->json([
             'success' => false,
-            'message' => $msg ?? 'Input validation failed.'
+            'message' => $msg ?? 'Input validation failed.',
         ], 422);
+    }
+}
+if (! function_exists('log_bank_action')) {
+    /**
+     * @param  string  $description  The action (e.g., 'Exported Excel')
+     * @param  mixed  $subject  The object being acted upon (optional)
+     * @param  array  $extra  Data to include in the 'properties' JSON column
+     */
+    function log_bank_action($description, $subject = null, $extra = [])
+    {
+        $log = activity()
+            ->causedBy(auth()->user())
+            ->withProperties(array_merge([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ], $extra));
+
+        if ($subject) {
+            $log->performedOn($subject);
+        }
+
+        $log->log($description);
     }
 }

@@ -38,7 +38,7 @@ class TurnoverController extends Controller
             ->where('status', '=', 'PENDING')
             ->get();
 
-        return send200Response(["hasTurnoverRequest" => $turnover->count() > 0]);
+        return send200Response(['hasTurnoverRequest' => $turnover->count() > 0]);
     }
 
     public function get_turnover()
@@ -64,12 +64,12 @@ class TurnoverController extends Controller
             ->first();
         $branch_head = null;
 
-        if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
+        if ($user->type === 'WAREHOUSE_CUST' || $user->type === 'WAREHOUSE_HEAD') {
             $branch_head = User::where('branches_id', $user->branches_id)
                 ->where('type', 'WAREHOUSE_HEAD')
                 ->with(['profile'])
                 ->first();
-        } elseif ($user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD") {
+        } elseif ($user->type === 'RECORDS_CUST' || $user->type === 'BRANCH_HEAD') {
             $branch_head = User::where('branches_id', $user->branches_id)
                 ->where('type', 'BRANCH_HEAD')
                 ->with(['profile'])
@@ -80,13 +80,12 @@ class TurnoverController extends Controller
 
         return send200Response(
             [
-                "turnover" => $turnover,
+                'turnover' => $turnover,
                 'branch' => $branch,
-                'branch_head' => $branch_head
+                'branch_head' => $branch_head,
             ]
         );
     }
-
 
     public function create_turnover(Request $request)
     {
@@ -95,7 +94,9 @@ class TurnoverController extends Controller
             $user = Auth::user();
 
             // Check if the user is of type RECORDS_CUST
-            if ($user->type !== 'RECORDS_CUST' && $user->type !== "WAREHOUSE_CUST") {
+            if ($user->type !== 'RECORDS_CUST' && $user->type !== 'WAREHOUSE_CUST') {
+                log_bank_action("Unauthorized turnover creation attempt by User: {$user->username}");
+
                 return send422Response('Only records custodian or record center custodian can create turnover records.');
             }
 
@@ -109,7 +110,10 @@ class TurnoverController extends Controller
                 ->where('type', '<>', 'RECORDS_CUST')
                 ->get()
                 ->count() > 0;
-            if (!$in_branch && $user->type !== "WAREHOUSE_CUST") {
+
+            if (! $in_branch && $user->type !== 'WAREHOUSE_CUST') {
+                log_bank_action("Turnover validation failed: Selected employee is not in the same branch for User: {$user->username}");
+
                 return send422Response('Selected employee must be in the same branch and not a records custodian already.');
             }
 
@@ -119,14 +123,16 @@ class TurnoverController extends Controller
                 //     $query->where('location', '<>', 'WAREHOUSE');
                 // })
                 ->get();
+
             if ($check_for_pending_boxes->count() > 0) {
+                log_bank_action('Turnover blocked: Branch '.Auth::user()->branch->name.' has pending boxes that must be processed first.');
+
                 return send422Response('Please process the pending boxes first!');
             }
 
             // Create a new turnover record
-
-            $turnover = new Turnover();
-            if ($user->type !== "WAREHOUSE_CUST") {
+            $turnover = new Turnover;
+            if ($user->type !== 'WAREHOUSE_CUST') {
                 $turnover->selected_employee = $request->selectedEmployee;
             }
             $turnover->designation_status = $request->designationStatus;
@@ -134,10 +140,12 @@ class TurnoverController extends Controller
             $turnover->from_date = $request->fromDate;
             $turnover->to_date = $request->toDate;
             $turnover->current_job_holder_id = substr(User::find($user->id)->username, 1);
+
             $selectedEmployeeUser = User::find($request->selectedEmployee);
-            $turnover->incoming_job_holder_id = $selectedEmployeeUser && !empty($selectedEmployeeUser->username)
+            $turnover->incoming_job_holder_id = $selectedEmployeeUser && ! empty($selectedEmployeeUser->username)
                 ? substr($selectedEmployeeUser->username, 1)
                 : '';
+
             $turnover->status = 'PENDING';
             $turnover->added_by = $user->id;
             $turnover->branches_id = $user->branches_id;
@@ -145,7 +153,7 @@ class TurnoverController extends Controller
 
             $rds_record = [];
 
-            if ($user->type !== "RECORDS_CUST") {
+            if ($user->type !== 'RECORDS_CUST') {
                 $rds_record = RDSRecord::whereHas('branch', function ($query) use ($user) {
                     $query->where('clusters_id', $user->branch->clusters_id);
                 })
@@ -153,7 +161,6 @@ class TurnoverController extends Controller
                         $query->where('location', 'Warehouse');
                     })
                     ->where('status', '<>', 'DISPOSED')
-
                     ->where('status', '<>', 'PENDING')
                     ->get();
             } else {
@@ -167,17 +174,27 @@ class TurnoverController extends Controller
             }
 
             foreach ($rds_record as $record) {
-                $new_turnover_item = new TurnoverItem();
+                $new_turnover_item = new TurnoverItem;
                 $new_turnover_item->turnovers_id = $turnover->id;
                 $new_turnover_item->r_d_s_records_id = $record->id;
-                $new_turnover_item->others = "{}";
+                $new_turnover_item->others = '{}';
                 $new_turnover_item->save();
             }
 
+            // SUCCESS LOG: Documents the initialization of the accountability transfer
+            log_bank_action(
+                "INITIATED Turnover Request ID: {$turnover->id} for Branch: ".Auth::user()->branch->name.'. Pending Head approval.',
+                $turnover,
+                ['item_count' => count($rds_record)]
+            );
+
             DB::commit();
+
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
+            log_bank_action('System error during turnover creation for User: '.Auth::user()->username, null, ['error' => $e->getMessage()]);
+
             return send400Response($e->getMessage());
         }
     }
@@ -185,7 +202,7 @@ class TurnoverController extends Controller
     public function get_turnover_request()
     {
         $user = Auth::user();
-        if ($user->type !== "BRANCH_HEAD" && $user->type !== "RECORDS_CUST" && $user->type !== "WAREHOUSE_HEAD" && $user->type !== "WAREHOUSE_CUST") {
+        if ($user->type !== 'BRANCH_HEAD' && $user->type !== 'RECORDS_CUST' && $user->type !== 'WAREHOUSE_HEAD' && $user->type !== 'WAREHOUSE_CUST') {
             return send422Response('Only authorized users can view turnover requests.');
         }
         $turnover = [];
@@ -202,7 +219,9 @@ class TurnoverController extends Controller
     {
         try {
             $user = Auth::user();
-            if ($user->type !== "BRANCH_HEAD") {
+            if ($user->type !== 'BRANCH_HEAD') {
+                log_bank_action("Unauthorized turnover approval attempt by User: {$user->username} at Branch: {$user->branch->name}");
+
                 return send422Response('Only branch head can approve turnover requests.');
             }
 
@@ -213,6 +232,10 @@ class TurnoverController extends Controller
                 ->with(['user'])
                 ->first();
 
+            if (! $turnover) {
+                return send400Response('Turnover request not found or already processed.');
+            }
+
             $get_new_rc = User::find($turnover->selected_employee);
 
             // Generate a unique username
@@ -220,28 +243,28 @@ class TurnoverController extends Controller
             //     $username = 2 . $get_new_rc->username . 'RCacct' . rand(100, 999);
             // } while (User::where('username', $username)->exists());
 
-            $new_user = new User();
-            $new_user->username = "2" . $turnover->incoming_job_holder_id;
-            $new_user->email = $new_user->username . $get_new_rc->email;
-            $new_user->password = bcrypt($user->branch->code . $get_new_rc->profile->last_name);
-            $new_user->type = "RECORDS_CUST";
+            $new_user = new User;
+            $new_user->username = '2'.$turnover->incoming_job_holder_id;
+            $new_user->email = $new_user->username.$get_new_rc->email;
+            $new_user->password = bcrypt($user->branch->code.$get_new_rc->profile->last_name);
+            $new_user->type = 'RECORDS_CUST';
             $new_user->branches_id = $user->branches_id;
             $new_user->save();
 
             $rc_position = Position::where('type', 'RECORDS_CUST')->first();
 
-            $new_user_profile = new UserProfile();
+            $new_user_profile = new UserProfile;
             $new_user_profile->users_id = $new_user->id;
             $new_user_profile->first_name = $get_new_rc->profile->first_name;
-            $new_user_profile->middle_name = $get_new_rc->profile->middle_name ?? "";
+            $new_user_profile->middle_name = $get_new_rc->profile->middle_name ?? '';
             $new_user_profile->last_name = $get_new_rc->profile->last_name;
             $new_user_profile->positions_id = $rc_position->id;
             $new_user_profile->save();
 
-            $new_user_position = new UserPosition();
+            $new_user_position = new UserPosition;
             $new_user_position->user_profiles_id = $new_user_profile->id;
             $new_user_position->positions_id = $rc_position->id;
-            $new_user_position->type = "MAIN";
+            $new_user_position->type = 'MAIN';
             $new_user_position->save();
 
             $inactive_position = Position::where('name', 'Inactive')->first()->id;
@@ -255,10 +278,10 @@ class TurnoverController extends Controller
 
             UserPosition::where('user_profiles_id', $current_rc->profile->id)->delete();
 
-            $new_position = new UserPosition();
+            $new_position = new UserPosition;
             $new_position->user_profiles_id = $current_rc->profile->id;
             $new_position->positions_id = $inactive_position;
-            $new_position->type = "MAIN";
+            $new_position->type = 'MAIN';
             $new_position->save();
 
             $current_rc->save();
@@ -266,6 +289,19 @@ class TurnoverController extends Controller
             $turnover->status = 'APPROVED';
             $turnover->selected_employee = $new_user->id;
             $turnover->save();
+
+            // SUCCESS LOG: Documents the transfer of accountability and account changes
+            log_bank_action(
+                "APPROVED Turnover ID: {$id} for Branch: {$user->branch->name}. ".
+                "New RC Account Created: {$new_user->username}. ".
+                "Former RC Account Deactivated: {$current_rc->username}.",
+                $turnover,
+                [
+                    'new_user_id' => $new_user->id,
+                    'deactivated_user_id' => $current_rc->id,
+                ]
+            );
+
             DB::commit();
 
             return send200Response(
@@ -273,6 +309,8 @@ class TurnoverController extends Controller
             );
         } catch (\Exception $e) {
             DB::rollBack();
+            log_bank_action('System error during turnover approval for ID: '.($id ?? 'unknown'), null, ['error' => $e->getMessage()]);
+
             return send400Response($e->getMessage());
         }
     }
@@ -287,25 +325,37 @@ class TurnoverController extends Controller
 
         if ($validator->fails()) {
             $errors = implode(' ', $validator->errors()->all());
+
             return send422Response($errors);
         }
 
         try {
             $user = Auth::user();
-            if ($user->type !== "BRANCH_HEAD" && $user->type !== "WAREHOUSE_HEAD") {
+            if ($user->type !== 'BRANCH_HEAD' && $user->type !== 'WAREHOUSE_HEAD') {
+                log_bank_action("Unauthorized Warehouse Turnover approval attempt by User: {$user->username}");
+
                 return send422Response('Only authorized users can approve turnover requests.');
             }
-            $id = $request->id;
 
-            $new_user = $request->newUser;
+            $id = $request->id;
+            $new_user_data = $request->newUser;
+
             DB::beginTransaction();
+
             $turnover = Turnover::where('id', $id)
                 ->where('branches_id', $user->branches_id)
                 ->where('status', '=', 'PENDING')
                 ->first();
-            Turnover::where('branches_id', $user->branches_id)
-                ->where('status', '=', 'PENDING')->update(['incoming_job_holder_id' => $new_user['username']]);
 
+            if (! $turnover) {
+                return send400Response('Warehouse turnover request not found or already processed.');
+            }
+
+            Turnover::where('branches_id', $user->branches_id)
+                ->where('status', '=', 'PENDING')
+                ->update(['incoming_job_holder_id' => $new_user_data['username']]);
+
+            // Deactivate Current Warehouse Custodian
             $inactive_position = Position::where('name', 'Inactive')->first()->id;
             $current_warehouse_cust = User::find($turnover->added_by);
             $current_warehouse_cust->is_inactive = 1;
@@ -313,51 +363,64 @@ class TurnoverController extends Controller
 
             $current_warehouse_cust_profile = UserProfile::find($current_warehouse_cust->profile->id);
             $current_warehouse_cust_profile->positions_id = $inactive_position;
+            $current_warehouse_cust_profile->save();
 
             UserPosition::where('user_profiles_id', $current_warehouse_cust->profile->id)->delete();
 
-            $new_position = new UserPosition();
+            $new_position = new UserPosition;
             $new_position->user_profiles_id = $current_warehouse_cust->profile->id;
             $new_position->positions_id = $inactive_position;
-            $new_position->type = "MAIN";
+            $new_position->type = 'MAIN';
             $new_position->save();
 
-
-            $create_new_user = new User();
-            $create_new_user->username = "4" . $new_user['username'];
-            $create_new_user->email = $new_user['email'];
-            $create_new_user->password = bcrypt("RCC" . $new_user['last_name']);
-            $create_new_user->type = "WAREHOUSE_CUST";
+            // Create New Warehouse Custodian Account (Type 4)
+            $create_new_user = new User;
+            $create_new_user->username = '4'.$new_user_data['username'];
+            $create_new_user->email = $new_user_data['email'];
+            $create_new_user->password = bcrypt('RCC'.$new_user_data['last_name']);
+            $create_new_user->type = 'WAREHOUSE_CUST';
             $create_new_user->branches_id = $user->branches_id;
             $create_new_user->save();
 
             $rc_position = Position::where('type', 'WAREHOUSE_CUST')->first();
 
-            $new_user_profile = new UserProfile();
+            $new_user_profile = new UserProfile;
             $new_user_profile->users_id = $create_new_user->id;
-            $new_user_profile->first_name = $new_user['first_name'];
-            $new_user_profile->middle_name = $new_user['middle_name'] ?? "";
-            $new_user_profile->last_name = $new_user['last_name'];
+            $new_user_profile->first_name = $new_user_data['first_name'];
+            $new_user_profile->middle_name = $new_user_data['middle_name'] ?? '';
+            $new_user_profile->last_name = $new_user_data['last_name'];
             $new_user_profile->positions_id = $rc_position->id;
             $new_user_profile->save();
 
-            $new_user_position = new UserPosition();
+            $new_user_position = new UserPosition;
             $new_user_position->user_profiles_id = $new_user_profile->id;
             $new_user_position->positions_id = $rc_position->id;
-            $new_user_position->type = "MAIN";
+            $new_user_position->type = 'MAIN';
             $new_user_position->save();
 
             $turnover->selected_employee = $create_new_user->id;
             $turnover->status = 'APPROVED';
             $turnover->save();
+
+            // SUCCESS LOG: Essential for tracking who has access to the physical warehouse records
+            log_bank_action(
+                "APPROVED Warehouse Turnover ID: {$id}. ".
+                "Created Warehouse Custodian: {$create_new_user->username}. ".
+                "Deactivated former Custodian: {$current_warehouse_cust->username}.",
+                $turnover,
+                ['new_user_type' => 'WAREHOUSE_CUST']
+            );
+
             DB::commit();
 
             return send200Response(
-                ['username' => $create_new_user->username,]
+                ['username' => $create_new_user->username]
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return send400Response($e);
+            log_bank_action('System error during Warehouse turnover approval', null, ['error' => $e->getMessage()]);
+
+            return send400Response($e->getMessage());
         }
     }
 
@@ -365,22 +428,38 @@ class TurnoverController extends Controller
     {
         try {
             $user = Auth::user();
-            if ($user->type !== "BRANCH_HEAD" && $user->type !== "WAREHOUSE_HEAD") {
+            if ($user->type !== 'BRANCH_HEAD' && $user->type !== 'WAREHOUSE_HEAD') {
+                log_bank_action("Unauthorized attempt to decline turnover ID: {$id} by User: {$user->username}");
+
                 return send422Response('Only authorized users can approve turnover requests.');
             }
-            DB::beginTransaction();
 
+            DB::beginTransaction();
 
             $turnover = Turnover::where('id', $id)
                 ->where('status', '=', 'PENDING')
                 ->first();
+
+            if (! $turnover) {
+                return send400Response('Turnover request not found or already processed.');
+            }
+
             $turnover->status = 'DECLINED';
             $turnover->save();
 
+            // LOG: Document the rejection of the turnover request
+            log_bank_action(
+                "DECLINED Turnover Request ID: {$id} for Branch: ".Auth::user()->branch->name.'. Accountabilities remain with the current custodian.',
+                $turnover
+            );
+
             DB::commit();
+
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
+            log_bank_action("System error while declining turnover ID: {$id}", null, ['error' => $e->getMessage()]);
+
             return send400Response($e->getMessage());
         }
     }

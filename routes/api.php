@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\api\ActivityLogController;
 use App\Http\Controllers\api\BorrowTransferController;
 use App\Http\Controllers\api\BranchController;
 use App\Http\Controllers\api\ClusterController;
@@ -60,7 +61,7 @@ Route::prefix('v1')->group(function () {
         Route::put('switch-position/{id?}', [UserController::class, 'switch_position']);
         Route::get('get-positions/{id?}', [PositionController::class, 'get_own_positions']);
 
-        //borrow-return
+        // borrow-return
         Route::post('borrow', [BorrowTransferController::class, 'borrow']);
         Route::get('pending-borrows', [BorrowTransferController::class, 'get_pending_requests']);
         Route::post('pending-borrows', [BorrowTransferController::class, 'process_pending_request']);
@@ -69,7 +70,7 @@ Route::prefix('v1')->group(function () {
         Route::put('receive-rc/{id}', [BorrowTransferController::class, 'receive_rc']);
         Route::post('decline-borrows', [BorrowTransferController::class, 'decline_borrow']);
 
-        //disposal
+        // disposal
         Route::get('disposals', [DisposalController::class, 'get_box_for_disposal']);
         Route::post('disposals', [DisposalController::class, 'submit_disposal']);
         Route::put('disposals/authorize/{id?}', [DisposalController::class, 'authorize_disposal']);
@@ -78,7 +79,7 @@ Route::prefix('v1')->group(function () {
         Route::get('disposals/print/{id?}', [DisposalController::class, 'get_report']);
         Route::put('disposals/decline/{id?}', [DisposalController::class, 'decline_disposal']);
 
-        //misc
+        // misc
         Route::get('signatories', [MiscController::class, 'get_signatories']);
         Route::get('records_for_transfer', [MiscController::class, 'get_records_for_transfer']);
         Route::get('rc-dashboard', [MiscController::class, 'rc_dashboard']);
@@ -93,13 +94,13 @@ Route::prefix('v1')->group(function () {
         Route::get('pending-rds', [MiscController::class, 'get_pending_rds']);
         Route::get('for-disposal', [MiscController::class, 'get_document_for_disposal']);
 
-        //warehouse only
+        // warehouse only
         Route::get('warehouse-supply', [RDSRecordController::class, 'warehouse_supply']);
         Route::post('record-report', [MiscController::class, 'print_filtered_warehouse_records']);
 
         Route::get('print/{id?}', [MiscController::class, 'get_document_record']);
 
-        //enable/disable
+        // enable/disable
         Route::put('disable-user/{id}', [UserController::class, 'set_inactive']);
         Route::put('enable-user/{id}', [UserController::class, 'set_enable']);
         Route::get('disabled-users', [UserController::class, 'disabled_users']);
@@ -113,6 +114,10 @@ Route::prefix('v1')->group(function () {
         Route::put('turnover/{id?}', [TurnoverController::class, 'approve_turnover']);
         Route::put('turnover-wh/{id?}', [TurnoverController::class, 'approve_wh_turnover']);
         Route::get('check-turnover', [TurnoverController::class, 'check_for_existing_turnover_request']);
+
+        // activity logs
+        Route::get('activity-logs', [ActivityLogController::class, 'index']);
+        Route::get('activity-logs/export-csv', [ActivityLogController::class, 'export_csv']);
     });
 
     Route::middleware('guest')->group(function () {

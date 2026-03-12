@@ -32,6 +32,7 @@ const Turnover = lazy(() => import("./pages/Setting/Turnover"));
 const TurnoverForms = lazy(() => import("./pages/Report/TurnoverForms"));
 const OpenBox = lazy(() => import("./pages/OpenBox"));
 const DisposalReport = lazy(() => import("./pages/Report/DisposalReport"));
+const ActivityLog = lazy(() => import("./pages/ActivityLog"));
 const ForceChangePassword = lazy(() =>
     import("./pages/User/ForceChangePassword")
 );
@@ -365,6 +366,7 @@ export default function Root() {
                     )}
 
                     {renderPrivateRoute(["RECORDS_CUST"], "/open-box", OpenBox)}
+                    {renderPrivateRoute(["ADMIN", 'DEV'], "/activity-log", ActivityLog)}
                 </Routes>
             </Suspense>
         </AuthContext.Provider>

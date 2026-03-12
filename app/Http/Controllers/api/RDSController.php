@@ -15,8 +15,9 @@ class RDSController extends Controller
 
     public function __construct()
     {
-        $this->msg404 = "RDS not found.";
+        $this->msg404 = 'RDS not found.';
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +39,7 @@ class RDSController extends Controller
     public function store(Request $request)
     {
         //
-        if (Auth::user()->type !== "DEV") {
+        if (Auth::user()->type !== 'DEV') {
             return send401Response();
         }
         try {
@@ -53,7 +54,7 @@ class RDSController extends Controller
                 'has_condition' => 'boolean',
             ]);
 
-            $new_rds = new RecordsDispositionSchedule();
+            $new_rds = new RecordsDispositionSchedule;
             $new_rds->item_number = $request->item_number;
             $new_rds->record_series_title_and_description = $request->record_series_title_and_description;
             $new_rds->record_series_title_and_description_1 = $request->record_series_title_and_description_1;
@@ -63,11 +64,18 @@ class RDSController extends Controller
             $new_rds->has_condition = $request->has_condition;
             $new_rds->save();
 
+            log_bank_action(
+                "Created new RDS Item: {$new_rds->item_number} - {$new_rds->record_series_title_and_description}",
+                $new_rds,
+                ['title' => $new_rds->record_series_title_and_description_1]
+            );
+
             DB::commit();
 
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
+
             return send400Response($e);
         }
     }
@@ -78,7 +86,7 @@ class RDSController extends Controller
     public function show(string $id)
     {
         //
-        if (Auth::user()->type !== "DEV") {
+        if (Auth::user()->type !== 'DEV') {
             return send401Response();
         }
         try {
@@ -87,6 +95,7 @@ class RDSController extends Controller
             return send200Response($rds);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return send400Response();
         }
     }
@@ -105,15 +114,14 @@ class RDSController extends Controller
     public function update(Request $request, string $id)
     {
         //
-        if (Auth::user()->type !== "DEV") {
+        if (Auth::user()->type !== 'DEV') {
             return send401Response();
         }
-
 
         try {
             $rds = RecordsDispositionSchedule::find($id);
 
-            if (!$rds) {
+            if (! $rds) {
                 return send404Response();
             }
 
@@ -133,12 +141,17 @@ class RDSController extends Controller
             $rds->remarks = $request->remarks;
             $rds->has_condition = $request->has_condition;
             $rds->save();
-
+            log_bank_action(
+                "Updated RDS Item: {$rds->item_number} - {$rds->record_series_title_and_description}",
+                $rds,
+                ['title' => $rds->record_series_title_and_description_1]
+            );
             DB::commit();
 
             return send200Response();
         } catch (\Exception $e) {
             DB::rollBack();
+
             return send400Response($e);
         }
     }
@@ -154,6 +167,7 @@ class RDSController extends Controller
     public function print_list()
     {
         $rds = RDSRecord::where('status', 'APPROVED')->with(['documents.rds'])->get();
+
         return view('print/rds-list')->with('rds', $rds);
     }
 }
