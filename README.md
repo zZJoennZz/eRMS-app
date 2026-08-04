@@ -10,22 +10,22 @@ The Electronic Records Management System (eRMS) is a robust application designed
 
 ### Key Features
 
--   **Document Management**: Upload, organize, and categorize records
--   **User Access Control**: Role-based permissions and authentication
--   **Search & Retrieval**: Fast and efficient document search capabilities
--   **Audit Trails**: Complete tracking of all system activities
--   **Secure Storage**: Encrypted data storage and transmission
--   **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Document Management**: Upload, organize, and categorize records
+- **User Access Control**: Role-based permissions and authentication
+- **Search & Retrieval**: Fast and efficient document search capabilities
+- **Audit Trails**: Complete tracking of all system activities
+- **Secure Storage**: Encrypted data storage and transmission
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
 
 ## Setup Instructions
 
 ### Prerequisites
 
--   PHP 8.0 or higher
--   Composer
--   Node.js and npm
--   MySQL or compatible database
--   Git
+- PHP 8.0 or higher
+- Composer
+- Node.js and npm
+- MySQL or compatible database
+- Git
 
 ### Installation Steps
 
@@ -61,7 +61,6 @@ The Electronic Records Management System (eRMS) is a robust application designed
     ```
 
 6. **Configure database**
-
     - Edit `.env` file and add your database credentials
     - Run migrations:
 
@@ -88,10 +87,10 @@ The Electronic Records Management System (eRMS) is a robust application designed
 
 We would like to extend our thanks to the following technologies and frameworks that power eRMS:
 
--   **[Laravel](https://laravel.com)** - The elegant PHP web framework for backend development
--   **[Vue.js](https://vuejs.org)** - Progressive JavaScript framework for interactive user interfaces
--   **[Tailwind CSS](https://tailwindcss.com)** - Utility-first CSS framework for responsive design
--   **[MySQL](https://www.mysql.com)** - Reliable relational database management system
--   **[Composer](https://getcomposer.org)** - PHP package manager
--   **[npm](https://www.npmjs.com)** - Node package manager for JavaScript dependencies
--   **[Git](https://git-scm.com)** - Version control system
+- **[Laravel](https://laravel.com)** - The elegant PHP web framework for backend development
+- **[ReactJS](https://react.dev/)** - Progressive JavaScript library for interactive user interfaces
+- **[Tailwind CSS](https://tailwindcss.com)** - Utility-first CSS framework for responsive design
+- **[MySQL](https://www.mysql.com)** - Reliable relational database management system
+- **[Composer](https://getcomposer.org)** - PHP package manager
+- **[npm](https://www.npmjs.com)** - Node package manager for JavaScript dependencies
+- **[Git](https://git-scm.com)** - Version control system

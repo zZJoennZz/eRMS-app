@@ -19,16 +19,18 @@ class MiscController extends Controller
     //
     public function get_signatories()
     {
-        $users = User::with("profile")
-            ->with("branch")
-            ->select("id", "branches_id")
+        $users = User::with('profile')
+            ->with('branch')
+            ->select('id', 'branches_id')
             ->get();
+
         return send200Response($users);
     }
 
     public function get_records_for_transfer()
     {
         $user = Auth::user();
+
         return RDSRecord::where('branches_id', '=', $user->branches_id)
             ->get();
     }
@@ -36,6 +38,7 @@ class MiscController extends Controller
     public function get_document_record($id)
     {
         $rds_record = RDSRecord::where('id', $id)->with(['branch'])->first();
+
         return view('print.document-record')
             ->with('rds_record', $rds_record);
     }
@@ -45,7 +48,7 @@ class MiscController extends Controller
         $user = Auth::user();
         $data = [];
 
-        if ($user->type === "EMPLOYEE") {
+        if ($user->type === 'EMPLOYEE') {
             $data = RDSTransaction::where('status', 'FOR RECEIVING')
                 ->where('submitted_by', $user->id)
                 ->with(['rds_records.record.documents.rds'])
@@ -54,7 +57,7 @@ class MiscController extends Controller
                 ->get();
         }
 
-        if ($user->type === "BRANCH_HEAD") {
+        if ($user->type === 'BRANCH_HEAD') {
             $transfer = RDSTransaction::where('status', 'PENDING')
                 ->where('type', 'TRANSFER')
                 ->whereHas('submitted_by_user', function ($query) use ($user) {
@@ -67,7 +70,7 @@ class MiscController extends Controller
             $data = $transfer;
         }
 
-        if ($user->type === "WAREHOUSE_CUST") {
+        if ($user->type === 'WAREHOUSE_CUST') {
             $transfer = RDSTransaction::where('status', 'PROCESSING')
                 ->where('type', 'TRANSFER')
                 ->whereHas('submitted_by_user.branch', function ($query) use ($user) {
@@ -79,6 +82,7 @@ class MiscController extends Controller
                 ->get();
             $data = $transfer;
         }
+
         return send200Response($data);
     }
 
@@ -86,7 +90,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
         $rds_records = [];
-        if ($user->type === "RECORDS_CUST") {
+        if ($user->type === 'RECORDS_CUST') {
             $rds_records = RDSRecord::where('branches_id', $user->branches_id)
                 ->with(['documents'])
                 ->where('status', 'PENDING')
@@ -102,7 +106,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD" || $user->type === "DEV") {
+        if ($user->type === 'RECORDS_CUST' || $user->type === 'BRANCH_HEAD' || $user->type === 'DEV') {
             $overdueRecords = RDSRecord::whereHas('documents', function ($query) {
                 $query->where('projected_date_of_disposal', '<', now()->toDateString());
             })
@@ -120,6 +124,7 @@ class MiscController extends Controller
                 'overdue' => $overdueRecords,
                 'upcoming' => $upcomingRecords,
             ];
+
             return send200Response($data);
         } else {
             return send401Response();
@@ -130,7 +135,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "RECORDS_CUST") {
+        if ($user->type !== 'RECORDS_CUST') {
             return send401Response();
         }
 
@@ -203,14 +208,14 @@ class MiscController extends Controller
             ->where('box_number', '<>', 'OPEN')
             ->count();
         $res = [
-            "pending_boxes" => $pending_boxes,
-            "receiving" => $receiving,
-            "pending_borrows" => $pending_borrows,
-            "pending_returns" => $pending_returns,
-            "rds_record" => $rds_record,
-            "rds_record_warehouse" => $rds_record_warehouse,
-            "upcoming_disposals" => $upcoming_disposals,
-            "overdue_disposals" => $overdue_disposals,
+            'pending_boxes' => $pending_boxes,
+            'receiving' => $receiving,
+            'pending_borrows' => $pending_borrows,
+            'pending_returns' => $pending_returns,
+            'rds_record' => $rds_record,
+            'rds_record_warehouse' => $rds_record_warehouse,
+            'upcoming_disposals' => $upcoming_disposals,
+            'overdue_disposals' => $overdue_disposals,
         ];
 
         return send200Response($res);
@@ -220,7 +225,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "BRANCH_HEAD") {
+        if ($user->type !== 'BRANCH_HEAD') {
             return send401Response();
         }
 
@@ -292,13 +297,13 @@ class MiscController extends Controller
             ->where('box_number', '<>', 'OPEN')
             ->count();
         $res = [
-            "pending_transfer" => $pending_transfer,
-            "pending_withdraw" => $pending_withdraw,
-            "processing_borrows" => $processing_borrows,
-            "rds_record" => $rds_record,
-            "rds_record_warehouse" => $rds_record_warehouse,
-            "upcoming_disposals" => $upcoming_disposals,
-            "overdue_disposals" => $overdue_disposals,
+            'pending_transfer' => $pending_transfer,
+            'pending_withdraw' => $pending_withdraw,
+            'processing_borrows' => $processing_borrows,
+            'rds_record' => $rds_record,
+            'rds_record_warehouse' => $rds_record_warehouse,
+            'upcoming_disposals' => $upcoming_disposals,
+            'overdue_disposals' => $overdue_disposals,
         ];
 
         return send200Response($res);
@@ -308,7 +313,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "EMPLOYEE") {
+        if ($user->type !== 'EMPLOYEE') {
             return send401Response();
         }
 
@@ -338,9 +343,9 @@ class MiscController extends Controller
             ->count();
 
         $res = [
-            "for_receiving" => $for_receiving,
-            "on_hand" => $on_hand,
-            "pending_borrows" => $pending_borrows,
+            'for_receiving' => $for_receiving,
+            'on_hand' => $on_hand,
+            'pending_borrows' => $pending_borrows,
         ];
 
         return send200Response($res);
@@ -350,7 +355,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "WAREHOUSE_CUST") {
+        if ($user->type !== 'WAREHOUSE_CUST') {
             return send401Response();
         }
 
@@ -402,11 +407,11 @@ class MiscController extends Controller
             ->count();
 
         $res = [
-            "for_receiving" => $for_receiving,
-            "pending_withdraw" => $pending_withdraw,
-            "boxes_in_warehouse" => $boxes_in_warehouse,
+            'for_receiving' => $for_receiving,
+            'pending_withdraw' => $pending_withdraw,
+            'boxes_in_warehouse' => $boxes_in_warehouse,
             // "upcoming_disposals" => $upcoming_disposals,
-            "overdue_disposals" => $overdue_disposals,
+            'overdue_disposals' => $overdue_disposals,
         ];
 
         return send200Response($res);
@@ -416,7 +421,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "WAREHOUSE_HEAD") {
+        if ($user->type !== 'WAREHOUSE_HEAD') {
             return send401Response();
         }
 
@@ -463,18 +468,18 @@ class MiscController extends Controller
             $query->where('clusters_id', $user->branch->clusters_id);
         })
             ->whereHas('items.record.latest_history', function ($query) {
-                $query->where("location", 'Warehouse');
+                $query->where('location', 'Warehouse');
             })
             ->where('status', '<>', 'DISPOSED')
             ->orderBy('created_at', 'DESC')
             ->count();
 
         $res = [
-            "disposal_confirmation" => $disposal_confirmation,
-            "pending_withdraw" => $pending_withdraw,
-            "boxes_in_warehouse" => $boxes_in_warehouse,
+            'disposal_confirmation' => $disposal_confirmation,
+            'pending_withdraw' => $pending_withdraw,
+            'boxes_in_warehouse' => $boxes_in_warehouse,
             // "upcoming_disposals" => $upcoming_disposals,
-            "overdue_disposals" => $overdue_disposals,
+            'overdue_disposals' => $overdue_disposals,
         ];
 
         return send200Response($res);
@@ -484,7 +489,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "ADMIN" && $user->type !== "DEV") {
+        if ($user->type !== 'ADMIN' && $user->type !== 'DEV') {
             return send401Response();
         }
 
@@ -492,7 +497,7 @@ class MiscController extends Controller
             ->count();
 
         $res = [
-            "pending_disposal" => $pending_disposal,
+            'pending_disposal' => $pending_disposal,
         ];
 
         return send200Response($res);
@@ -503,20 +508,20 @@ class MiscController extends Controller
         try {
             $user = Auth::user();
             $resData = [];
-            if ($user->type === "WAREHOUSE_CUST" || $user->type === "WAREHOUSE_HEAD") {
+            if ($user->type === 'WAREHOUSE_CUST' || $user->type === 'WAREHOUSE_HEAD') {
                 $startDate = Carbon::parse($request->startDate)->startOfDay();
                 $endDate = Carbon::parse($request->endDate)->endOfDay();
-                if ($request->reportType === "warehouseRecords") {
-                    if ($request->searchField === "name") {
+                if ($request->reportType === 'warehouseRecords') {
+                    if ($request->searchField === 'name') {
                         $resData = RDSRecord::whereHas('branch', function ($query) use ($request) {
-                            $query->where('name', 'like', '%' . $request->searchTxt . '%')->where('clusters_id', Auth::user()->branch->clusters_id);
+                            $query->where('name', 'like', '%'.$request->searchTxt.'%')->where('clusters_id', Auth::user()->branch->clusters_id);
                         })->whereHas('latest_history', function ($query) {
                             $query->where('location', 'Warehouse')->where('action', 'transfer');
                         })
                             ->with(['documents.rds', 'latest_history', 'branch'])
                             ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                             ->get();
-                    } elseif ($request->searchField === "history_created_at" && $request->dateFilterType === "as_of") {
+                    } elseif ($request->searchField === 'history_created_at' && $request->dateFilterType === 'as_of') {
                         $resData = RDSRecord::whereHas('branch', function ($query) {
                             $query->where('clusters_id', Auth::user()->branch->clusters_id);
                         })
@@ -526,7 +531,7 @@ class MiscController extends Controller
                             ->with(['documents.rds', 'latest_history', 'branch'])
                             ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                             ->get();
-                    } elseif ($request->searchField === "history_created_at" && $request->dateFilterType === "date_range") {
+                    } elseif ($request->searchField === 'history_created_at' && $request->dateFilterType === 'date_range') {
                         $resData = RDSRecord::whereHas('branch', function ($query) {
                             $query->where('clusters_id', Auth::user()->branch->clusters_id);
                         })
@@ -541,7 +546,7 @@ class MiscController extends Controller
                     } elseif ($request->from_date) {
                         $startDate = Carbon::parse($request->from_date)->startOfDay();
                         $endDate = Carbon::parse($request->to_date)->endOfDay();
-                        if ($request->scope === "all") {
+                        if ($request->scope === 'all') {
                             $resData = RDSRecord::whereHas('branch', function ($query) {
                                 $query->where('clusters_id', Auth::user()->branch->clusters_id);
                             })
@@ -569,9 +574,9 @@ class MiscController extends Controller
                         }
                         $resData = $resData->get();
                     } else {
-                        return send400Response("Invalid parameters.");
+                        return send400Response('Invalid parameters.');
                     }
-                } elseif ($request->reportType === "warehouseSummary") {
+                } elseif ($request->reportType === 'warehouseSummary') {
                     $startDate = Carbon::parse($request->from_date)->startOfDay();
                     $endDate = Carbon::parse($request->to_date)->endOfDay();
                     // $resData = RDSRecord::whereHas('latest_history', function ($query) use ($startDate, $endDate) {
@@ -601,14 +606,14 @@ class MiscController extends Controller
                             },
                         ])
                         ->get();
-                } elseif ($request->reportType === "dueForDisposal") {
+                } elseif ($request->reportType === 'dueForDisposal') {
                     $upcoming_disposals = RDSRecord::with('latest_history')->whereHas('documents', function ($query) {
                         $query->whereBetween('projected_date_of_disposal', [now()->toDateString(), now()->addDays(30)->toDateString()]);
                     })
                         ->whereHas('branch', function ($query) use ($user) {
                             $query->where('clusters_id', $user->branch->clusters_id);
                         })
-                        ->whereHas('latest_history', function ($query1) use ($startDate, $endDate) {
+                        ->whereHas('latest_history', function ($query1) {
                             $query1
                                 ->where('location', 'Warehouse');
                         })
@@ -638,31 +643,31 @@ class MiscController extends Controller
                 }
             }
 
-            if ($user->type === "RECORDS_CUST" || $user->type === "BRANCH_HEAD") {
+            if ($user->type === 'RECORDS_CUST' || $user->type === 'BRANCH_HEAD') {
                 if (isset($request->from_date)) {
                     $startDate = Carbon::parse($request->from_date)->startOfDay();
                     $endDate = Carbon::parse($request->to_date)->endOfDay();
                 }
 
-                if ($request->reportType === "branchSummary" || $request->reportType === "branchBoxes") {
+                if ($request->reportType === 'branchSummary' || $request->reportType === 'branchBoxes') {
                     $resData = RDSRecord::where('branches_id', $user->branches_id)
                         ->with(['documents.rds', 'latest_history', 'submitted_by_user.profile'])
                         ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                         ->whereBetween('created_at', [$startDate, $endDate]);
 
-                    if ($request->scope === "branch_only") {
+                    if ($request->scope === 'branch_only') {
                         $resData = $resData->whereHas('latest_history', function ($query) {
                             $query->where('action', '!=', 'TRANSFER')
                                 ->where('location', '!=', 'Warehouse');
                         });
-                    } elseif ($request->scope === "warehouse_only") {
+                    } elseif ($request->scope === 'warehouse_only') {
                         $resData = $resData->whereHas('latest_history', function ($query) {
                             $query->where('action', 'TRANSFER')
                                 ->where('location', 'Warehouse');
                         });
                     }
                     $resData = $resData->get();
-                } elseif ($request->reportType === "disposedBoxSum" || $request->reportType === "disposedRecordsSum") {
+                } elseif ($request->reportType === 'disposedBoxSum' || $request->reportType === 'disposedRecordsSum') {
                     // $resData = RDSRecord::where('branches_id', $user->branches_id)
                     //     ->with(['documents.rds', 'latest_history', 'submitted_by_user.profile'])
                     //     ->where('status', 'DISPOSED')
@@ -673,7 +678,7 @@ class MiscController extends Controller
                         ->with(['items.record.documents.rds'])
                         ->whereBetween('created_at', [$startDate, $endDate])
                         ->get();
-                } elseif ($request->reportType === "recordsByUser") {
+                } elseif ($request->reportType === 'recordsByUser') {
                     $resData = RDSRecord::where('branches_id', $user->branches_id)
                         ->with(['documents.rds', 'latest_history', 'submitted_by_user.profile'])
                         // ->whereHas('latest_history', function ($query) {
@@ -683,14 +688,14 @@ class MiscController extends Controller
                         ->whereIn('status', ['APPROVED', 'PENDING_DISPOSAL', 'RELEASED'])
                         ->where('submitted_by', $request->users_id)
                         ->get();
-                } elseif ($request->reportType === "borrowsAndReturns") {
+                } elseif ($request->reportType === 'borrowsAndReturns') {
                     $resData = RDSRecordDocumentHistory::whereHas('document.record', function ($query) use ($user) {
                         $query->where('branches_id', $user->branches_id);
                     })
                         ->where('action', 'INIT_BORROW')
                         ->with(['document.record', 'action_by.profile', 'document.rds'])
                         ->get();
-                } elseif ($request->reportType === "currentBorrowed") {
+                } elseif ($request->reportType === 'currentBorrowed') {
                     $resData = RDSRecordDocumentHistory::whereHas('document.record', function ($query) use ($user) {
                         $query->where('branches_id', $user->branches_id);
                     })
@@ -699,24 +704,24 @@ class MiscController extends Controller
                         ->with(['document.record', 'action_by.profile', 'document.rds'])
                         ->get();
                 } else {
-                    return send400Response("Invalid parameters.");
+                    return send400Response('Invalid parameters.');
                 }
             }
 
-            if ($user->type === "EMPLOYEE") {
-                $startDate = "";
-                $endDate = "";
+            if ($user->type === 'EMPLOYEE') {
+                $startDate = '';
+                $endDate = '';
                 if (isset($request->from_date)) {
                     $startDate = Carbon::parse($request->from_date)->startOfDay();
                     $endDate = Carbon::parse($request->to_date)->endOfDay();
                 }
-                if ($request->reportType === "currentBorrows") {
+                if ($request->reportType === 'currentBorrows') {
                     $resData = RDSRecordDocumentHistory::where('users_id', $user->id)
                         ->where('action', 'INIT_BORROW')
                         ->where('status', 'BORROWED')
                         ->with(['document.record', 'action_by.profile', 'document.rds'])
                         ->get();
-                } elseif ($request->reportType === "submittedDoc") {
+                } elseif ($request->reportType === 'submittedDoc') {
                     $resData = RDSRecord::where('submitted_by', $user->id)
                         ->with(['documents.rds', 'latest_history', 'submitted_by_user.profile'])
                         // ->whereHas('latest_history', function ($query) {
@@ -728,6 +733,7 @@ class MiscController extends Controller
                         ->get();
                 }
             }
+
             return send200Response($resData);
         } catch (\Exception $e) {
             return send400Response($e->getMessage());
@@ -738,7 +744,7 @@ class MiscController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->type !== "RECORDS_CUST" && $user->type !== "BRANCH_HEAD") {
+        if ($user->type !== 'RECORDS_CUST' && $user->type !== 'BRANCH_HEAD') {
             return send401Response();
         }
 

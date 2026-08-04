@@ -68,3 +68,42 @@ export function calculateAging(fromDate) {
 
     return diffInDays;
 }
+
+/**
+ * Custom Native Date Formatter
+ * @param {string|Date} dateString 
+ * @returns {string} formatted date
+ */
+export const formatAuditDate = (dateString) => {
+    if (!dateString) return "N/A";
+    
+    const date = new Date(dateString);
+    
+    // Check for invalid dates
+    if (isNaN(date.getTime())) return "Invalid Date";
+
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    }).format(date);
+};
+
+/**
+ * Returns a simple string for file naming (YYYYMMDD_HHMM)
+ */
+export const getFileTimestamp = () => {
+    const now = new Date();
+    const pad = (n) => n.toString().padStart(2, '0');
+    
+    const y = now.getFullYear();
+    const m = pad(now.getMonth() + 1);
+    const d = pad(now.getDate());
+    const h = pad(now.getHours());
+    const min = pad(now.getMinutes());
+    
+    return `${y}${m}${d}_${h}${min}`;
+};

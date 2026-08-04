@@ -17,10 +17,10 @@ class UserSeeder extends Seeder
         //
         User::create([
             'branches_id' => Branch::where('code', 'ADMIN')->first()->id,
-            'type' => 'DEV',
-            'username' => "webdev",
-            'email' => "zzjoennzz@gmail.com",
-            'password' => bcrypt("pokemon14"),
+            'type' => 'ADMIN',
+            'username' => "admin",
+            'email' => "testadmin@gmail.com",
+            'password' => bcrypt("adminpw"),
         ]);
 
         User::create([

@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Spatie\Activitylog\Traits\CausesActivity;
 
 class User extends Authenticatable
 {
+    use CausesActivity;
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -62,16 +64,19 @@ class User extends Authenticatable
         return $this->hasMany(RDSRecordDocumentHistory::class, 'users_id', 'id')->where('action', 'INIT_BORROW');
     }
 
-    public function isPasswordExpired() {
-        if (!$this->password_changed_at) {
+    public function isPasswordExpired()
+    {
+        if (! $this->password_changed_at) {
             return true;
         }
 
         $passwordChangedAt = \Carbon\Carbon::parse($this->password_changed_at);
+
         return $passwordChangedAt->addDays($this->password_expiry_days)->isPast();
     }
 
-    public function recordPasswordChange() {
+    public function recordPasswordChange()
+    {
         $this->password_changed_at = now();
         $this->save();
     }

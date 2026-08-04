@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->text('item_number');
             $table->text('record_series_title_and_description');
-            $table->text('record_series_title_and_description_1')->nullable()->default("");
+            $table->text('record_series_title_and_description_1')->nullable();
             $table->bigInteger("active");
             $table->bigInteger("storage");
             $table->longText("remarks")->nullable();

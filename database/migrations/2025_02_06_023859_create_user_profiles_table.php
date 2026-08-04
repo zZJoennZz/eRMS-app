@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text("first_name");
             $table->text("middle_name")->nullable();
             $table->text("last_name");
-            $table->longText("others")->nullable()->default("");
+            $table->longText("others")->nullable();
             $table->unsignedBigInteger("positions_id");
             $table->timestamps();
 

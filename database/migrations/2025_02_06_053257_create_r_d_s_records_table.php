@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('r_d_s_records', function (Blueprint $table) {
             $table->id();
             $table->text("status");
-            $table->longText('box_number')->nullable()->default('');
+            $table->longText('box_number')->nullable();
             $table->unsignedBigInteger('branches_id');
             $table->unsignedBigInteger('submitted_by');
             $table->timestamps();
