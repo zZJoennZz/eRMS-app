@@ -66,7 +66,7 @@ The Electronic Records Management System (eRMS) is a robust application designed
     php artisan passport:install
     ```
 
-6. **Configure database**
+7. **Configure database**
     - Edit `.env` file and add your database credentials
     - Run migrations:
 
@@ -74,19 +74,19 @@ The Electronic Records Management System (eRMS) is a robust application designed
     php artisan migrate --seed
     ```
 
-7. **Build frontend assets**
+8. **Build frontend assets**
 
     ```bash
     npm run build
     ```
 
-8. **Start the development server**
+9. **Start the development server**
 
     ```bash
     php artisan serve
     ```
 
-9. **Access the application**
+10. **Access the application**
     - Open your browser and navigate to `http://localhost:8000`
     - Use username: admin and password: adminpw
 
