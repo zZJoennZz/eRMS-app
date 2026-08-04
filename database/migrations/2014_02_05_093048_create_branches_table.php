@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text("telephone_number")->nullable();
             $table->text("email_address")->nullable();
             $table->text("location_of_records")->nullable();
-            $table->longText("others")->nullable()->default("");
+            $table->longText("others")->nullable();
             $table->unsignedBigInteger("clusters_id");
             $table->unsignedBigInteger("sub_clusters_id")->default(0);
             $table->timestamps();
