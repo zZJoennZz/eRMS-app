@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sub_clusters', function (Blueprint $table) {
             $table->id();
-            $table->text('name');
+            $table->string('name');
             $table->timestamps();
         });
     }

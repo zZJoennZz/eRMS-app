@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('id', 100)->primary();
             $table->unsignedBigInteger('user_id')->index();
             $table->unsignedBigInteger('client_id');
-            $table->text('scopes')->nullable();
+            $table->string('scopes')->nullable();
             $table->boolean('revoked');
             $table->dateTime('expires_at')->nullable();
         });

@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string("name");
             $table->string("agency_name")->nullable();
             $table->longText("full_address")->nullable();
-            $table->text("telephone_number")->nullable();
-            $table->text("email_address")->nullable();
-            $table->text("location_of_records")->nullable();
+            $table->string("telephone_number")->nullable();
+            $table->string("email_address")->nullable();
+            $table->string("location_of_records")->nullable();
             $table->longText("others")->nullable();
             $table->unsignedBigInteger("clusters_id");
             $table->unsignedBigInteger("sub_clusters_id")->default(0);

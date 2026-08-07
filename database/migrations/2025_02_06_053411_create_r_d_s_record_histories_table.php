@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('r_d_s_records_id');
             $table->unsignedBigInteger('users_id');
-            $table->text('action');
+            $table->string('action');
             $table->longText('location');
             $table->timestamps();
 

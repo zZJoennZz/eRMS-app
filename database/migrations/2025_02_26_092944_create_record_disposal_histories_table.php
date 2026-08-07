@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('record_disposal_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('record_disposals_id');
-            $table->text('action');
+            $table->string('action');
             $table->longText('remarks')->nullable();
             $table->longText('other')->nullable();
             $table->unsignedBigInteger('users_id');

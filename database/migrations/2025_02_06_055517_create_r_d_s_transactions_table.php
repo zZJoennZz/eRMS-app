@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('r_d_s_transactions', function (Blueprint $table) {
             $table->id();
-            $table->text('status');
-            $table->text('type');
+            $table->string('status');
+            $table->string('type');
             $table->date('transaction_date');
             $table->unsignedBigInteger('receiver');
             $table->unsignedBigInteger('issuer');

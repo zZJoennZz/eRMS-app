@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('record_disposals', function (Blueprint $table) {
             $table->id();
-            $table->text('status');
+            $table->string('status');
             $table->unsignedBigInteger('users_id');
-            $table->text('remarks')->nullable();
+            $table->string('remarks')->nullable();
             $table->unsignedBigInteger('branches_id');
             $table->unsignedBigInteger('branch_head_id');
-            $table->text('other')->nullable();
+            $table->string('other')->nullable();
             $table->timestamps();
 
             $table->foreign('users_id')->references('id')->on('users');

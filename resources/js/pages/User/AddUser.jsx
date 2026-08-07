@@ -124,6 +124,7 @@ export default function AddUser({ closeHandler }) {
             queryClient.invalidateQueries({ queryKey: ["allUsers"] });
             toast.success("User account successfully created!");
             closeHandler();
+            window.location.reload();
         },
         onError: (err) => {
             toast.error(err.response.data.message);

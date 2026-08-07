@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('records_disposition_schedules', function (Blueprint $table) {
             $table->id();
-            $table->text('item_number');
-            $table->text('record_series_title_and_description');
-            $table->text('record_series_title_and_description_1')->nullable();
+            $table->string('item_number');
+            $table->string('record_series_title_and_description');
+            $table->string('record_series_title_and_description_1')->nullable();
             $table->bigInteger("active");
             $table->bigInteger("storage");
             $table->longText("remarks")->nullable();
