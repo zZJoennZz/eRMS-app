@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('r_d_s_record_document_histories', function (Blueprint $table) {
             $table->id();
-            $table->text("action");
-            $table->text("status")->nullable();
+            $table->string("action");
+            $table->string("status")->nullable();
             $table->longText("remarks")->nullable();
             $table->unsignedBigInteger("record_documents_id");
             $table->unsignedBigInteger("users_id");
